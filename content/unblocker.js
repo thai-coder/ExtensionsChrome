@@ -1,61 +1,39 @@
 /**
- * unblocker.js - Gỡ bỏ các cơ chế chống chuột phải, chống F12 và chặn bôi đen
+ * unblocker.js - Gỡ bỏ an toàn các cơ chế chặn chuột phải và bôi đen (Không phá vỡ sự kiện chuột/phím của web)
  */
 (function (global) {
   'use strict';
 
-  function initUnblocker() {
-    // 1. Chặn các event listener cố tình ngăn chặn thao tác người dùng (Capture Phase)
-    const restrictedEvents = [
-      'contextmenu',
-      'keydown',
-      'keyup',
-      'keypress',
-      'selectstart',
-      'dragstart',
-      'copy',
-      'cut',
-      'mousedown'
-    ];
-
-    restrictedEvents.forEach((eventType) => {
-      window.addEventListener(
-        eventType,
-        (e) => {
-          // Ngăn không cho trang web gọi stopPropagation hoặc preventDefault với chuột phải / phím tắt
-          e.stopPropagation();
-        },
-        true // Capture Phase
-      );
-
-      document.addEventListener(
-        eventType,
-        (e) => {
-          e.stopPropagation();
-        },
-        true
-      );
-    });
-
-    // 2. Override CSS vô hiệu hóa user-select
-    const styleId = '__flipbook_unblocker_style__';
-    if (!document.getElementById(styleId)) {
-      const style = document.createElement('style');
-      style.id = styleId;
-      style.textContent = `
-        * {
-          -webkit-user-select: auto !important;
-          -moz-user-select: auto !important;
-          -ms-user-select: auto !important;
-          user-select: auto !important;
-          pointer-events: auto !important;
-        }
-      `;
-      (document.head || document.documentElement).appendChild(style);
+  function safeUnblock() {
+    // 1. Chỉ gỡ bỏ các rào cản inline chặn chuột phải và copy trên các thẻ DOM
+    try {
+      if (document.body) {
+        document.body.oncontextmenu = null;
+        document.body.onselectstart = null;
+        document.body.ondragstart = null;
+        document.body.oncopy = null;
+      }
+      document.oncontextmenu = null;
+      document.onselectstart = null;
+      document.oncopy = null;
+      window.oncontextmenu = null;
+    } catch (e) {
+      // Bỏ qua lỗi truy cập nếu có sandbox
     }
+
+    // 2. Chỉ cho phép contextmenu mở bình thường mà KHÔNG nuốt chửng hay chặn đứng mousedown/keydown/scroll
+    window.addEventListener(
+      'contextmenu',
+      (e) => {
+        // Cho phép menu ngữ cảnh hoạt động mà không gọi stopPropagation làm hỏng các event khác
+        e.stopImmediatePropagation ? e.stopImmediatePropagation() : null;
+      },
+      false
+    );
   }
 
   global.__FlipbookUnblocker = {
-    init: initUnblocker
+    init: safeUnblock
   };
 })(window);
+

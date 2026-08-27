@@ -42,10 +42,17 @@ Bộ công cụ tự động trích xuất và tải toàn bộ ảnh từ các 
 
 ---
 
-### Cách 3: Sử dụng Tampermonkey Userscript
-1. Cài extension **Tampermonkey** hoặc **Violentmonkey** trên trình duyệt.
-2. Tạo script mới và copy toàn bộ nội dung trong file `scripts/tampermonkey.user.js` vào.
-3. Bấm **Save (Lưu)**. Script sẽ tự kích hoạt khi bạn bấm chuột phải hoặc mở menu Tampermonkey.
+### Cách 3: Sử dụng Tampermonkey Userscript (Tự động cập nhật qua GitHub - Khuyên dùng)
+1. Cài extension **Tampermonkey** trên trình duyệt Chrome (từ Chrome Web Store).
+2. Sau khi bạn push code lên GitHub:
+   - Truy cập trực tiếp link Raw sau trên trình duyệt:
+     👉 [Cài đặt Userscript Trực Tiếp](https://raw.githubusercontent.com/thai-coder/ExtensionsChrome/main/scripts/tampermonkey.user.js)
+     *(Hoặc copy URL: `https://raw.githubusercontent.com/thai-coder/ExtensionsChrome/main/scripts/tampermonkey.user.js` dán vào thanh địa chỉ Chrome).*
+   - Tampermonkey sẽ tự động mở giao diện cài đặt $\rightarrow$ Bấm **Install (Cài đặt)**.
+3. **Ưu điểm vượt trội**:
+   - Mỗi khi bạn cập nhật code trên GitHub `thai-coder/ExtensionsChrome`, Tampermonkey sẽ **tự động kiểm tra và cập nhật** bản mới nhất.
+   - Bật tính năng **Tampermonkey Sync** (qua Google Drive) để đồng bộ tiện ích trên tất cả các máy tính và Profile Chrome mà không cần cài đặt lại.
+   - Phím tắt kích hoạt nhanh trên mọi trang web: <kbd>Alt + D</kbd> hoặc bấm vào biểu tượng Tampermonkey trên thanh công cụ.
 
 ---
 

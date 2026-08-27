@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Flipbook & Book Downloader Pro",
-  "version": "2.0.0",
-  "description": "Tự động trích xuất và tải toàn bộ ảnh từ các trang đọc sách trực tuyến (Flipbook/PDF Viewer) thành 1 file ZIP.",
+  "name": "Flipbook & Document Downloader Pro",
+  "version": "2.5.0",
+  "description": "Tải sách Flipbook (ZIP/PDF) và In & Tải trang web thành PDF sạch sẽ (PrintFriendly) đa khổ giấy A3/A4/Letter & xoay ngang/dọc.",
   "permissions": [
     "activeTab",
     "scripting",
@@ -27,7 +27,7 @@
         "default": "Alt+Shift+D",
         "mac": "Alt+Shift+D"
       },
-      "description": "Mở hoặc đóng bảng điều khiển tải sách"
+      "description": "Mở hoặc đóng bảng điều khiển tải sách & tài liệu"
     }
   },
   "background": {
@@ -38,9 +38,12 @@
       "matches": ["<all_urls>"],
       "js": [
         "lib/jszip.min.js",
+        "lib/jspdf.min.js",
         "content/unblocker.js",
         "content/detector.js",
+        "content/pdf-detector.js",
         "content/downloader.js",
+        "content/pdf-engine.js",
         "content/ui.js",
         "content/content-main.js"
       ],
@@ -54,7 +57,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["lib/jszip.min.js", "icons/*"],
+      "resources": ["lib/jszip.min.js", "lib/jspdf.min.js", "icons/*"],
       "matches": ["<all_urls>"]
     }
   ]

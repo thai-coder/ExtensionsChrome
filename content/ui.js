@@ -1,5 +1,5 @@
 /**
- * ui.js - Giao diện Shadow DOM Floating Panel (Responsive, Chống tràn, Tự căn chỉnh viewport)
+ * ui.js - Giao diện Shadow DOM Dual-Mode (Tab 1: Sách Flipbook, Tab 2: In & Tải PDF Sạch)
  */
 (function (global) {
   'use strict';
@@ -7,7 +7,10 @@
   class FloatingUI {
     constructor() {
       this.hostId = '__flipbook_downloader_host__';
-      this.engine = new global.__FlipbookDownloaderEngine();
+      this.downloadEngine = new global.__FlipbookDownloaderEngine();
+      this.pdfEngine = new global.__PDFEngine();
+      this.activeTab = 'flipbook'; // 'flipbook' | 'friendly_pdf'
+      this.cleanArticleData = null;
       this.init();
     }
 
@@ -36,10 +39,10 @@
           position: fixed;
           top: 20px;
           right: 20px;
-          width: 410px;
+          width: 420px;
           max-width: calc(100vw - 32px);
           max-height: calc(100vh - 40px);
-          background: rgba(17, 24, 39, 0.96);
+          background: rgba(15, 23, 42, 0.97);
           backdrop-filter: blur(16px);
           -webkit-backdrop-filter: blur(16px);
           border: 1px solid rgba(255, 255, 255, 0.15);
@@ -51,15 +54,15 @@
           flex-direction: column;
           overflow: hidden;
           font-size: 13px;
-          animation: slideIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+          animation: slideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         @keyframes slideIn {
-          from { opacity: 0; transform: translateY(-10px) scale(0.98); }
+          from { opacity: 0; transform: translateY(-8px) scale(0.98); }
           to { opacity: 1; transform: translateY(0) scale(1); }
         }
         .header {
-          padding: 12px 16px;
-          background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(168, 85, 247, 0.3));
+          padding: 10px 14px;
+          background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(168, 85, 247, 0.25));
           border-bottom: 1px solid rgba(255, 255, 255, 0.1);
           display: flex;
           justify-content: space-between;
@@ -83,83 +86,81 @@
           color: #9CA3AF;
           font-size: 18px;
           cursor: pointer;
-          padding: 3px 7px;
+          padding: 2px 6px;
           border-radius: 6px;
           line-height: 1;
         }
         .close-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.15); }
+        
+        /* Tab Navigation Bar */
+        .tab-bar {
+          display: flex;
+          background: rgba(0, 0, 0, 0.35);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          flex-shrink: 0;
+        }
+        .tab-btn {
+          flex: 1;
+          padding: 9px 4px;
+          background: transparent;
+          border: none;
+          color: #94A3B8;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 5px;
+          border-bottom: 2px solid transparent;
+        }
+        .tab-btn:hover { color: #F1F5F9; background: rgba(255, 255, 255, 0.05); }
+        .tab-btn.active {
+          color: #A5B4FC;
+          background: rgba(99, 102, 241, 0.15);
+          border-bottom-color: #6366f1;
+        }
+
         .body {
-          padding: 14px 16px;
+          padding: 12px 14px;
           display: flex;
           flex-direction: column;
-          gap: 10px;
+          gap: 9px;
           overflow-y: auto;
           overflow-x: hidden;
           flex: 1;
         }
-        /* Custom sleek scrollbar */
-        .body::-webkit-scrollbar, .log-box::-webkit-scrollbar, .failed-tags::-webkit-scrollbar { width: 5px; height: 5px; }
-        .body::-webkit-scrollbar-thumb, .log-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
-        .body::-webkit-scrollbar-track { background: transparent; }
-
-        .form-group {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          width: 100%;
-        }
-        label {
-          font-size: 11px;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          color: #9CA3AF;
-        }
-        input[type="text"], input[type="number"], textarea {
+        .body::-webkit-scrollbar, .log-box::-webkit-scrollbar, .preview-box::-webkit-scrollbar { width: 5px; height: 5px; }
+        .body::-webkit-scrollbar-thumb, .log-box::-webkit-scrollbar-thumb, .preview-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 3px; width: 100%; }
+        label { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #94A3B8; }
+        input[type="text"], input[type="number"], select, textarea {
           width: 100% !important;
           min-width: 0 !important;
           background: rgba(0, 0, 0, 0.45);
           border: 1px solid rgba(255, 255, 255, 0.14);
-          border-radius: 8px;
-          padding: 7px 10px;
-          color: #F9FAFB;
+          border-radius: 7px;
+          padding: 6px 9px;
+          color: #F8FAFC;
           font-size: 12px;
           outline: none;
           transition: all 0.2s;
         }
-        textarea {
-          resize: vertical;
-          word-break: break-all;
-          white-space: pre-wrap;
-          line-height: 1.4;
-          min-height: 48px;
-        }
-        input:focus, textarea:focus {
-          border-color: #6366f1;
-          box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
-          background: rgba(0, 0, 0, 0.6);
-        }
-        .row {
-          display: flex;
-          gap: 8px;
-          width: 100%;
-        }
-        .row > .form-group {
-          flex: 1 1 0;
-          min-width: 0;
-        }
-        .btn-group {
-          display: flex;
-          gap: 6px;
-          margin-top: 2px;
-          width: 100%;
-        }
+        select option { background: #1e293b; color: #f8fafc; }
+        textarea { resize: vertical; min-height: 44px; word-break: break-all; }
+        input:focus, select:focus, textarea:focus { border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25); }
+        .row { display: flex; gap: 6px; width: 100%; }
+        .row > .form-group { flex: 1 1 0; min-width: 0; }
+        
+        .btn-group { display: flex; gap: 5px; width: 100%; margin-top: 2px; }
         button.btn {
           flex: 1 1 0;
           min-width: 0;
-          padding: 9px 8px;
-          border-radius: 8px;
-          font-size: 12px;
+          padding: 8px 6px;
+          border-radius: 7px;
+          font-size: 11.5px;
           font-weight: 600;
           cursor: pointer;
           border: none;
@@ -172,134 +173,103 @@
         }
         .btn-primary { background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; }
         .btn-primary:hover:not(:disabled) { background: linear-gradient(135deg, #4338ca, #6d28d9); }
-        .btn-secondary { background: rgba(255, 255, 255, 0.1); color: #E5E7EB; }
+        .btn-secondary { background: rgba(255, 255, 255, 0.1); color: #E2E8F0; }
         .btn-secondary:hover:not(:disabled) { background: rgba(255, 255, 255, 0.18); }
+        .btn-success { background: rgba(16, 185, 129, 0.25); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); }
+        .btn-success:hover:not(:disabled) { background: rgba(16, 185, 129, 0.35); }
         .btn-warning { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35); }
         .btn-danger { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35); }
-        .btn-success { background: rgba(16, 185, 129, 0.25); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); }
-        button:disabled { opacity: 0.45; cursor: not-allowed; filter: grayscale(0.7); }
+        button:disabled { opacity: 0.45; cursor: not-allowed; }
 
-        .progress-container {
-          background: rgba(0, 0, 0, 0.4);
-          border-radius: 8px;
-          padding: 9px 12px;
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          width: 100%;
-        }
-        .progress-bar-bg {
-          height: 6px;
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 3px;
-          overflow: hidden;
-          margin-top: 5px;
-        }
-        .progress-bar-fill {
-          height: 100%;
-          width: 0%;
-          background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899);
-          border-radius: 3px;
-          transition: width 0.2s ease;
-        }
-        .failed-box {
-          display: none;
-          background: rgba(239, 68, 68, 0.15);
-          border: 1px solid rgba(239, 68, 68, 0.35);
-          border-radius: 8px;
-          padding: 10px;
-          font-size: 11.5px;
-          width: 100%;
-        }
-        .failed-tags {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 4px;
-          margin-top: 6px;
-          max-height: 50px;
+        .progress-container { background: rgba(0, 0, 0, 0.4); border-radius: 7px; padding: 8px 10px; border: 1px solid rgba(255, 255, 255, 0.08); width: 100%; }
+        .progress-bar-bg { height: 5px; background: rgba(255, 255, 255, 0.1); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+        .progress-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899); transition: width 0.2s; }
+        .log-box { font-family: monospace; font-size: 10.5px; height: 65px; background: rgba(0, 0, 0, 0.55); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 6px; padding: 6px 8px; overflow-y: auto; color: #A7F3D0; white-space: pre-wrap; width: 100%; }
+        .badge { display: inline-block; padding: 2px 5px; border-radius: 4px; font-size: 9.5px; font-weight: 700; background: rgba(99, 102, 241, 0.25); color: #a5b4fc; }
+        .badge-amber { background: rgba(245, 158, 11, 0.25); color: #fcd34d; }
+
+        /* Preview Container */
+        .preview-box {
+          max-height: 120px;
           overflow-y: auto;
-        }
-        .failed-tag {
-          background: rgba(239, 68, 68, 0.3);
-          color: #fca5a5;
-          padding: 2px 6px;
-          border-radius: 4px;
-          font-weight: 700;
-          font-size: 10.5px;
-        }
-        .log-box {
-          font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
-          font-size: 11px;
-          height: 75px;
-          background: rgba(0, 0, 0, 0.55);
-          border: 1px solid rgba(255, 255, 255, 0.06);
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px dashed rgba(255, 255, 255, 0.2);
           border-radius: 6px;
-          padding: 7px 10px;
-          overflow-y: auto;
-          color: #A7F3D0;
-          white-space: pre-wrap;
-          word-break: break-all;
+          padding: 8px;
+          font-size: 11.5px;
+          color: #cbd5e1;
           line-height: 1.4;
-          width: 100%;
         }
-        .badge {
-          display: inline-block;
-          padding: 2px 6px;
-          border-radius: 4px;
-          font-size: 10px;
-          font-weight: 700;
-          background: rgba(99, 102, 241, 0.25);
-          color: #a5b4fc;
-        }
+        .preview-box * { cursor: pointer; }
+        .preview-box *:hover { background: rgba(239, 68, 68, 0.25) !important; color: #fca5a5 !important; border-radius: 3px; }
+        .hint-text { font-size: 10px; color: #94a3b8; font-style: italic; }
       `;
       this.shadow.appendChild(style);
     }
 
     render() {
-      const scan = global.__FlipbookDetector ? global.__FlipbookDetector.analyze() : {};
+      const flipScan = global.__FlipbookDetector ? global.__FlipbookDetector.analyze() : {};
+      const pdfScan = global.__PDFDetector ? global.__PDFDetector.extractCleanArticle() : { title: 'Tai_Lieu', recommendedOrientation: 'portrait' };
+      const embeddedPdfs = global.__PDFDetector ? global.__PDFDetector.findEmbeddedPdfUrls() : [];
+      this.cleanArticleData = pdfScan;
 
       const panel = document.createElement('div');
       panel.className = 'panel';
-      panel.id = 'mainPanel';
       panel.innerHTML = `
-        <div class="header" id="dragHeader">
-          <div class="title"><span>📖</span> Flipbook Downloader Pro</div>
+        <div class="header">
+          <div class="title"><span>⚡</span> Document & PDF Downloader Pro</div>
           <button class="close-btn" id="closeBtn">✕</button>
         </div>
-        <div class="body">
+
+        <div class="tab-bar">
+          <button class="tab-btn active" id="tabFlipbookBtn">📖 Sách Flipbook (Scan)</button>
+          <button class="tab-btn" id="tabPdfBtn">📄 In & Tải PDF Sạch</button>
+        </div>
+
+        <!-- TAB 1: FLIPBOOK DOWNLOADER -->
+        <div class="body" id="tabFlipbookBody">
           <div class="form-group">
-            <label>Tên tài liệu (.ZIP)</label>
-            <input type="text" id="docTitle" value="${scan.title || 'Tai_Lieu_Sach'}">
+            <label>Tên tài liệu</label>
+            <input type="text" id="docTitle" value="${flipScan.title || 'Tai_Lieu_Sach'}">
           </div>
           <div class="form-group">
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <label>URL Mẫu (Pattern)</label>
               <span class="badge">{page} hoặc {page:3}</span>
             </div>
-            <textarea id="urlPattern" rows="2" placeholder="https://site.com/pages/{page:3}.jpg">${scan.pattern || ''}</textarea>
+            <textarea id="urlPattern" rows="2" placeholder="https://site.com/pages/{page:3}.jpg">${flipScan.pattern || ''}</textarea>
           </div>
           <div class="row">
-            <div class="form-group"><label>Từ trang</label><input type="number" id="startPage" value="1" min="0"></div>
-            <div class="form-group"><label>Đến trang</label><input type="number" id="endPage" value="${scan.maxPage || 50}" min="1"></div>
-            <div class="form-group"><label>Số luồng</label><input type="number" id="concurrency" value="4" min="1" max="10"></div>
+            <div class="form-group"><label>Từ</label><input type="number" id="startPage" value="1" min="0"></div>
+            <div class="form-group"><label>Đến</label><input type="number" id="endPage" value="${flipScan.maxPage || 50}" min="1"></div>
+            <div class="form-group"><label>Luồng</label><input type="number" id="concurrency" value="4" min="1" max="10"></div>
+          </div>
+          <div class="row">
+            <div class="form-group">
+              <label>Khổ giấy PDF</label>
+              <select id="flipbookPaperSize">
+                <option value="a4" selected>A4 (210 x 297 mm)</option>
+                <option value="a3">A3 (297 x 420 mm)</option>
+                <option value="a5">A5 (148 x 210 mm)</option>
+                <option value="letter">Letter (8.5 x 11 in)</option>
+                <option value="auto">Khổ gốc ảnh (Auto)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Hướng giấy</label>
+              <select id="flipbookOrientation">
+                <option value="auto" selected>Tự động theo ảnh</option>
+                <option value="portrait">Dọc (Portrait)</option>
+                <option value="landscape">Ngang (Landscape)</option>
+              </select>
+            </div>
           </div>
           <div class="btn-group">
             <button class="btn btn-secondary" id="reScanBtn">🔍 Dò lại</button>
-            <button class="btn btn-primary" id="startBtn">🚀 Tải toàn bộ</button>
-            <button class="btn btn-warning" id="pauseBtn" disabled>⏸ Tạm dừng</button>
+            <button class="btn btn-primary" id="startZipBtn">📦 Tải ZIP</button>
+            <button class="btn btn-success" id="startPdfBtn">📄 Ghép PDF</button>
             <button class="btn btn-danger" id="cancelBtn" disabled>🛑 Hủy</button>
           </div>
-
-          <div class="failed-box" id="failedBox">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <strong id="failedCountTitle" style="color:#fca5a5;">⚠️ Bị sót trang ảnh</strong>
-              <button class="btn btn-secondary" id="clearCacheBtn" style="padding:2px 6px; font-size:10px;">🗑 Xóa cache</button>
-            </div>
-            <div class="failed-tags" id="failedTags"></div>
-            <div class="btn-group" style="margin-top:8px;">
-              <button class="btn btn-primary" id="resumeFailedBtn">🔄 Tải lại trang lỗi (Resume)</button>
-              <button class="btn btn-success" id="exportPartialZipBtn">📦 Xuất ZIP hiện có</button>
-            </div>
-          </div>
-
           <div class="progress-container">
             <div style="display:flex; justify-content:space-between; font-size:11px;">
               <span id="statusText">Sẵn sàng</span>
@@ -307,7 +277,76 @@
             </div>
             <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar"></div></div>
           </div>
-          <div class="log-box" id="logBox">⚡ Sẵn sàng tải với cơ chế Resume & Auto-Fallback URLs.</div>
+          <div class="log-box" id="logBox">⚡ Sẵn sàng tải Flipbook. Chọn Tải ZIP hoặc Ghép PDF.</div>
+        </div>
+
+        <!-- TAB 2: FRIENDLY PDF & CLEAN WEB-TO-PDF -->
+        <div class="body" id="tabPdfBody" style="display:none;">
+          <div class="form-group">
+            <label>Tiêu đề bài in</label>
+            <input type="text" id="pdfArticleTitle" value="${pdfScan.displayTitle || 'Tai_Lieu_In'}">
+          </div>
+
+          ${embeddedPdfs.length > 0 ? `
+          <div style="background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.35); border-radius:7px; padding:7px 10px;">
+            <div style="font-weight:700; color:#6ee7b7; font-size:11px; margin-bottom:4px;">🎯 Phát hiện ${embeddedPdfs.length} file PDF gốc nhúng trong trang:</div>
+            ${embeddedPdfs.map((url, idx) => `
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; margin-top:3px;">
+                <span style="font-size:10px; color:#cbd5e1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">📄 ${url.split('/').pop().split('?')[0] || 'Tài liệu ' + (idx + 1)}</span>
+                <a href="${url}" download class="btn btn-success" style="padding:2px 8px; font-size:10px; text-decoration:none;">⬇ Tải file gốc</a>
+              </div>
+            `).join('')}
+          </div>` : ''}
+
+          <div class="row">
+            <div class="form-group">
+              <label>Khổ giấy</label>
+              <select id="articlePaperSize">
+                <option value="a4" selected>A4 (210 x 297 mm)</option>
+                <option value="a3">A3 (297 x 420 mm)</option>
+                <option value="a5">A5 (148 x 210 mm)</option>
+                <option value="letter">Letter (8.5 x 11 in)</option>
+                <option value="legal">Legal (8.5 x 14 in)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Hướng in ${pdfScan.hasWideContent ? '<span class="badge badge-amber">Ngang khuyên dùng</span>' : ''}</label>
+              <select id="articleOrientation">
+                <option value="portrait" ${pdfScan.recommendedOrientation === 'portrait' ? 'selected' : ''}>Dọc (Portrait)</option>
+                <option value="landscape" ${pdfScan.recommendedOrientation === 'landscape' ? 'selected' : ''}>Ngang (Landscape)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="form-group">
+              <label>Cỡ chữ in</label>
+              <select id="articleFontSize">
+                <option value="11pt">Nhỏ (11pt)</option>
+                <option value="13pt" selected>Vừa (13pt - Chuẩn)</option>
+                <option value="15pt">Lớn (15pt)</option>
+                <option value="17pt">Rất lớn (17pt)</option>
+              </select>
+            </div>
+            <div class="form-group" style="justify-content:flex-end;">
+              <label style="display:flex; align-items:center; gap:6px; cursor:pointer; text-transform:none; font-size:11.5px; color:#F1F5F9; padding-top:16px;">
+                <input type="checkbox" id="hideImagesCheckbox"> Ẩn hình ảnh (Tiết kiệm mực)
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <label>Xem trước nội dung sạch</label>
+              <span class="hint-text">💡 Click vào khối thừa để xóa</span>
+            </div>
+            <div class="preview-box" id="articlePreviewBox">${pdfScan.htmlContent || 'Không tìm thấy nội dung bài viết chính.'}</div>
+          </div>
+
+          <div class="btn-group">
+            <button class="btn btn-secondary" id="reExtractBtn">🔄 Quét lại bài viết</button>
+            <button class="btn btn-primary" id="printCleanBtn" style="flex:2; font-size:12.5px;">🖨️ In & Xuất PDF Sạch</button>
+          </div>
         </div>
       `;
       this.shadow.appendChild(panel);
@@ -315,24 +354,40 @@
 
     bindEvents() {
       const closeBtn = this.shadow.getElementById('closeBtn');
-      const startBtn = this.shadow.getElementById('startBtn');
-      const pauseBtn = this.shadow.getElementById('pauseBtn');
-      const cancelBtn = this.shadow.getElementById('cancelBtn');
-      const reScanBtn = this.shadow.getElementById('reScanBtn');
+      const tabFlipbookBtn = this.shadow.getElementById('tabFlipbookBtn');
+      const tabPdfBtn = this.shadow.getElementById('tabPdfBtn');
+      const tabFlipbookBody = this.shadow.getElementById('tabFlipbookBody');
+      const tabPdfBody = this.shadow.getElementById('tabPdfBody');
 
-      const failedBox = this.shadow.getElementById('failedBox');
-      const failedCountTitle = this.shadow.getElementById('failedCountTitle');
-      const failedTags = this.shadow.getElementById('failedTags');
-      const resumeFailedBtn = this.shadow.getElementById('resumeFailedBtn');
-      const exportPartialZipBtn = this.shadow.getElementById('exportPartialZipBtn');
-      const clearCacheBtn = this.shadow.getElementById('clearCacheBtn');
+      // TAB NAVIGATION
+      tabFlipbookBtn.addEventListener('click', () => {
+        tabFlipbookBtn.classList.add('active');
+        tabPdfBtn.classList.remove('active');
+        tabFlipbookBody.style.display = 'flex';
+        tabPdfBody.style.display = 'none';
+      });
 
+      tabPdfBtn.addEventListener('click', () => {
+        tabPdfBtn.classList.add('active');
+        tabFlipbookBtn.classList.remove('active');
+        tabPdfBody.style.display = 'flex';
+        tabFlipbookBody.style.display = 'none';
+      });
+
+      closeBtn.addEventListener('click', () => this.host.remove());
+
+      // ================= TAB 1: FLIPBOOK EVENTS =================
       const docTitle = this.shadow.getElementById('docTitle');
       const urlPattern = this.shadow.getElementById('urlPattern');
       const startPage = this.shadow.getElementById('startPage');
       const endPage = this.shadow.getElementById('endPage');
       const concurrency = this.shadow.getElementById('concurrency');
-
+      const flipbookPaperSize = this.shadow.getElementById('flipbookPaperSize');
+      const flipbookOrientation = this.shadow.getElementById('flipbookOrientation');
+      const reScanBtn = this.shadow.getElementById('reScanBtn');
+      const startZipBtn = this.shadow.getElementById('startZipBtn');
+      const startPdfBtn = this.shadow.getElementById('startPdfBtn');
+      const cancelBtn = this.shadow.getElementById('cancelBtn');
       const statusText = this.shadow.getElementById('statusText');
       const percentText = this.shadow.getElementById('percentText');
       const progressBar = this.shadow.getElementById('progressBar');
@@ -344,59 +399,22 @@
         logBox.scrollTop = logBox.scrollHeight;
       };
 
-      closeBtn.addEventListener('click', () => this.host.remove());
-
       reScanBtn.addEventListener('click', () => {
         const scan = global.__FlipbookDetector.analyze();
         urlPattern.value = scan.pattern;
         startPage.value = scan.startPage || 1;
         endPage.value = scan.maxPage;
-        appendLog(`🔍 Dò lại thành công! Tìm thấy dải trang: ${scan.startPage || 1} ➔ ${scan.maxPage}`);
-      });
-
-      clearCacheBtn.addEventListener('click', () => {
-        this.engine.resetCache();
-        failedBox.style.display = 'none';
-        progressBar.style.width = '0%';
-        percentText.textContent = '0%';
-        statusText.textContent = 'Đã dọn dẹp cache';
-        appendLog('🗑 Đã xóa toàn bộ bộ nhớ tạm.');
-      });
-
-      pauseBtn.addEventListener('click', () => {
-        const isPaused = this.engine.togglePause();
-        pauseBtn.textContent = isPaused ? '▶ Tiếp tục' : '⏸ Tạm dừng';
-        statusText.textContent = isPaused ? 'Đã tạm dừng' : 'Đang tải...';
+        appendLog(`🔍 Dò lại thành công: ${scan.startPage} ➔ ${scan.maxPage}`);
       });
 
       cancelBtn.addEventListener('click', () => {
-        this.engine.abort();
+        this.downloadEngine.abort();
         appendLog('🛑 Đã nhận lệnh hủy!');
         statusText.textContent = 'Đã hủy';
-        this.setUIState(false);
+        this.setFlipbookRunningState(false);
       });
 
-      exportPartialZipBtn.addEventListener('click', async () => {
-        const title = docTitle.value.trim() || 'Tai_Lieu';
-        try {
-          statusText.textContent = 'Đang nén ZIP...';
-          await this.engine.packageAndSaveZip(title, (pct) => {
-            statusText.textContent = `Đang nén: ${pct}%`;
-          });
-          appendLog(`🎉 Đã xuất thành công ZIP chứa ${this.engine.downloadedMap.size} trang!`);
-        } catch (e) {
-          appendLog(`❌ Lỗi xuất ZIP: ${e.message}`);
-        }
-      });
-
-      const originalPageTitle = document.title;
-      const onBeforeUnloadHandler = (e) => {
-        e.preventDefault();
-        e.returnValue = 'Tiến trình tải sách đang diễn ra, bạn có chắc muốn rời đi?';
-        return e.returnValue;
-      };
-
-      const runDownloadProcess = async (onlyPagesList = null) => {
+      const executeDownloadFlow = async (exportType = 'zip') => {
         const pattern = urlPattern.value.trim();
         const start = parseInt(startPage.value, 10);
         const end = parseInt(endPage.value, 10);
@@ -405,77 +423,104 @@
 
         if (!pattern) return alert('Chưa nhập URL Mẫu!');
 
-        this.setUIState(true);
+        this.setFlipbookRunningState(true);
         statusText.textContent = 'Đang tải...';
-        window.addEventListener('beforeunload', onBeforeUnloadHandler);
 
         try {
-          const result = await this.engine.startDownload({
+          const result = await this.downloadEngine.startDownload({
             pattern,
             startPage: start,
             endPage: end,
             concurrency: threads,
-            onlyPages: onlyPagesList,
             onProgress: (p) => {
               progressBar.style.width = `${p.percent}%`;
               percentText.textContent = `${p.percent}%`;
               statusText.textContent = `Đã có: ${p.completed}/${p.total} trang`;
-              document.title = `[${p.percent}%] 📖 ${originalPageTitle}`;
             },
             onLog: appendLog
           });
 
           if (result.aborted) return;
 
-          if (result.failedPages.length > 0) {
-            failedBox.style.display = 'block';
-            failedCountTitle.textContent = `⚠️ Có ${result.failedPages.length} trang tải lỗi / không tìm thấy:`;
-            failedTags.innerHTML = result.failedPages.map(p => `<span class="failed-tag">Trang ${p}</span>`).join('');
-            resumeFailedBtn.textContent = `🔄 Tải lại ${result.failedPages.length} trang lỗi (Resume)`;
-            appendLog(`⚠️ Còn ${result.failedPages.length} trang lỗi. Bạn có thể bấm "Tải lại trang lỗi" hoặc "Xuất ZIP hiện có".`);
-            document.title = `[⚠️ Có lỗi] ${originalPageTitle}`;
-          } else {
-            failedBox.style.display = 'none';
-          }
-
-          if (result.failedPages.length === 0 && result.completedCount > 0) {
-            statusText.textContent = 'Đang nén ZIP...';
-            document.title = `[Đang nén ZIP...] ${originalPageTitle}`;
-            appendLog(`📦 Đang tự động nén toàn bộ ${result.completedCount} trang vào ${title}.zip...`);
-            await this.engine.packageAndSaveZip(title, (pct) => {
-              statusText.textContent = `Đang nén: ${pct}%`;
-              document.title = `[Nén ${pct}%] ${originalPageTitle}`;
-            });
-            appendLog(`🎉 HOÀN THÀNH 100%! Đã lưu: ${title}.zip`);
+          if (result.completedCount > 0) {
+            if (exportType === 'zip') {
+              statusText.textContent = 'Đang nén ZIP...';
+              appendLog(`📦 Đang nén ${result.completedCount} trang vào ${title}.zip...`);
+              await this.downloadEngine.packageAndSaveZip(title, (pct) => {
+                statusText.textContent = `Đang nén: ${pct}%`;
+              });
+              appendLog(`🎉 XUẤT THÀNH CÔNG: ${title}.zip`);
+            } else {
+              statusText.textContent = 'Đang ghép PDF...';
+              appendLog(`📄 Đang ghép ${result.completedCount} trang vào ${title}.pdf (${flipbookPaperSize.value.toUpperCase()})...`);
+              await this.pdfEngine.convertImagesToPdf(this.downloadEngine.downloadedMap, {
+                title,
+                paperSize: flipbookPaperSize.value,
+                orientation: flipbookOrientation.value,
+                onProgress: (pct, cur, tot) => {
+                  statusText.textContent = `Ghép PDF: ${cur}/${tot} (${pct}%)`;
+                }
+              });
+              appendLog(`🎉 GHÉP XONG PDF: ${title}.pdf`);
+            }
             statusText.textContent = 'Hoàn tất 100%';
-            document.title = `[✅ TẢI XONG!] ${originalPageTitle}`;
           }
         } catch (err) {
           appendLog(`❌ Lỗi: ${err.message}`);
-          statusText.textContent = 'Lỗi tiến trình';
-          document.title = `[❌ Lỗi] ${originalPageTitle}`;
+          statusText.textContent = 'Lỗi';
         } finally {
-          window.removeEventListener('beforeunload', onBeforeUnloadHandler);
-          this.setUIState(false);
+          this.setFlipbookRunningState(false);
         }
       };
 
-      startBtn.addEventListener('click', () => runDownloadProcess(null));
-      resumeFailedBtn.addEventListener('click', () => {
-        const failedArr = Array.from(this.engine.failedMap.keys());
-        if (failedArr.length > 0) {
-          runDownloadProcess(failedArr);
+      startZipBtn.addEventListener('click', () => executeDownloadFlow('zip'));
+      startPdfBtn.addEventListener('click', () => executeDownloadFlow('pdf'));
+
+      // ================= TAB 2: FRIENDLY PDF EVENTS =================
+      const pdfArticleTitle = this.shadow.getElementById('pdfArticleTitle');
+      const articlePaperSize = this.shadow.getElementById('articlePaperSize');
+      const articleOrientation = this.shadow.getElementById('articleOrientation');
+      const articleFontSize = this.shadow.getElementById('articleFontSize');
+      const hideImagesCheckbox = this.shadow.getElementById('hideImagesCheckbox');
+      const articlePreviewBox = this.shadow.getElementById('articlePreviewBox');
+      const reExtractBtn = this.shadow.getElementById('reExtractBtn');
+      const printCleanBtn = this.shadow.getElementById('printCleanBtn');
+
+      // Click-to-delete các khối rác trong preview
+      articlePreviewBox.addEventListener('click', (e) => {
+        if (e.target !== articlePreviewBox) {
+          e.target.remove();
+          this.cleanArticleData.htmlContent = articlePreviewBox.innerHTML;
         }
+      });
+
+      reExtractBtn.addEventListener('click', () => {
+        const scan = global.__PDFDetector.extractCleanArticle();
+        this.cleanArticleData = scan;
+        pdfArticleTitle.value = scan.displayTitle;
+        articlePreviewBox.innerHTML = scan.htmlContent;
+        if (scan.hasWideContent) {
+          articleOrientation.value = 'landscape';
+        }
+      });
+
+      printCleanBtn.addEventListener('click', () => {
+        this.cleanArticleData.htmlContent = articlePreviewBox.innerHTML;
+        this.pdfEngine.printCleanArticle(this.cleanArticleData, {
+          hideImages: hideImagesCheckbox.checked,
+          fontSize: articleFontSize.value,
+          paperSize: articlePaperSize.value,
+          orientation: articleOrientation.value,
+          customTitle: pdfArticleTitle.value.trim()
+        });
       });
     }
 
-    setUIState(isRunning) {
-      this.shadow.getElementById('startBtn').disabled = isRunning;
-      this.shadow.getElementById('pauseBtn').disabled = !isRunning;
+    setFlipbookRunningState(isRunning) {
+      this.shadow.getElementById('startZipBtn').disabled = isRunning;
+      this.shadow.getElementById('startPdfBtn').disabled = isRunning;
       this.shadow.getElementById('cancelBtn').disabled = !isRunning;
       this.shadow.getElementById('reScanBtn').disabled = isRunning;
-      const resumeBtn = this.shadow.getElementById('resumeFailedBtn');
-      if (resumeBtn) resumeBtn.disabled = isRunning;
     }
   }
 

@@ -102,11 +102,29 @@
           '.social-share', '.share-box', '.share-buttons', '.cookie-banner', '.popup', '.modal',
           '.btn', '.button', '[class*="btn-"]', '[class*="button-"]', '[class*="share-"]',
           '[class*="social-"]', '[class*="toolbar"]', '[class*="action-"]', '[class*="subscribe"]',
-          '[class*="newsletter"]', '[class*="related-"]', '[class*="widget"]', '#__flipbook_downloader_host__'
+          '[class*="newsletter"]', '[class*="related-"]', '[class*="widget"]',
+          '.site-header', '.site-footer', '.page-header', '.page-footer', '.breadcrumb', '.breadcrumbs',
+          '#__flipbook_downloader_host__'
         ];
 
         junkSelectors.forEach((sel) => {
           clone.querySelectorAll(sel).forEach((el) => el.remove());
+        });
+
+        // Gỡ bỏ chiều cao cố định và overflow để nội dung không bị tràn ra ngoài khổ giấy
+        clone.style.height = 'auto';
+        clone.style.maxHeight = 'none';
+        clone.style.overflow = 'visible';
+        clone.style.position = 'static';
+        clone.querySelectorAll('*').forEach((el) => {
+          if (el.style) {
+            if (el.style.height && el.tagName !== 'IMG' && el.tagName !== 'CANVAS' && el.tagName !== 'SVG') {
+              el.style.height = 'auto';
+            }
+            if (el.style.maxHeight) el.style.maxHeight = 'none';
+            if (el.style.overflow && el.style.overflow !== 'visible') el.style.overflow = 'visible';
+            if (el.style.position === 'absolute' || el.style.position === 'fixed') el.style.position = 'static';
+          }
         });
 
         let hasWideContent = false;

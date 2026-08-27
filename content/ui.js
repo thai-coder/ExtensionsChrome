@@ -239,30 +239,9 @@
             <div class="form-group"><label>Đến</label><input type="number" id="endPage" value="${flipScan.maxPage || 50}" min="1"></div>
             <div class="form-group"><label>Luồng</label><input type="number" id="concurrency" value="4" min="1" max="10"></div>
           </div>
-          <div class="row">
-            <div class="form-group">
-              <label>Khổ giấy PDF</label>
-              <select id="flipbookPaperSize">
-                <option value="a4" selected>A4 (210 x 297 mm)</option>
-                <option value="a3">A3 (297 x 420 mm)</option>
-                <option value="a5">A5 (148 x 210 mm)</option>
-                <option value="letter">Letter (8.5 x 11 in)</option>
-                <option value="auto">Khổ gốc ảnh (Auto)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Hướng giấy</label>
-              <select id="flipbookOrientation">
-                <option value="auto" selected>Tự động theo ảnh</option>
-                <option value="portrait">Dọc (Portrait)</option>
-                <option value="landscape">Ngang (Landscape)</option>
-              </select>
-            </div>
-          </div>
           <div class="btn-group">
             <button class="btn btn-secondary" id="reScanBtn">🔍 Dò lại</button>
-            <button class="btn btn-primary" id="startZipBtn">📦 Tải ZIP</button>
-            <button class="btn btn-success" id="startPdfBtn">📄 Ghép PDF</button>
+            <button class="btn btn-primary" id="startZipBtn" style="flex: 2;">📦 Tải ZIP Ảnh Sách</button>
             <button class="btn btn-danger" id="cancelBtn" disabled>🛑 Hủy</button>
           </div>
           <div class="progress-container">
@@ -272,7 +251,7 @@
             </div>
             <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar"></div></div>
           </div>
-          <div class="log-box" id="logBox">⚡ Sẵn sàng tải Flipbook. Chọn Tải ZIP hoặc Ghép PDF.</div>
+          <div class="log-box" id="logBox">⚡ Sẵn sàng tải Flipbook. Bấm "Tải ZIP Ảnh Sách" để bắt đầu.</div>
         </div>
 
         <!-- TAB 2: FRIENDLY PDF & CLEAN WEB-TO-PDF -->
@@ -287,24 +266,23 @@
             <div id="embeddedPdfsContainer"></div>
           </div>
 
-          <div class="row">
-            <div class="form-group">
-              <label>Khổ giấy</label>
-              <select id="articlePaperSize">
-                <option value="a4" selected>A4 (210 x 297 mm)</option>
-                <option value="a3">A3 (297 x 420 mm)</option>
-                <option value="a5">A5 (148 x 210 mm)</option>
-                <option value="letter">Letter (8.5 x 11 in)</option>
-                <option value="legal">Legal (8.5 x 14 in)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Hướng in</label>
-              <select id="articleOrientation">
-                <option value="portrait" selected>Dọc (Portrait)</option>
-                <option value="landscape">Ngang (Landscape)</option>
-              </select>
-            </div>
+          <div class="form-group">
+            <label>Khổ giấy</label>
+            <select id="articlePaperSize" style="width: 100%;">
+              <option value="a4" selected>A4 (210 x 297 mm - Chuẩn)</option>
+              <option value="a3">A3 (297 x 420 mm - Bản rộng)</option>
+              <option value="a5">A5 (148 x 210 mm - Nhỏ gọn)</option>
+              <option value="letter">Letter (8.5 x 11 in - Mỹ)</option>
+              <option value="legal">Legal (8.5 x 14 in)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Hướng in</label>
+            <select id="articleOrientation" style="width: 100%;">
+              <option value="portrait" selected>Dọc (Portrait - Mặc định)</option>
+              <option value="landscape">Ngang (Landscape - Thích hợp bảng biểu lớn)</option>
+            </select>
           </div>
 
           <div style="background:rgba(99, 102, 241, 0.12); border:1px solid rgba(99, 102, 241, 0.3); border-radius:8px; padding:12px 14px; margin-top:4px;">
@@ -430,18 +408,6 @@
                 statusText.textContent = `Đang nén: ${pct}%`;
               });
               appendLog(`🎉 XUẤT THÀNH CÔNG: ${title}.zip`);
-            } else {
-              statusText.textContent = 'Đang ghép PDF...';
-              appendLog(`📄 Đang ghép ${result.completedCount} trang vào ${title}.pdf...`);
-              await this.pdfEngine.convertImagesToPdf(this.downloadEngine.downloadedMap, {
-                title,
-                paperSize: flipbookPaperSize.value,
-                orientation: flipbookOrientation.value,
-                onProgress: (pct, cur, tot) => {
-                  statusText.textContent = `Ghép PDF: ${cur}/${tot} (${pct}%)`;
-                }
-              });
-              appendLog(`🎉 GHÉP XONG PDF: ${title}.pdf`);
             }
             statusText.textContent = 'Hoàn tất 100%';
           }
@@ -454,7 +420,6 @@
       };
 
       startZipBtn.addEventListener('click', () => executeDownloadFlow('zip'));
-      startPdfBtn.addEventListener('click', () => executeDownloadFlow('pdf'));
 
       // TAB 2: FRIENDLY PDF EVENTS
       const openPreviewBtn = this.shadow.getElementById('openPreviewBtn');
@@ -517,11 +482,9 @@
 
     setFlipbookRunningState(isRunning) {
       const zipBtn = this.shadow.getElementById('startZipBtn');
-      const pdfBtn = this.shadow.getElementById('startPdfBtn');
       const cancelBtn = this.shadow.getElementById('cancelBtn');
       const reScanBtn = this.shadow.getElementById('reScanBtn');
       if (zipBtn) zipBtn.disabled = isRunning;
-      if (pdfBtn) pdfBtn.disabled = isRunning;
       if (cancelBtn) cancelBtn.disabled = !isRunning;
       if (reScanBtn) reScanBtn.disabled = isRunning;
     }

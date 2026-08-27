@@ -314,8 +314,6 @@
     }
 
     bindEvents() {
-      const panel = this.shadow.getElementById('mainPanel');
-      const dragHeader = this.shadow.getElementById('dragHeader');
       const closeBtn = this.shadow.getElementById('closeBtn');
       const startBtn = this.shadow.getElementById('startBtn');
       const pauseBtn = this.shadow.getElementById('pauseBtn');

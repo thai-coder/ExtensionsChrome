@@ -1,0 +1,118 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+  width: 290px;
+  background: #111827;
+  color: #f3f4f6;
+  padding: 16px;
+}
+
+.popup-container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.icon-wrap {
+  font-size: 24px;
+  background: rgba(99, 102, 241, 0.2);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+.header-text h3 {
+  font-size: 14px;
+  font-weight: 700;
+  background: linear-gradient(90deg, #818cf8, #c084fc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.header-text span {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.info-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #d1d5db;
+}
+
+.status-msg {
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
+.status-msg.error {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+.status-msg.success {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #6ee7b7;
+}
+
+kbd {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #a5b4fc;
+}
+
+.btn-launch {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-launch:hover {
+  background: linear-gradient(135deg, #4338ca, #6d28d9);
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.5);
+  transform: translateY(-1px);
+}
+
+.footer {
+  text-align: center;
+  font-size: 10.5px;
+  color: #6b7280;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 10px;
+}

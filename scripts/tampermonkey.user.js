@@ -37,45 +37,50 @@
       return (name || 'Tai_Lieu_Sach').replace(/[\\/:*?"<>|]/g, '_').replace(/\s+/g, '_').substring(0, 80);
     },
     detectTotalPagesFromDOM() {
-      const inputs = document.querySelectorAll('input');
-      for (const input of inputs) {
-        const val = (input.value || input.placeholder || '').trim();
-        const maxAttr = input.getAttribute('max');
-        const matchSlash = val.match(/^(\d{1,4})\s*[\/|\\]\s*(\d{1,4})$/);
-        if (matchSlash) {
-          const cur = parseInt(matchSlash[1], 10), tot = parseInt(matchSlash[2], 10);
-          if (tot > 1 && tot < 5000) return { current: cur, total: tot };
-        }
-        if (maxAttr) {
-          const parsedMax = parseInt(maxAttr, 10);
-          if (parsedMax > 1 && parsedMax < 5000) return { current: 1, total: parsedMax };
-        }
-      }
-      const candidates = document.querySelectorAll('[class*="page"], [id*="page"], [class*="nav"], [id*="nav"], span, div');
-      const pageRegex = /\b(\d{1,4})\s*(?:\/|of|trên)\s*(\d{1,4})\b/i;
-      for (const el of candidates) {
-        const text = el.innerText || el.textContent || '';
-        if (text.length > 0 && text.length < 25) {
-          const match = text.trim().match(pageRegex);
-          if (match) {
-            const cur = parseInt(match[1], 10), tot = parseInt(match[2], 10);
-            if (tot > 1 && tot < 5000 && cur <= tot) return { current: cur, total: tot };
+      try {
+        const inputs = document.querySelectorAll('input');
+        for (const input of inputs) {
+          const val = (input.value || input.placeholder || '').trim();
+          const maxAttr = input.getAttribute('max');
+          const matchSlash = val.match(/^(\d{1,4})\s*[\/|\\]\s*(\d{1,4})$/);
+          if (matchSlash) {
+            const cur = parseInt(matchSlash[1], 10), tot = parseInt(matchSlash[2], 10);
+            if (tot > 1 && tot < 5000) return { current: cur, total: tot };
+          }
+          if (maxAttr) {
+            const parsedMax = parseInt(maxAttr, 10);
+            if (parsedMax > 1 && parsedMax < 5000) return { current: 1, total: parsedMax };
           }
         }
-      }
+        const candidates = document.querySelectorAll('[class*="page"], [id*="page"], [class*="nav"], [id*="nav"], span, div');
+        const pageRegex = /\b(\d{1,4})\s*(?:\/|of|trên)\s*(\d{1,4})\b/i;
+        for (const el of candidates) {
+          const text = el.innerText || el.textContent || '';
+          if (text.length > 0 && text.length < 25) {
+            const match = text.trim().match(pageRegex);
+            if (match) {
+              const cur = parseInt(match[1], 10), tot = parseInt(match[2], 10);
+              if (tot > 1 && tot < 5000 && cur <= tot) return { current: cur, total: tot };
+            }
+          }
+        }
+      } catch (e) {}
       return { current: 1, total: 50 };
     },
     analyze() {
       const candidates = new Set();
-      if (window.performance && performance.getEntriesByType) {
-        performance.getEntriesByType('resource').forEach((r) => {
-          if (/\.(jpg|jpeg|png|webp|svg|gif)(\?.*)?$/i.test(r.name)) candidates.add(r.name);
+      try {
+        if (window.performance && performance.getEntriesByType) {
+          performance.getEntriesByType('resource').forEach((r) => {
+            if (/\.(jpg|jpeg|png|webp|svg|gif)(\?.*)?$/i.test(r.name)) candidates.add(r.name);
+          });
+        }
+        document.querySelectorAll('img').forEach((img) => {
+          const src = img.src || img.getAttribute('data-src') || img.getAttribute('data-original');
+          if (src && src.startsWith('http')) candidates.add(src);
         });
-      }
-      document.querySelectorAll('img').forEach((img) => {
-        const src = img.src || img.getAttribute('data-src') || img.getAttribute('data-original');
-        if (src && src.startsWith('http')) candidates.add(src);
-      });
+      } catch (e) {}
+
       const domPageInfo = this.detectTotalPagesFromDOM();
       let bestPattern = '', detectedPadding = 1, detectedMaxPage = domPageInfo.total;
       const urlList = Array.from(candidates);
@@ -110,52 +115,64 @@
   const PDFDetector = {
     findEmbeddedPdfUrls() {
       const urls = new Set();
-      document.querySelectorAll('embed[type*="pdf"], embed[src*=".pdf"], object[data*=".pdf"]').forEach((el) => {
-        const src = el.getAttribute('src') || el.getAttribute('data') || el.src || el.data;
-        if (src && !src.startsWith('blob:') && !src.startsWith('about:')) urls.add(new URL(src, window.location.href).href);
-      });
-      document.querySelectorAll('iframe').forEach((iframe) => {
-        const src = iframe.src || iframe.getAttribute('src') || '';
-        if (src && /\.pdf(\?.*)?$/i.test(src)) urls.add(new URL(src, window.location.href).href);
-      });
-      document.querySelectorAll('a[href*=".pdf"]').forEach((a) => {
-        const href = a.getAttribute('href');
-        if (href && /\.pdf(\?.*)?$/i.test(href)) urls.add(new URL(href, window.location.href).href);
-      });
+      try {
+        document.querySelectorAll('embed[type*="pdf"], embed[src*=".pdf"], object[data*=".pdf"]').forEach((el) => {
+          const src = el.getAttribute('src') || el.getAttribute('data') || el.src || el.data;
+          if (src && !src.startsWith('blob:') && !src.startsWith('about:')) urls.add(new URL(src, window.location.href).href);
+        });
+        document.querySelectorAll('iframe').forEach((iframe) => {
+          const src = iframe.src || iframe.getAttribute('src') || '';
+          if (src && /\.pdf(\?.*)?$/i.test(src)) urls.add(new URL(src, window.location.href).href);
+        });
+        document.querySelectorAll('a[href*=".pdf"]').forEach((a) => {
+          const href = a.getAttribute('href');
+          if (href && /\.pdf(\?.*)?$/i.test(href)) urls.add(new URL(href, window.location.href).href);
+        });
+      } catch (e) {}
       return Array.from(urls);
     },
     extractCleanArticle() {
-      const title = document.querySelector('meta[property="og:title"]')?.content || document.querySelector('h1')?.innerText?.trim() || document.title || 'Tai_Lieu';
-      const contentCandidates = ['article', 'main', '[role="main"]', '.post-content', '.article-content', '.entry-content', '.content-body', '#content'];
-      let bestElement = null;
-      for (const sel of contentCandidates) {
-        const el = document.querySelector(sel);
-        if (el && el.querySelectorAll('p').length > 1) { bestElement = el; break; }
+      try {
+        const title = document.querySelector('meta[property="og:title"]')?.content || document.querySelector('h1')?.innerText?.trim() || document.title || 'Tai_Lieu';
+        const contentCandidates = ['article', 'main', '[role="main"]', '.post-content', '.article-content', '.entry-content', '.content-body', '#content'];
+        let bestElement = null;
+        for (const sel of contentCandidates) {
+          const el = document.querySelector(sel);
+          if (el && el.querySelectorAll('p').length >= 1) { bestElement = el; break; }
+        }
+        const sourceEl = bestElement || document.body || document.documentElement;
+        const clone = sourceEl.cloneNode(true);
+        ['script', 'style', 'noscript', 'iframe', 'nav', 'aside', 'header', 'footer', '.ad', '.ads', '.sidebar', '.comment', '#__flipbook_downloader_host__'].forEach((sel) => {
+          clone.querySelectorAll(sel).forEach((el) => el.remove());
+        });
+
+        let hasWideContent = false;
+        clone.querySelectorAll('table').forEach((table) => {
+          if (table.querySelectorAll('tr:first-child th, tr:first-child td').length >= 4 || table.scrollWidth > 700) hasWideContent = true;
+          table.style.width = '100%';
+          table.style.borderCollapse = 'collapse';
+          table.querySelectorAll('th, td').forEach(c => { c.style.border = '1px solid #ccc'; c.style.padding = '6px'; });
+        });
+        clone.querySelectorAll('pre, code').forEach((code) => {
+          if (code.scrollWidth > 700) hasWideContent = true;
+        });
+
+        return {
+          title: title.replace(/[\\/:*?"<>|]/g, '_').substring(0, 80),
+          displayTitle: title,
+          htmlContent: clone.innerHTML || '<p>Không có nội dung văn bản.</p>',
+          hasWideContent: hasWideContent,
+          recommendedOrientation: hasWideContent ? 'landscape' : 'portrait'
+        };
+      } catch (e) {
+        return {
+          title: 'Tai_Lieu',
+          displayTitle: document.title || 'Tai_Lieu',
+          htmlContent: '<p>Tài liệu</p>',
+          hasWideContent: false,
+          recommendedOrientation: 'portrait'
+        };
       }
-      const sourceEl = bestElement || document.body || document.documentElement;
-      const clone = sourceEl.cloneNode(true);
-      ['script', 'style', 'noscript', 'iframe', 'nav', 'aside', 'header', 'footer', '.ad', '.ads', '.sidebar', '.comment', '#__flipbook_downloader_host__'].forEach((sel) => {
-        clone.querySelectorAll(sel).forEach((el) => el.remove());
-      });
-
-      let hasWideContent = false;
-      clone.querySelectorAll('table').forEach((table) => {
-        if (table.querySelectorAll('tr:first-child th, tr:first-child td').length >= 4 || table.scrollWidth > 700) hasWideContent = true;
-        table.style.width = '100%';
-        table.style.borderCollapse = 'collapse';
-        table.querySelectorAll('th, td').forEach(c => { c.style.border = '1px solid #ccc'; c.style.padding = '6px'; });
-      });
-      clone.querySelectorAll('pre, code').forEach((code) => {
-        if (code.scrollWidth > 750) hasWideContent = true;
-      });
-
-      return {
-        title: title.replace(/[\\/:*?"<>|]/g, '_').substring(0, 80),
-        displayTitle: title,
-        htmlContent: clone.innerHTML,
-        hasWideContent: hasWideContent,
-        recommendedOrientation: hasWideContent ? 'landscape' : 'portrait'
-      };
     }
   };
 
@@ -304,7 +321,6 @@
     shadow.appendChild(style);
 
     const flipScan = PatternDetector.analyze();
-    const pdfScan = PDFDetector.extractCleanArticle();
     const embeddedPdfs = PDFDetector.findEmbeddedPdfUrls();
 
     const panel = document.createElement('div');
@@ -345,16 +361,14 @@
       </div>
 
       <div class="body" id="pdfBody" style="${defaultTab === 'pdf' ? '' : 'display:none;'}">
-        <div class="form-group"><label>Tiêu đề</label><input type="text" id="pdfTitle" value="${pdfScan.displayTitle}"></div>
-        ${embeddedPdfs.length > 0 ? `
-          <div style="background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.35); border-radius:7px; padding:6px 8px; font-size:10.5px;">
-            <div style="color:#6ee7b7; font-weight:700;">🎯 Phát hiện ${embeddedPdfs.length} file PDF gốc nhúng:</div>
-            ${embeddedPdfs.map(url => `<div style="display:flex; justify-content:space-between; align-items:center; margin-top:3px;"><span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:10px;">${url.split('/').pop().split('?')[0]}</span><a href="${url}" download class="btn btn-success" style="padding:1px 6px; font-size:9.5px; text-decoration:none;">⬇ Tải</a></div>`).join('')}
-          </div>
-        ` : ''}
+        <div class="form-group"><label>Tiêu đề</label><input type="text" id="pdfTitle" value="${document.title || 'Tai_Lieu'}"></div>
+        <div id="embedPdfBox" style="${embeddedPdfs.length > 0 ? '' : 'display:none;'} background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.35); border-radius:7px; padding:6px 8px; font-size:10.5px;">
+          <div style="color:#6ee7b7; font-weight:700;">🎯 File PDF gốc phát hiện được:</div>
+          <div id="embedPdfContainer"></div>
+        </div>
         <div class="row">
           <div class="form-group"><label>Khổ giấy</label><select id="artPaper"><option value="a4">A4</option><option value="a3">A3</option><option value="a5">A5</option><option value="letter">Letter</option></select></div>
-          <div class="form-group"><label>Hướng in ${pdfScan.hasWideContent ? '🔥 Khuyên dùng Ngang' : ''}</label><select id="artOrient"><option value="portrait" ${pdfScan.recommendedOrientation === 'portrait' ? 'selected' : ''}>Dọc</option><option value="landscape" ${pdfScan.recommendedOrientation === 'landscape' ? 'selected' : ''}>Ngang</option></select></div>
+          <div class="form-group"><label>Hướng in</label><select id="artOrient"><option value="portrait">Dọc</option><option value="landscape">Ngang</option></select></div>
         </div>
         <div class="row">
           <div class="form-group"><label>Cỡ chữ</label><select id="artFont"><option value="11pt">Nhỏ</option><option value="13pt" selected>Vừa</option><option value="15pt">Lớn</option></select></div>
@@ -362,7 +376,7 @@
         </div>
         <div class="form-group">
           <label>Xem trước (Click để xóa đoạn thừa)</label>
-          <div class="preview-box" id="prevBox">${pdfScan.htmlContent}</div>
+          <div class="preview-box" id="prevBox">Đang quét bài viết...</div>
         </div>
         <div class="btn-group">
           <button class="btn btn-primary" id="printBtn" style="flex:2;">🖨️ In & Xuất PDF Sạch</button>
@@ -378,6 +392,28 @@
     const flipBody = shadow.getElementById('flipBody');
     const pdfBody = shadow.getElementById('pdfBody');
 
+    let cleanArticleData = null;
+    function loadArticle() {
+      try {
+        const scan = PDFDetector.extractCleanArticle();
+        cleanArticleData = scan;
+        const pdfTitle = shadow.getElementById('pdfTitle');
+        const artOrient = shadow.getElementById('artOrient');
+        const prevBox = shadow.getElementById('prevBox');
+        if (pdfTitle) pdfTitle.value = scan.displayTitle;
+        if (prevBox) prevBox.innerHTML = scan.htmlContent;
+        if (scan.hasWideContent && artOrient) artOrient.value = 'landscape';
+
+        const embedBox = shadow.getElementById('embedPdfBox');
+        const embedContainer = shadow.getElementById('embedPdfContainer');
+        const pList = PDFDetector.findEmbeddedPdfUrls();
+        if (embedBox && embedContainer && pList.length > 0) {
+          embedBox.style.display = 'block';
+          embedContainer.innerHTML = pList.map(url => `<div style="display:flex; justify-content:space-between; align-items:center; margin-top:3px;"><span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:10px;">${url.split('/').pop().split('?')[0]}</span><a href="${url}" download class="btn btn-success" style="padding:1px 6px; font-size:9.5px; text-decoration:none;">⬇ Tải</a></div>`).join('');
+        }
+      } catch (e) {}
+    }
+
     flipBtn.addEventListener('click', () => {
       flipBtn.classList.add('active'); pdfBtn.classList.remove('active');
       flipBody.style.display = 'flex'; pdfBody.style.display = 'none';
@@ -385,6 +421,7 @@
     pdfBtn.addEventListener('click', () => {
       pdfBtn.classList.add('active'); flipBtn.classList.remove('active');
       pdfBody.style.display = 'flex'; flipBody.style.display = 'none';
+      if (!cleanArticleData) loadArticle();
     });
 
     const docTitle = shadow.getElementById('docTitle');
@@ -499,7 +536,6 @@
     startZipBtn.addEventListener('click', () => executeFlipbookDownload('zip'));
     startPdfBtn.addEventListener('click', () => executeFlipbookDownload('pdf'));
 
-    // PDF Print Event
     const prevBox = shadow.getElementById('prevBox');
     prevBox.addEventListener('click', (e) => {
       if (e.target !== prevBox) e.target.remove();

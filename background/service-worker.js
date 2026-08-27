@@ -47,9 +47,12 @@ async function triggerToggleUI(tab) {
         target: { tabId: tab.id },
         files: [
           'lib/jszip.min.js',
+          'lib/jspdf.min.js',
           'content/unblocker.js',
           'content/detector.js',
+          'content/pdf-detector.js',
           'content/downloader.js',
+          'content/pdf-engine.js',
           'content/ui.js',
           'content/content-main.js'
         ]

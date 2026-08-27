@@ -64,11 +64,9 @@
           display: flex;
           justify-content: space-between;
           align-items: center;
-          cursor: grab;
           user-select: none;
           flex-shrink: 0;
         }
-        .header:active { cursor: grabbing; }
         .title {
           font-weight: 700;
           font-size: 13.5px;
@@ -348,51 +346,7 @@
         logBox.scrollTop = logBox.scrollHeight;
       };
 
-      // Kéo thả Panel có giới hạn (Clamping) trong màn hình, không bao giờ bị khuất ra ngoài
-      let isDragging = false, offX = 0, offY = 0;
-      dragHeader.addEventListener('mousedown', (e) => {
-        isDragging = true;
-        offX = e.clientX - panel.getBoundingClientRect().left;
-        offY = e.clientY - panel.getBoundingClientRect().top;
-      });
-
-      window.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        const panelW = panel.offsetWidth || 410;
-        const panelH = panel.offsetHeight || 400;
-        const maxLeft = Math.max(10, window.innerWidth - panelW - 10);
-        const maxTop = Math.max(10, window.innerHeight - panelH - 10);
-
-        const clampedX = Math.min(Math.max(10, e.clientX - offX), maxLeft);
-        const clampedY = Math.min(Math.max(10, e.clientY - offY), maxTop);
-
-        panel.style.left = `${clampedX}px`;
-        panel.style.top = `${clampedY}px`;
-        panel.style.right = 'auto';
-      });
-
-      // Tự động căn chỉnh lại Panel khi thay đổi kích cỡ cửa sổ hoặc khi kéo tab sang cửa sổ riêng (Tear-off window)
-      const handleResize = () => {
-        if (!panel.style.left || !panel.style.top) return;
-        const panelW = panel.offsetWidth || 410;
-        const panelH = panel.offsetHeight || 400;
-        const currentLeft = parseInt(panel.style.left, 10) || 20;
-        const currentTop = parseInt(panel.style.top, 10) || 20;
-        const maxLeft = Math.max(10, window.innerWidth - panelW - 10);
-        const maxTop = Math.max(10, window.innerHeight - panelH - 10);
-
-        const clampedX = Math.min(Math.max(10, currentLeft), maxLeft);
-        const clampedY = Math.min(Math.max(10, currentTop), maxTop);
-        panel.style.left = `${clampedX}px`;
-        panel.style.top = `${clampedY}px`;
-      };
-      window.addEventListener('resize', handleResize);
-
-      window.addEventListener('mouseup', () => { isDragging = false; });
-      closeBtn.addEventListener('click', () => {
-        window.removeEventListener('resize', handleResize);
-        this.host.remove();
-      });
+      closeBtn.addEventListener('click', () => this.host.remove());
 
       reScanBtn.addEventListener('click', () => {
         const scan = global.__FlipbookDetector.analyze();

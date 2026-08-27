@@ -218,7 +218,7 @@
     style.textContent = `
       *, *::before, *::after { box-sizing: border-box !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
       .panel { position: fixed; top: 20px; right: 20px; width: 410px; max-width: calc(100vw - 32px); max-height: calc(100vh - 40px); background: rgba(17, 24, 39, 0.96); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 14px; box-shadow: 0 20px 45px rgba(0,0,0,0.65); color: #F3F4F6; z-index: 2147483647; display: flex; flex-direction: column; overflow: hidden; font-size: 13px; }
-      .header { padding: 12px 16px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(168, 85, 247, 0.3)); border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex; justify-content: space-between; align-items: center; cursor: grab; user-select: none; flex-shrink: 0; }
+      .header { padding: 12px 16px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(168, 85, 247, 0.3)); border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex; justify-content: space-between; align-items: center; user-select: none; flex-shrink: 0; }
       .title { font-weight: 700; font-size: 13.5px; background: linear-gradient(90deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
       .close-btn { background: transparent; border: none; color: #9CA3AF; font-size: 18px; cursor: pointer; border-radius: 6px; padding: 2px 6px; }
       .close-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.15); }
@@ -253,7 +253,7 @@
     const panel = document.createElement('div');
     panel.className = 'panel';
     panel.innerHTML = `
-      <div class="header" id="dragHeader">
+      <div class="header" id="panelHeader">
         <div class="title">📖 Flipbook Downloader Pro (Userscript)</div>
         <button class="close-btn" id="closeBtn">✕</button>
       </div>
@@ -282,40 +282,12 @@
           <div style="display:flex; justify-content:space-between; font-size:11px;"><span id="statusText">Sẵn sàng</span><span id="percentText">0%</span></div>
           <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar"></div></div>
         </div>
-        <div class="log-box" id="logBox">⚡ Sẵn sàng hoạt động (In-Tab Isolation OK)! Nhấn Alt+D để đóng/mở.</div>
+        <div class="log-box" id="logBox">⚡ Sẵn sàng hoạt động (In-Tab Isolation OK)!</div>
       </div>
     `;
     shadow.appendChild(panel);
 
-    let isDragging = false, offX = 0, offY = 0;
-    const dragHeader = shadow.getElementById('dragHeader');
-    dragHeader.addEventListener('mousedown', (e) => {
-      isDragging = true;
-      offX = e.clientX - panel.getBoundingClientRect().left;
-      offY = e.clientY - panel.getBoundingClientRect().top;
-    });
-
-    window.addEventListener('mousemove', (e) => {
-      if (!isDragging) return;
-      const maxLeft = Math.max(10, window.innerWidth - (panel.offsetWidth || 410) - 10);
-      const maxTop = Math.max(10, window.innerHeight - (panel.offsetHeight || 400) - 10);
-      panel.style.left = `${Math.min(Math.max(10, e.clientX - offX), maxLeft)}px`;
-      panel.style.top = `${Math.min(Math.max(10, e.clientY - offY), maxTop)}px`;
-      panel.style.right = 'auto';
-    });
-
-    const handleResize = () => {
-      if (!panel.style.left || !panel.style.top) return;
-      const maxLeft = Math.max(10, window.innerWidth - (panel.offsetWidth || 410) - 10);
-      const maxTop = Math.max(10, window.innerHeight - (panel.offsetHeight || 400) - 10);
-      panel.style.left = `${Math.min(Math.max(10, parseInt(panel.style.left, 10) || 20), maxLeft)}px`;
-      panel.style.top = `${Math.min(Math.max(10, parseInt(panel.style.top, 10) || 20), maxTop)}px`;
-    };
-    window.addEventListener('resize', handleResize);
-
-    window.addEventListener('mouseup', () => { isDragging = false; });
     shadow.getElementById('closeBtn').addEventListener('click', () => {
-      window.removeEventListener('resize', handleResize);
       host.remove();
     });
 

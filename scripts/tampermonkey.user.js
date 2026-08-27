@@ -451,20 +451,8 @@
     resumeFailedBtn.addEventListener('click', () => executeDownload(Array.from(failedCache.keys())));
   }
 
-  // 1. Đăng ký Menu Command trong Tampermonkey Popup Menu
+  // Đăng ký nút mở trong Tampermonkey Popup Menu
   if (typeof GM_registerMenuCommand === 'function') {
-    GM_registerMenuCommand('📖 Mở Flipbook Downloader Pro (Alt+Shift+D / Alt+Z)', toggleUI);
+    GM_registerMenuCommand('📖 Mở Flipbook Downloader Pro', toggleUI);
   }
-
-  // 2. Phím tắt Alt + Shift + D hoặc Alt + Z để mở/đóng Panel tải sách trực tiếp
-  window.addEventListener('keydown', (e) => {
-    const isAltShiftD = e.altKey && e.shiftKey && (e.key === 'd' || e.key === 'D');
-    const isAltZ = e.altKey && !e.shiftKey && !e.ctrlKey && (e.key === 'z' || e.key === 'Z');
-    const isCtrlShiftF = e.ctrlKey && e.shiftKey && (e.key === 'f' || e.key === 'F');
-
-    if (isAltShiftD || isAltZ || isCtrlShiftF) {
-      e.preventDefault();
-      toggleUI();
-    }
-  });
 })();

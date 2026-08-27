@@ -30,18 +30,7 @@
     });
   }
 
-  // Phím tắt nhanh: Alt + Shift + D hoặc Alt + Z (tránh trùng Alt + D của Chrome)
-  window.addEventListener('keydown', (e) => {
-    const isAltShiftD = e.altKey && e.shiftKey && (e.key === 'd' || e.key === 'D');
-    const isAltZ = e.altKey && !e.shiftKey && !e.ctrlKey && (e.key === 'z' || e.key === 'Z');
-    const isCtrlShiftF = e.ctrlKey && e.shiftKey && (e.key === 'f' || e.key === 'F');
-
-    if (isAltShiftD || isAltZ || isCtrlShiftF) {
-      e.preventDefault();
-      toggleUI();
-    }
-  });
-
   global.__toggleFlipbookDownloader = toggleUI;
 })(window);
+
 

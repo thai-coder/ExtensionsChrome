@@ -363,6 +363,9 @@
         const maxLeft = Math.max(10, window.innerWidth - panelW - 10);
         const maxTop = Math.max(10, window.innerHeight - panelH - 10);
 
+        const clampedX = Math.min(Math.max(10, e.clientX - offX), maxLeft);
+        const clampedY = Math.min(Math.max(10, e.clientY - offY), maxTop);
+
         panel.style.left = `${clampedX}px`;
         panel.style.top = `${clampedY}px`;
         panel.style.right = 'auto';

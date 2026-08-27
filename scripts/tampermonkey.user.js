@@ -18,7 +18,7 @@
 (function () {
   'use strict';
 
-  function safeUnblockInteractions() {
+  function safeUnblock() {
     try {
       if (document.body) {
         document.body.oncontextmenu = null;
@@ -28,7 +28,6 @@
       document.oncontextmenu = null;
       document.onselectstart = null;
       document.oncopy = null;
-      window.oncontextmenu = null;
     } catch (e) {}
   }
 
@@ -36,41 +35,23 @@
     cleanFilename(name) {
       return (name || 'Tai_Lieu_Sach').replace(/[\\/:*?"<>|]/g, '_').replace(/\s+/g, '_').substring(0, 80);
     },
-    detectTotalPagesFromDOM() {
+    detectTotalPages() {
       try {
         const inputs = document.querySelectorAll('input');
         for (const input of inputs) {
           const val = (input.value || input.placeholder || '').trim();
-          const maxAttr = input.getAttribute('max');
           const matchSlash = val.match(/^(\d{1,4})\s*[\/|\\]\s*(\d{1,4})$/);
-          if (matchSlash) {
-            const cur = parseInt(matchSlash[1], 10), tot = parseInt(matchSlash[2], 10);
-            if (tot > 1 && tot < 5000) return { current: cur, total: tot };
-          }
-          if (maxAttr) {
-            const parsedMax = parseInt(maxAttr, 10);
-            if (parsedMax > 1 && parsedMax < 5000) return { current: 1, total: parsedMax };
-          }
-        }
-        const candidates = document.querySelectorAll('[class*="page"], [id*="page"], [class*="nav"], [id*="nav"], span, div');
-        const pageRegex = /\b(\d{1,4})\s*(?:\/|of|trên)\s*(\d{1,4})\b/i;
-        for (const el of candidates) {
-          const text = el.innerText || el.textContent || '';
-          if (text.length > 0 && text.length < 25) {
-            const match = text.trim().match(pageRegex);
-            if (match) {
-              const cur = parseInt(match[1], 10), tot = parseInt(match[2], 10);
-              if (tot > 1 && tot < 5000 && cur <= tot) return { current: cur, total: tot };
-            }
-          }
+          if (matchSlash && parseInt(matchSlash[2], 10) > 1) return parseInt(matchSlash[2], 10);
+          const max = parseInt(input.getAttribute('max'), 10);
+          if (max > 1 && max < 5000) return max;
         }
       } catch (e) {}
-      return { current: 1, total: 50 };
+      return 50;
     },
     analyze() {
       const candidates = new Set();
       try {
-        if (window.performance && performance.getEntriesByType) {
+        if (window.performance?.getEntriesByType) {
           performance.getEntriesByType('resource').forEach((r) => {
             if (/\.(jpg|jpeg|png|webp|svg|gif)(\?.*)?$/i.test(r.name)) candidates.add(r.name);
           });
@@ -81,10 +62,8 @@
         });
       } catch (e) {}
 
-      const domPageInfo = this.detectTotalPagesFromDOM();
-      let bestPattern = '', detectedPadding = 1, detectedMaxPage = domPageInfo.total;
+      let bestPattern = '', detectedPadding = 1;
       const urlList = Array.from(candidates);
-
       for (let url of urlList) {
         const cleanPath = url.split('?')[0];
         const lastSlash = cleanPath.lastIndexOf('/');
@@ -94,11 +73,8 @@
         const match = filename.match(/^(.*?)(\d+)(\.[a-zA-Z0-9]+)$/i);
         if (match) {
           const prefix = match[1], numStr = match[2], ext = match[3];
-          const padLength = numStr.length;
-          const parsed = parseInt(numStr, 10);
-          if (parsed >= 1990 && parsed <= 2099 && !prefix.toLowerCase().includes('page')) continue;
-          bestPattern = padLength > 1 ? `${dir}${prefix}{page:${padLength}}${ext}` : `${dir}${prefix}{page}${ext}`;
-          detectedPadding = padLength;
+          bestPattern = numStr.length > 1 ? `${dir}${prefix}{page:${numStr.length}}${ext}` : `${dir}${prefix}{page}${ext}`;
+          detectedPadding = numStr.length;
           break;
         }
       }
@@ -106,8 +82,7 @@
         title: this.cleanFilename(document.title),
         pattern: bestPattern || urlList[0] || '',
         padding: detectedPadding,
-        maxPage: detectedMaxPage,
-        totalFound: urlList.length
+        maxPage: this.detectTotalPages()
       };
     }
   };
@@ -116,17 +91,9 @@
     findEmbeddedPdfUrls() {
       const urls = new Set();
       try {
-        document.querySelectorAll('embed[type*="pdf"], embed[src*=".pdf"], object[data*=".pdf"]').forEach((el) => {
-          const src = el.getAttribute('src') || el.getAttribute('data') || el.src || el.data;
-          if (src && !src.startsWith('blob:') && !src.startsWith('about:')) urls.add(new URL(src, window.location.href).href);
-        });
-        document.querySelectorAll('iframe').forEach((iframe) => {
-          const src = iframe.src || iframe.getAttribute('src') || '';
+        document.querySelectorAll('embed[type*="pdf"], embed[src*=".pdf"], object[data*=".pdf"], iframe[src*=".pdf"], a[href*=".pdf"]').forEach((el) => {
+          const src = el.getAttribute('src') || el.getAttribute('data') || el.getAttribute('href') || el.src || el.data || el.href;
           if (src && /\.pdf(\?.*)?$/i.test(src)) urls.add(new URL(src, window.location.href).href);
-        });
-        document.querySelectorAll('a[href*=".pdf"]').forEach((a) => {
-          const href = a.getAttribute('href');
-          if (href && /\.pdf(\?.*)?$/i.test(href)) urls.add(new URL(href, window.location.href).href);
         });
       } catch (e) {}
       return Array.from(urls);
@@ -142,98 +109,62 @@
         }
         const sourceEl = bestElement || document.body || document.documentElement;
         const clone = sourceEl.cloneNode(true);
-        ['script', 'style', 'noscript', 'iframe', 'nav', 'aside', 'header', 'footer', '.ad', '.ads', '.sidebar', '.comment', '#__flipbook_downloader_host__'].forEach((sel) => {
-          clone.querySelectorAll(sel).forEach((el) => el.remove());
-        });
+        const junk = [
+          'script', 'style', 'noscript', 'iframe', 'object', 'embed', 'nav', 'aside', 'header', 'footer',
+          'button', 'input', 'select', 'textarea', 'form', '[role="button"]', '[role="dialog"]',
+          '.ad', '.ads', '.sidebar', '.comment', '.social-share', '.share-buttons', '.btn', '.button',
+          '[class*="btn-"]', '[class*="button-"]', '[class*="share-"]', '#__flipbook_downloader_host__'
+        ];
+        junk.forEach((sel) => { clone.querySelectorAll(sel).forEach((el) => el.remove()); });
 
         let hasWideContent = false;
         clone.querySelectorAll('table').forEach((table) => {
           if (table.querySelectorAll('tr:first-child th, tr:first-child td').length >= 4 || table.scrollWidth > 700) hasWideContent = true;
-          table.style.width = '100%';
-          table.style.borderCollapse = 'collapse';
-          table.querySelectorAll('th, td').forEach(c => { c.style.border = '1px solid #ccc'; c.style.padding = '6px'; });
+          table.style.width = '100%'; table.style.borderCollapse = 'collapse';
+          table.querySelectorAll('th, td').forEach((c) => { c.style.border = '1px solid #cbd5e1'; c.style.padding = '6px 8px'; });
         });
-        clone.querySelectorAll('pre, code').forEach((code) => {
-          if (code.scrollWidth > 700) hasWideContent = true;
-        });
+        clone.querySelectorAll('pre, code').forEach((code) => { if (code.scrollWidth > 700) hasWideContent = true; });
 
         return {
           title: title.replace(/[\\/:*?"<>|]/g, '_').substring(0, 80),
           displayTitle: title,
           htmlContent: clone.innerHTML || '<p>Không có nội dung văn bản.</p>',
-          hasWideContent: hasWideContent,
+          hasWideContent,
           recommendedOrientation: hasWideContent ? 'landscape' : 'portrait'
         };
       } catch (e) {
-        return {
-          title: 'Tai_Lieu',
-          displayTitle: document.title || 'Tai_Lieu',
-          htmlContent: '<p>Tài liệu</p>',
-          hasWideContent: false,
-          recommendedOrientation: 'portrait'
-        };
+        return { title: 'Tai_Lieu', displayTitle: document.title || 'Tai_Lieu', htmlContent: '<p>Tài liệu</p>', hasWideContent: false, recommendedOrientation: 'portrait' };
       }
     }
   };
 
-  function loadJSZip() {
+  function loadScript(url, checkGlobal) {
     return new Promise((resolve, reject) => {
-      if (window.JSZip) return resolve(window.JSZip);
-      const script = document.createElement('script');
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
-      script.onload = () => resolve(window.JSZip);
-      script.onerror = () => reject(new Error('Lỗi tải JSZip'));
-      document.head.appendChild(script);
+      if (checkGlobal()) return resolve(checkGlobal());
+      const s = document.createElement('script');
+      s.src = url;
+      s.onload = () => resolve(checkGlobal());
+      s.onerror = () => reject(new Error('Lỗi nạp ' + url));
+      document.head.appendChild(s);
     });
   }
 
-  function loadJsPDF() {
-    return new Promise((resolve, reject) => {
-      if (window.jspdf && window.jspdf.jsPDF) return resolve(window.jspdf.jsPDF);
-      if (window.jsPDF) return resolve(window.jsPDF);
-      const script = document.createElement('script');
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-      script.onload = () => resolve(window.jspdf.jsPDF);
-      script.onerror = () => reject(new Error('Lỗi tải jsPDF'));
-      document.head.appendChild(script);
-    });
-  }
-
-  function generateCandidateUrls(primaryUrl) {
-    const candidates = [primaryUrl];
-    const matchExt = primaryUrl.match(/\.(jpg|jpeg|png|webp|svg|gif)(\?.*)?$/i);
-    if (matchExt) {
-      const currentExt = matchExt[1];
-      const queryParams = matchExt[2] || '';
-      const base = primaryUrl.substring(0, primaryUrl.lastIndexOf('.' + currentExt));
-      const fallbacks = ['.jpg', '.jpeg', '.png', '.webp', '.svg', '.JPG', '.PNG'];
-      for (const ext of fallbacks) {
-        if (ext.toLowerCase() !== '.' + currentExt.toLowerCase()) candidates.push(`${base}${ext}${queryParams}`);
-      }
-    }
-    return candidates;
-  }
+  const loadJSZip = () => loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js', () => window.JSZip);
+  const loadJsPDF = () => loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', () => window.jspdf?.jsPDF || window.jsPDF);
+  const loadHtml2Canvas = () => loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js', () => window.html2canvas);
 
   async function fetchArrayBuffer(url, maxRetries = 3, onRetry = null) {
     let delay = 500;
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         if (typeof GM_xmlhttpRequest === 'function') {
-          const buffer = await new Promise((res, rej) => {
+          return await new Promise((res, rej) => {
             GM_xmlhttpRequest({
-              method: 'GET',
-              url: url,
-              responseType: 'arraybuffer',
-              timeout: 20000,
-              onload: (r) => {
-                if (r.status >= 200 && r.status < 300 && r.response && r.response.byteLength > 500) res(r.response);
-                else rej(new Error(`HTTP ${r.status}`));
-              },
-              onerror: () => rej(new Error('Lỗi mạng')),
-              ontimeout: () => rej(new Error('Hết thời gian chờ'))
+              method: 'GET', url, responseType: 'arraybuffer', timeout: 20000,
+              onload: (r) => (r.status >= 200 && r.status < 300 && r.response?.byteLength > 500) ? res(r.response) : rej(new Error(`HTTP ${r.status}`)),
+              onerror: () => rej(new Error('Lỗi mạng')), ontimeout: () => rej(new Error('Timeout'))
             });
           });
-          return buffer;
         }
         const resp = await fetch(url, { mode: 'cors', cache: 'force-cache' });
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
@@ -249,36 +180,14 @@
     }
   }
 
-  async function downloadPageWithCandidates(primaryUrl, pageNum, onLog) {
-    const candidates = generateCandidateUrls(primaryUrl);
-    let lastErr = null;
-    for (let i = 0; i < candidates.length; i++) {
-      const targetUrl = candidates[i];
-      try {
-        const buffer = await fetchArrayBuffer(targetUrl, 3, (att, d, msg) => {
-          onLog(`⚠️ [Trang ${pageNum}] Thử lại ${att} (${d}ms): ${msg}`);
-        });
-        return buffer;
-      } catch (err) {
-        lastErr = err;
-      }
-    }
-    throw lastErr || new Error('Không thể tải');
-  }
-
   const downloadedCache = new Map();
-  const failedCache = new Map();
 
   function toggleUI(defaultTab = 'flipbook') {
     const hostId = '__flipbook_downloader_host__';
     const existing = document.getElementById(hostId);
-    if (existing) {
-      existing.remove();
-      return;
-    }
+    if (existing) return existing.remove();
 
-    safeUnblockInteractions();
-
+    safeUnblock();
     const host = document.createElement('div');
     host.id = hostId;
     document.body.appendChild(host);
@@ -287,22 +196,20 @@
     const style = document.createElement('style');
     style.textContent = `
       *, *::before, *::after { box-sizing: border-box !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-      .panel { position: fixed; top: 20px; right: 20px; width: 420px; max-width: calc(100vw - 32px); max-height: calc(100vh - 40px); background: rgba(15, 23, 42, 0.97); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 14px; box-shadow: 0 20px 45px rgba(0,0,0,0.65); color: #F3F4F6; z-index: 2147483647; display: flex; flex-direction: column; overflow: hidden; font-size: 13px; }
-      .header { padding: 10px 14px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(168, 85, 247, 0.25)); border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex; justify-content: space-between; align-items: center; user-select: none; flex-shrink: 0; }
+      .panel { position: fixed; top: 20px; right: 20px; width: 420px; max-width: calc(100vw - 32px); background: rgba(15, 23, 42, 0.97); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 14px; box-shadow: 0 20px 45px rgba(0,0,0,0.65); color: #F3F4F6; z-index: 2147483647; display: flex; flex-direction: column; overflow: hidden; font-size: 13px; }
+      .header { padding: 10px 14px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(168, 85, 247, 0.25)); border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex; justify-content: space-between; align-items: center; }
       .title { font-weight: 700; font-size: 13.5px; background: linear-gradient(90deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-      .close-btn { background: transparent; border: none; color: #9CA3AF; font-size: 18px; cursor: pointer; border-radius: 6px; padding: 2px 6px; }
-      .close-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.15); }
-      .tab-bar { display: flex; background: rgba(0, 0, 0, 0.35); border-bottom: 1px solid rgba(255, 255, 255, 0.08); flex-shrink: 0; }
+      .close-btn { background: transparent; border: none; color: #9CA3AF; font-size: 18px; cursor: pointer; padding: 2px 6px; }
+      .tab-bar { display: flex; background: rgba(0, 0, 0, 0.35); border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
       .tab-btn { flex: 1; padding: 9px 4px; background: transparent; border: none; color: #94A3B8; font-size: 12px; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; }
       .tab-btn.active { color: #A5B4FC; background: rgba(99, 102, 241, 0.15); border-bottom-color: #6366f1; }
-      .body { padding: 12px 14px; display: flex; flex-direction: column; gap: 9px; overflow-y: auto; overflow-x: hidden; flex: 1; }
+      .body { padding: 12px 14px; display: flex; flex-direction: column; gap: 9px; overflow-y: auto; flex: 1; }
       .form-group { display: flex; flex-direction: column; gap: 3px; width: 100%; }
       label { font-size: 10.5px; font-weight: 600; text-transform: uppercase; color: #94A3B8; }
-      input[type="text"], input[type="number"], select, textarea { width: 100% !important; background: rgba(0, 0, 0, 0.45); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 7px; padding: 6px 9px; color: #F8FAFC; font-size: 12px; outline: none; }
+      input, select, textarea { width: 100% !important; background: rgba(0, 0, 0, 0.45); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 7px; padding: 6px 9px; color: #F8FAFC; font-size: 12px; outline: none; }
       select option { background: #1e293b; color: #f8fafc; }
-      textarea { resize: vertical; min-height: 44px; word-break: break-all; }
       .row { display: flex; gap: 6px; width: 100%; }
-      .row > .form-group { flex: 1 1 0; min-width: 0; }
+      .row > .form-group { flex: 1 1 0; }
       .btn-group { display: flex; gap: 5px; width: 100%; }
       button.btn { flex: 1 1 0; padding: 8px 6px; border-radius: 7px; font-size: 11.5px; font-weight: 600; cursor: pointer; border: none; white-space: nowrap; }
       .btn-primary { background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; }
@@ -310,13 +217,10 @@
       .btn-success { background: rgba(16, 185, 129, 0.25); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); }
       .btn-danger { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35); }
       button:disabled { opacity: 0.45; cursor: not-allowed; }
-      .progress-container { background: rgba(0, 0, 0, 0.4); border-radius: 7px; padding: 8px 10px; border: 1px solid rgba(255, 255, 255, 0.08); width: 100%; }
+      .progress-container { background: rgba(0, 0, 0, 0.4); border-radius: 7px; padding: 8px 10px; border: 1px solid rgba(255, 255, 255, 0.08); }
       .progress-bar-bg { height: 5px; background: rgba(255, 255, 255, 0.1); border-radius: 3px; overflow: hidden; margin-top: 4px; }
       .progress-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899); transition: width 0.2s; }
-      .log-box { font-family: monospace; font-size: 10.5px; height: 65px; background: rgba(0, 0, 0, 0.55); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 6px; padding: 6px 8px; overflow-y: auto; color: #A7F3D0; white-space: pre-wrap; width: 100%; }
-      .preview-box { max-height: 110px; overflow-y: auto; background: rgba(255, 255, 255, 0.04); border: 1px dashed rgba(255, 255, 255, 0.2); border-radius: 6px; padding: 8px; font-size: 11.5px; color: #cbd5e1; }
-      .preview-box * { cursor: pointer; }
-      .preview-box *:hover { background: rgba(239, 68, 68, 0.25) !important; color: #fca5a5 !important; }
+      .log-box { font-family: monospace; font-size: 10.5px; height: 65px; background: rgba(0, 0, 0, 0.55); border-radius: 6px; padding: 6px 8px; overflow-y: auto; color: #A7F3D0; white-space: pre-wrap; }
     `;
     shadow.appendChild(style);
 
@@ -326,15 +230,11 @@
     const panel = document.createElement('div');
     panel.className = 'panel';
     panel.innerHTML = `
-      <div class="header">
-        <div class="title">⚡ Document & PDF Pro (Userscript)</div>
-        <button class="close-btn" id="closeBtn">✕</button>
-      </div>
+      <div class="header"><div class="title">⚡ Document & PDF Pro</div><button class="close-btn" id="closeBtn">✕</button></div>
       <div class="tab-bar">
         <button class="tab-btn ${defaultTab === 'flipbook' ? 'active' : ''}" id="tabFlipBtn">📖 Sách Flipbook</button>
         <button class="tab-btn ${defaultTab === 'pdf' ? 'active' : ''}" id="tabPdfBtn">📄 In & Tải PDF Sạch</button>
       </div>
-
       <div class="body" id="flipBody" style="${defaultTab === 'flipbook' ? '' : 'display:none;'}">
         <div class="form-group"><label>Tên tài liệu</label><input type="text" id="docTitle" value="${flipScan.title}"></div>
         <div class="form-group"><label>URL Mẫu (Pattern)</label><textarea id="urlPattern" rows="2">${flipScan.pattern}</textarea></div>
@@ -348,7 +248,6 @@
           <div class="form-group"><label>Hướng</label><select id="flipOrient"><option value="auto">Tự động</option><option value="p">Dọc</option><option value="l">Ngang</option></select></div>
         </div>
         <div class="btn-group">
-          <button class="btn btn-secondary" id="reScanBtn">🔍 Dò lại</button>
           <button class="btn btn-primary" id="startZipBtn">📦 Tải ZIP</button>
           <button class="btn btn-success" id="startPdfBtn">📄 Ghép PDF</button>
           <button class="btn btn-danger" id="cancelBtn" disabled>🛑 Hủy</button>
@@ -357,12 +256,11 @@
           <div style="display:flex; justify-content:space-between; font-size:11px;"><span id="statusText">Sẵn sàng</span><span id="percentText">0%</span></div>
           <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar"></div></div>
         </div>
-        <div class="log-box" id="logBox">⚡ Sẵn sàng hoạt động (In-Tab Isolation OK)!</div>
+        <div class="log-box" id="logBox">⚡ Sẵn sàng tải Flipbook.</div>
       </div>
-
       <div class="body" id="pdfBody" style="${defaultTab === 'pdf' ? '' : 'display:none;'}">
         <div class="form-group"><label>Tiêu đề</label><input type="text" id="pdfTitle" value="${document.title || 'Tai_Lieu'}"></div>
-        <div id="embedPdfBox" style="${embeddedPdfs.length > 0 ? '' : 'display:none;'} background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.35); border-radius:7px; padding:6px 8px; font-size:10.5px;">
+        <div id="embedPdfBox" style="${embeddedPdfs.length > 0 ? '' : 'display:none;'} background:rgba(16, 185, 129, 0.15); border-radius:7px; padding:6px 8px; font-size:10.5px;">
           <div style="color:#6ee7b7; font-weight:700;">🎯 File PDF gốc phát hiện được:</div>
           <div id="embedPdfContainer"></div>
         </div>
@@ -370,123 +268,72 @@
           <div class="form-group"><label>Khổ giấy</label><select id="artPaper"><option value="a4">A4</option><option value="a3">A3</option><option value="a5">A5</option><option value="letter">Letter</option></select></div>
           <div class="form-group"><label>Hướng in</label><select id="artOrient"><option value="portrait">Dọc</option><option value="landscape">Ngang</option></select></div>
         </div>
-        <div class="row">
-          <div class="form-group"><label>Cỡ chữ</label><select id="artFont"><option value="11pt">Nhỏ</option><option value="13pt" selected>Vừa</option><option value="15pt">Lớn</option></select></div>
-          <div class="form-group" style="justify-content:flex-end;"><label style="display:flex; gap:5px; cursor:pointer; text-transform:none; font-size:11px; padding-top:14px;"><input type="checkbox" id="hideImg"> Ẩn hình ảnh</label></div>
+        <div style="background:rgba(99, 102, 241, 0.15); border-radius:7px; padding:10px 12px; margin-top:4px;">
+          <div style="font-weight:700; color:#c7d2fe; font-size:11.5px; margin-bottom:3px;">✨ Trình xem trước PrintFriendly toàn màn hình:</div>
+          <div style="font-size:11px; color:#94a3b8; line-height:1.4;">• Xem bản giấy A4/A3 trên nền xám.<br>• Click xóa đoạn thừa.<br>• Tải PDF trực tiếp (không qua Chrome print).</div>
         </div>
-        <div class="form-group">
-          <label>Xem trước (Click để xóa đoạn thừa)</label>
-          <div class="preview-box" id="prevBox">Đang quét bài viết...</div>
-        </div>
-        <div class="btn-group">
-          <button class="btn btn-primary" id="printBtn" style="flex:2;">🖨️ In & Xuất PDF Sạch</button>
+        <div class="btn-group" style="margin-top:8px;">
+          <button class="btn btn-primary" id="openPreviewBtn" style="padding:10px 14px; font-weight:700;">👁️ Mở Trình Xem Trước & Tải PDF</button>
         </div>
       </div>
     `;
     shadow.appendChild(panel);
 
     shadow.getElementById('closeBtn').addEventListener('click', () => host.remove());
-
-    const flipBtn = shadow.getElementById('tabFlipBtn');
-    const pdfBtn = shadow.getElementById('tabPdfBtn');
-    const flipBody = shadow.getElementById('flipBody');
-    const pdfBody = shadow.getElementById('pdfBody');
+    const flipBtn = shadow.getElementById('tabFlipBtn'), pdfBtn = shadow.getElementById('tabPdfBtn');
+    const flipBody = shadow.getElementById('flipBody'), pdfBody = shadow.getElementById('pdfBody');
 
     let cleanArticleData = null;
     function loadArticle() {
       try {
         const scan = PDFDetector.extractCleanArticle();
         cleanArticleData = scan;
-        const pdfTitle = shadow.getElementById('pdfTitle');
-        const artOrient = shadow.getElementById('artOrient');
-        const prevBox = shadow.getElementById('prevBox');
+        const pdfTitle = shadow.getElementById('pdfTitle'), artOrient = shadow.getElementById('artOrient');
         if (pdfTitle) pdfTitle.value = scan.displayTitle;
-        if (prevBox) prevBox.innerHTML = scan.htmlContent;
         if (scan.hasWideContent && artOrient) artOrient.value = 'landscape';
-
-        const embedBox = shadow.getElementById('embedPdfBox');
-        const embedContainer = shadow.getElementById('embedPdfContainer');
+        const embedBox = shadow.getElementById('embedPdfBox'), embedContainer = shadow.getElementById('embedPdfContainer');
         const pList = PDFDetector.findEmbeddedPdfUrls();
         if (embedBox && embedContainer && pList.length > 0) {
           embedBox.style.display = 'block';
-          embedContainer.innerHTML = pList.map(url => `<div style="display:flex; justify-content:space-between; align-items:center; margin-top:3px;"><span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:10px;">${url.split('/').pop().split('?')[0]}</span><a href="${url}" download class="btn btn-success" style="padding:1px 6px; font-size:9.5px; text-decoration:none;">⬇ Tải</a></div>`).join('');
+          embedContainer.innerHTML = pList.map(url => `<div style="display:flex; justify-content:space-between; margin-top:3px;"><span style="font-size:10px;">${url.split('/').pop().split('?')[0]}</span><a href="${url}" download class="btn btn-success" style="padding:1px 6px; font-size:9.5px; text-decoration:none;">⬇ Tải</a></div>`).join('');
         }
       } catch (e) {}
     }
 
-    flipBtn.addEventListener('click', () => {
-      flipBtn.classList.add('active'); pdfBtn.classList.remove('active');
-      flipBody.style.display = 'flex'; pdfBody.style.display = 'none';
-    });
-    pdfBtn.addEventListener('click', () => {
-      pdfBtn.classList.add('active'); flipBtn.classList.remove('active');
-      pdfBody.style.display = 'flex'; flipBody.style.display = 'none';
-      if (!cleanArticleData) loadArticle();
-    });
+    flipBtn.addEventListener('click', () => { flipBtn.classList.add('active'); pdfBtn.classList.remove('active'); flipBody.style.display = 'flex'; pdfBody.style.display = 'none'; });
+    pdfBtn.addEventListener('click', () => { pdfBtn.classList.add('active'); flipBtn.classList.remove('active'); pdfBody.style.display = 'flex'; flipBody.style.display = 'none'; if (!cleanArticleData) loadArticle(); });
 
-    const docTitle = shadow.getElementById('docTitle');
-    const urlPattern = shadow.getElementById('urlPattern');
-    const startPage = shadow.getElementById('startPage');
-    const endPage = shadow.getElementById('endPage');
-    const concurrency = shadow.getElementById('concurrency');
-    const flipPaper = shadow.getElementById('flipPaper');
-    const flipOrient = shadow.getElementById('flipOrient');
-    const startZipBtn = shadow.getElementById('startZipBtn');
-    const startPdfBtn = shadow.getElementById('startPdfBtn');
-    const cancelBtn = shadow.getElementById('cancelBtn');
-    const statusText = shadow.getElementById('statusText');
-    const percentText = shadow.getElementById('percentText');
-    const progressBar = shadow.getElementById('progressBar');
-    const logBox = shadow.getElementById('logBox');
+    const docTitle = shadow.getElementById('docTitle'), urlPattern = shadow.getElementById('urlPattern');
+    const startPage = shadow.getElementById('startPage'), endPage = shadow.getElementById('endPage'), concurrency = shadow.getElementById('concurrency');
+    const flipPaper = shadow.getElementById('flipPaper'), flipOrient = shadow.getElementById('flipOrient');
+    const startZipBtn = shadow.getElementById('startZipBtn'), startPdfBtn = shadow.getElementById('startPdfBtn'), cancelBtn = shadow.getElementById('cancelBtn');
+    const statusText = shadow.getElementById('statusText'), percentText = shadow.getElementById('percentText'), progressBar = shadow.getElementById('progressBar'), logBox = shadow.getElementById('logBox');
 
-    const appendLog = (msg) => {
-      logBox.textContent += `\n[${new Date().toLocaleTimeString('vi-VN')}] ${msg}`;
-      logBox.scrollTop = logBox.scrollHeight;
-    };
-
+    const appendLog = (msg) => { logBox.textContent += `\n[${new Date().toLocaleTimeString('vi-VN')}] ${msg}`; logBox.scrollTop = logBox.scrollHeight; };
     let isAborted = false;
-    cancelBtn.addEventListener('click', () => {
-      isAborted = true;
-      appendLog('🛑 Đã hủy!');
-      statusText.textContent = 'Đã hủy';
-      startZipBtn.disabled = false; startPdfBtn.disabled = false; cancelBtn.disabled = true;
-    });
+    cancelBtn.addEventListener('click', () => { isAborted = true; appendLog('🛑 Đã hủy!'); statusText.textContent = 'Đã hủy'; startZipBtn.disabled = false; startPdfBtn.disabled = false; cancelBtn.disabled = true; });
 
     const executeFlipbookDownload = async (exportType) => {
-      const pattern = urlPattern.value.trim();
-      const start = parseInt(startPage.value, 10);
-      const end = parseInt(endPage.value, 10);
-      const threads = Math.max(1, Math.min(10, parseInt(concurrency.value, 10) || 4));
-      const title = docTitle.value.trim() || 'Tai_Lieu';
+      const pattern = urlPattern.value.trim(), start = parseInt(startPage.value, 10), end = parseInt(endPage.value, 10);
+      const threads = Math.max(1, Math.min(10, parseInt(concurrency.value, 10) || 4)), title = docTitle.value.trim() || 'Tai_Lieu';
       if (!pattern) return alert('Chưa nhập URL Pattern!');
 
-      isAborted = false;
-      startZipBtn.disabled = true; startPdfBtn.disabled = true; cancelBtn.disabled = false;
-      statusText.textContent = 'Đang tải...';
-
-      const total = end - start + 1;
-      const pagesQueue = [];
-      for (let p = start; p <= end; p++) {
-        if (!downloadedCache.has(p)) pagesQueue.push(p);
-      }
-
+      isAborted = false; startZipBtn.disabled = true; startPdfBtn.disabled = true; cancelBtn.disabled = false; statusText.textContent = 'Đang tải...';
+      const total = end - start + 1, pagesQueue = [];
+      for (let p = start; p <= end; p++) { if (!downloadedCache.has(p)) pagesQueue.push(p); }
       let completed = downloadedCache.size;
+
       const worker = async () => {
         while (pagesQueue.length > 0) {
           if (isAborted) return;
           const page = pagesQueue.shift();
           const targetUrl = pattern.replace(/\{page(?::(\d+))?\}/g, (_, pad) => pad ? String(page).padStart(parseInt(pad, 10), '0') : String(page));
           try {
-            const buf = await downloadPageWithCandidates(targetUrl, page, appendLog);
-            downloadedCache.set(page, buf);
-            completed++;
+            const buf = await fetchArrayBuffer(targetUrl, 3, (att, d, msg) => appendLog(`⚠️ [Trang ${page}] Thử lại ${att}: ${msg}`));
+            downloadedCache.set(page, buf); completed++;
             const pct = Math.round((completed / total) * 100);
-            progressBar.style.width = `${pct}%`;
-            percentText.textContent = `${pct}%`;
-            statusText.textContent = `Đã nạp: ${completed}/${total}`;
-          } catch (e) {
-            failedCache.set(page, true);
-          }
+            progressBar.style.width = `${pct}%`; percentText.textContent = `${pct}%`; statusText.textContent = `Đã nạp: ${completed}/${total}`;
+          } catch (e) {}
         }
       };
 
@@ -498,16 +345,10 @@
       if (downloadedCache.size > 0) {
         if (exportType === 'zip') {
           statusText.textContent = 'Đang nén ZIP...';
-          const JSZip = await loadJSZip();
-          const zip = new JSZip();
-          for (let p of Array.from(downloadedCache.keys()).sort((a, b) => a - b)) {
-            zip.file(`page_${String(p).padStart(4, '0')}.jpg`, downloadedCache.get(p));
-          }
+          const JSZip = await loadJSZip(), zip = new JSZip();
+          for (let p of Array.from(downloadedCache.keys()).sort((a, b) => a - b)) zip.file(`page_${String(p).padStart(4, '0')}.jpg`, downloadedCache.get(p));
           const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
-          const a = document.createElement('a');
-          a.href = URL.createObjectURL(blob);
-          a.download = `${title}.zip`;
-          a.click();
+          const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${title}.zip`; a.click();
           appendLog(`🎉 Đã xuất: ${title}.zip`);
         } else {
           statusText.textContent = 'Đang ghép PDF...';
@@ -516,8 +357,7 @@
           let doc = null;
           for (let i = 0; i < sorted.length; i++) {
             const p = sorted[i];
-            const imgBlob = new Blob([downloadedCache.get(p)]);
-            const blobUrl = URL.createObjectURL(imgBlob);
+            const blobUrl = URL.createObjectURL(new Blob([downloadedCache.get(p)]));
             const imgInfo = await new Promise((res, rej) => {
               const m = new Image();
               m.onload = () => {
@@ -532,9 +372,8 @@
               m.src = blobUrl;
             });
             const orient = flipOrient.value === 'auto' ? (imgInfo.width > imgInfo.height ? 'l' : 'p') : flipOrient.value;
-            const pWidth = (imgInfo.width * 25.4) / 96;
-            const pHeight = (imgInfo.height * 25.4) / 96;
-            const fmt = flipPaper.value === 'auto' ? [pWidth, pHeight] : flipPaper.value;
+            const pW = (imgInfo.width * 25.4) / 96, pH = (imgInfo.height * 25.4) / 96;
+            const fmt = flipPaper.value === 'auto' ? [pW, pH] : flipPaper.value;
             if (i === 0) doc = new jsPDFClass({ orientation: orient, unit: 'mm', format: fmt });
             else doc.addPage(fmt, orient);
             doc.addImage(imgInfo.dataUrl, 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight(), undefined, 'FAST');
@@ -556,26 +395,111 @@
     startZipBtn.addEventListener('click', () => executeFlipbookDownload('zip'));
     startPdfBtn.addEventListener('click', () => executeFlipbookDownload('pdf'));
 
-    const prevBox = shadow.getElementById('prevBox');
-    prevBox.addEventListener('click', (e) => {
-      if (e.target !== prevBox) e.target.remove();
-    });
-
-    shadow.getElementById('printBtn').addEventListener('click', () => {
+    const openPreviewBtn = shadow.getElementById('openPreviewBtn');
+    openPreviewBtn.addEventListener('click', () => {
+      if (!cleanArticleData) loadArticle();
+      if (!cleanArticleData) return alert('Không thể quét bài viết!');
       const pTitle = shadow.getElementById('pdfTitle').value.trim() || 'Tai_Lieu';
       const pPaper = shadow.getElementById('artPaper').value;
       const pOrient = shadow.getElementById('artOrient').value;
-      const pFont = shadow.getElementById('artFont').value;
-      const hideImg = shadow.getElementById('hideImg').checked;
+      cleanArticleData.displayTitle = pTitle;
+      openPrintFriendlyWorkspace(cleanArticleData, { paperSize: pPaper, orientation: pOrient });
+    });
+  }
 
-      const iframe = document.createElement('iframe');
-      iframe.style.position = 'fixed'; iframe.style.right = '0'; iframe.style.bottom = '0'; iframe.style.width = '0'; iframe.style.height = '0';
-      document.body.appendChild(iframe);
-      const d = iframe.contentWindow.document;
-      d.open();
-      d.write(`<!DOCTYPE html><html><head><title>${pTitle}</title><style>@page{size:${pPaper} ${pOrient};margin:15mm 12mm;}body{font-family:sans-serif;font-size:${pFont};line-height:1.6;}img{max-width:100%!important;display:${hideImg ? 'none!important' : 'block'};}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ccc;padding:6px;}</style></head><body><h1>${pTitle}</h1>${prevBox.innerHTML}</body></html>`);
-      d.close();
-      setTimeout(() => { iframe.contentWindow.focus(); iframe.contentWindow.print(); setTimeout(() => iframe.remove(), 2000); }, 500);
+  function openPrintFriendlyWorkspace(articleData, opts = {}) {
+    const existing = document.getElementById('__tm_printfriendly_modal__');
+    if (existing) existing.remove();
+    const host = document.createElement('div');
+    host.id = '__tm_printfriendly_modal__';
+    document.body.appendChild(host);
+    const shadow = host.attachShadow({ mode: 'open' });
+    const isLandscape = opts.orientation === 'landscape';
+
+    shadow.innerHTML = `
+      <style>
+        .overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:#e2e8f0; z-index:2147483647; display:flex; flex-direction:column; font-family:sans-serif; }
+        .toolbar { height:54px; background:#fff; border-bottom:1px solid #cbd5e1; display:flex; align-items:center; justify-content:space-between; padding:0 16px; gap:10px; z-index:10; }
+        .btn { padding:7px 12px; border-radius:6px; border:1px solid #cbd5e1; background:#f8fafc; font-size:12px; font-weight:700; cursor:pointer; }
+        .btn-primary { background:#2563eb; color:#fff; border:none; }
+        .btn-danger { background:#fee2e2; color:#dc2626; border-color:#fca5a5; }
+        .body { flex:1; overflow-y:auto; padding:30px 16px 60px 16px; display:flex; flex-direction:column; align-items:center; }
+        .paper { background:#fff; box-shadow:0 8px 30px rgba(0,0,0,0.12); padding:48px 56px; width:100%; max-width:${isLandscape ? '1050px' : '820px'}; min-height:900px; color:#1e293b; line-height:1.7; font-size:14px; }
+        .paper > *:hover { background:#fee2e2!important; cursor:pointer; outline:1px dashed #ef4444; }
+      </style>
+      <div class="overlay">
+        <div class="toolbar">
+          <div style="font-weight:800; font-size:15px; color:#0f172a;">📄 PrintFriendly Preview</div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button class="btn btn-primary" id="btnDlPdf">📥 Tải PDF Ngay</button>
+            <button class="btn" id="btnHideImg">🖼️ Ẩn/Hiện ảnh</button>
+            <button class="btn" id="btnUndo" disabled>↩️ Hoàn tác</button>
+          </div>
+          <div><button class="btn btn-danger" id="btnClose">✕ Đóng</button></div>
+        </div>
+        <div class="body">
+          <div class="paper" id="paper">
+            <h1 style="font-size:24px; font-weight:800; margin-bottom:12px; border-bottom:2px solid #e2e8f0; padding-bottom:10px;">${articleData.displayTitle}</h1>
+            <div id="cnt">${articleData.htmlContent}</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    shadow.getElementById('btnClose').addEventListener('click', () => host.remove());
+    const cnt = shadow.getElementById('cnt'), undoStack = [], btnUndo = shadow.getElementById('btnUndo');
+
+    cnt.addEventListener('click', (e) => {
+      let t = e.target;
+      while (t && t.parentElement !== cnt) t = t.parentElement;
+      if (t && t.parentElement === cnt) {
+        undoStack.push({ node: t, parent: t.parentElement, next: t.nextSibling });
+        t.remove(); btnUndo.disabled = false;
+      }
+    });
+
+    btnUndo.addEventListener('click', () => {
+      if (undoStack.length > 0) {
+        const it = undoStack.pop();
+        if (it.next && it.next.parentElement === it.parent) it.parent.insertBefore(it.node, it.next);
+        else it.parent.appendChild(it.node);
+        btnUndo.disabled = undoStack.length === 0;
+      }
+    });
+
+    let hide = false;
+    shadow.getElementById('btnHideImg').addEventListener('click', () => {
+      hide = !hide; cnt.querySelectorAll('img').forEach((img) => (img.style.display = hide ? 'none' : 'block'));
+    });
+
+    shadow.getElementById('btnDlPdf').addEventListener('click', async () => {
+      const btn = shadow.getElementById('btnDlPdf');
+      btn.disabled = true; btn.textContent = '⏳ Đang tạo PDF...';
+      try {
+        const h2c = await loadHtml2Canvas(), jsPDFClass = await loadJsPDF();
+        const paper = shadow.getElementById('paper');
+        const canvas = await h2c(paper, { scale: 2, backgroundColor: '#ffffff' });
+        const isL = opts.orientation === 'landscape', tw = isL ? 297 : 210, th = isL ? 210 : 297;
+        const pdf = new jsPDFClass({ orientation: isL ? 'l' : 'p', unit: 'mm', format: [tw, th] });
+        const imgH = (canvas.height * tw) / canvas.width;
+        let hl = imgH, pos = 0, dUrl = canvas.toDataURL('image/jpeg', 0.95);
+        pdf.addImage(dUrl, 'JPEG', 0, pos, tw, imgH, undefined, 'FAST');
+        hl -= th;
+        while (hl > 0) {
+          pos = hl - imgH;
+          pdf.addPage([tw, th], isL ? 'l' : 'p');
+          pdf.addImage(dUrl, 'JPEG', 0, pos, tw, imgH, undefined, 'FAST');
+          hl -= th;
+        }
+        const b = pdf.output('blob'), u = URL.createObjectURL(b), a = document.createElement('a');
+        a.href = u; a.download = `${articleData.displayTitle}.pdf`;
+        document.body.appendChild(a); a.click();
+        setTimeout(() => { a.remove(); URL.revokeObjectURL(u); }, 2000);
+      } catch (err) {
+        alert('Lỗi tạo PDF: ' + err.message);
+      } finally {
+        btn.disabled = false; btn.textContent = '📥 Tải PDF Ngay';
+      }
     });
   }
 

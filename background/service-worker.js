@@ -48,11 +48,13 @@ async function triggerToggleUI(tab) {
         files: [
           'lib/jszip.min.js',
           'lib/jspdf.min.js',
+          'lib/html2canvas.min.js',
           'content/unblocker.js',
           'content/detector.js',
           'content/pdf-detector.js',
           'content/downloader.js',
           'content/pdf-engine.js',
+          'content/friendly-preview.js',
           'content/ui.js',
           'content/content-main.js'
         ]

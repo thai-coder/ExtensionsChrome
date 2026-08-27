@@ -96,9 +96,13 @@
         const clone = sourceEl.cloneNode(true);
 
         const junkSelectors = [
-          'script', 'style', 'noscript', 'iframe', 'nav', 'aside', 'header', 'footer',
+          'script', 'style', 'noscript', 'iframe', 'object', 'embed', 'nav', 'aside', 'header', 'footer',
+          'button', 'input', 'select', 'textarea', 'form', '[role="button"]', '[role="dialog"]',
           '.ad', '.ads', '.advertisement', '.sidebar', '.comment', '.comments',
-          '.social-share', '.cookie-banner', '#__flipbook_downloader_host__'
+          '.social-share', '.share-box', '.share-buttons', '.cookie-banner', '.popup', '.modal',
+          '.btn', '.button', '[class*="btn-"]', '[class*="button-"]', '[class*="share-"]',
+          '[class*="social-"]', '[class*="toolbar"]', '[class*="action-"]', '[class*="subscribe"]',
+          '[class*="newsletter"]', '[class*="related-"]', '[class*="widget"]', '#__flipbook_downloader_host__'
         ];
 
         junkSelectors.forEach((sel) => {

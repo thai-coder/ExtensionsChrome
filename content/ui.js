@@ -278,12 +278,12 @@
         <!-- TAB 2: FRIENDLY PDF & CLEAN WEB-TO-PDF -->
         <div class="body" id="tabPdfBody" style="display:none;">
           <div class="form-group">
-            <label>Tiêu đề bài in</label>
+            <label>Tiêu đề bài viết</label>
             <input type="text" id="pdfArticleTitle" value="${document.title || 'Tai_Lieu_In'}">
           </div>
 
-          <div id="embeddedPdfList" style="${embeddedPdfs.length > 0 ? '' : 'display:none;'} background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.35); border-radius:7px; padding:7px 10px;">
-            <div style="font-weight:700; color:#6ee7b7; font-size:11px; margin-bottom:4px;">🎯 File PDF gốc phát hiện được:</div>
+          <div id="embeddedPdfList" style="${embeddedPdfs.length > 0 ? '' : 'display:none;'} background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.35); border-radius:7px; padding:8px 10px;">
+            <div style="font-weight:700; color:#6ee7b7; font-size:11px; margin-bottom:4px;">🎯 File PDF gốc phát hiện được trong trang:</div>
             <div id="embeddedPdfsContainer"></div>
           </div>
 
@@ -307,34 +307,19 @@
             </div>
           </div>
 
-          <div class="row">
-            <div class="form-group">
-              <label>Cỡ chữ in</label>
-              <select id="articleFontSize">
-                <option value="11pt">Nhỏ (11pt)</option>
-                <option value="13pt" selected>Vừa (13pt - Chuẩn)</option>
-                <option value="15pt">Lớn (15pt)</option>
-                <option value="17pt">Rất lớn (17pt)</option>
-              </select>
-            </div>
-            <div class="form-group" style="justify-content:flex-end;">
-              <label style="display:flex; align-items:center; gap:6px; cursor:pointer; text-transform:none; font-size:11.5px; color:#F1F5F9; padding-top:16px;">
-                <input type="checkbox" id="hideImagesCheckbox"> Ẩn hình ảnh (Tiết kiệm mực)
-              </label>
+          <div style="background:rgba(99, 102, 241, 0.12); border:1px solid rgba(99, 102, 241, 0.3); border-radius:8px; padding:12px 14px; margin-top:4px;">
+            <div style="font-weight:700; color:#c7d2fe; font-size:12px; margin-bottom:4px;">✨ Trình xem trước PrintFriendly toàn màn hình:</div>
+            <div style="font-size:11.5px; color:#94a3b8; line-height:1.5;">
+              • Xem bản giấy A4/A3 màu trắng sạch sẽ trên nền xám.<br>
+              • Di chuột & click để xóa đoạn thừa hoặc ảnh rác.<br>
+              • Bấm <strong>"📥 Tải PDF Ngay"</strong> để tải file PDF trực tiếp (không qua hộp thoại in Chrome).
             </div>
           </div>
 
-          <div class="form-group">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <label>Xem trước nội dung sạch</label>
-              <span class="hint-text">💡 Click vào khối thừa để xóa</span>
-            </div>
-            <div class="preview-box" id="articlePreviewBox">Đang quét bài viết...</div>
-          </div>
-
-          <div class="btn-group">
-            <button class="btn btn-secondary" id="reExtractBtn">🔄 Quét lại bài viết</button>
-            <button class="btn btn-primary" id="printCleanBtn" style="flex:2; font-size:12.5px;">🖨️ In & Xuất PDF Sạch</button>
+          <div class="btn-group" style="margin-top:8px;">
+            <button class="btn btn-primary" id="openPreviewBtn" style="padding:11px 16px; font-size:13px; font-weight:700; box-shadow:0 4px 14px rgba(79, 70, 229, 0.4);">
+              <span>👁️ Mở Trình Xem Trước & Tải PDF</span>
+            </button>
           </div>
         </div>
       `;
@@ -472,37 +457,27 @@
       startPdfBtn.addEventListener('click', () => executeDownloadFlow('pdf'));
 
       // TAB 2: FRIENDLY PDF EVENTS
-      const reExtractBtn = this.shadow.getElementById('reExtractBtn');
-      const printCleanBtn = this.shadow.getElementById('printCleanBtn');
-      const articlePreviewBox = this.shadow.getElementById('articlePreviewBox');
+      const openPreviewBtn = this.shadow.getElementById('openPreviewBtn');
+      const articlePaperSize = this.shadow.getElementById('articlePaperSize');
+      const articleOrientation = this.shadow.getElementById('articleOrientation');
+      const pdfArticleTitle = this.shadow.getElementById('pdfArticleTitle');
 
-      articlePreviewBox.addEventListener('click', (e) => {
-        if (e.target !== articlePreviewBox) {
-          e.target.remove();
-          if (this.cleanArticleData) {
-            this.cleanArticleData.htmlContent = articlePreviewBox.innerHTML;
-          }
+      openPreviewBtn.addEventListener('click', () => {
+        if (!this.cleanArticleData) {
+          this.loadCleanArticle();
         }
-      });
+        if (!this.cleanArticleData) return alert('Không thể trích xuất bài viết từ trang này.');
 
-      reExtractBtn.addEventListener('click', () => this.loadCleanArticle());
+        if (pdfArticleTitle && pdfArticleTitle.value.trim()) {
+          this.cleanArticleData.displayTitle = pdfArticleTitle.value.trim();
+        }
 
-      printCleanBtn.addEventListener('click', () => {
-        if (!this.cleanArticleData) return alert('Chưa có nội dung bài viết!');
-        const pdfArticleTitle = this.shadow.getElementById('pdfArticleTitle');
-        const articlePaperSize = this.shadow.getElementById('articlePaperSize');
-        const articleOrientation = this.shadow.getElementById('articleOrientation');
-        const articleFontSize = this.shadow.getElementById('articleFontSize');
-        const hideImagesCheckbox = this.shadow.getElementById('hideImagesCheckbox');
-
-        this.cleanArticleData.htmlContent = articlePreviewBox.innerHTML;
-        this.pdfEngine.printCleanArticle(this.cleanArticleData, {
-          hideImages: hideImagesCheckbox.checked,
-          fontSize: articleFontSize.value,
-          paperSize: articlePaperSize.value,
-          orientation: articleOrientation.value,
-          customTitle: pdfArticleTitle.value.trim()
-        });
+        if (global.__PrintFriendlyWorkspace) {
+          new global.__PrintFriendlyWorkspace(this.cleanArticleData, {
+            paperSize: articlePaperSize.value,
+            orientation: articleOrientation.value
+          });
+        }
       });
     }
 
@@ -513,10 +488,8 @@
         this.cleanArticleData = scan;
         const pdfArticleTitle = this.shadow.getElementById('pdfArticleTitle');
         const articleOrientation = this.shadow.getElementById('articleOrientation');
-        const articlePreviewBox = this.shadow.getElementById('articlePreviewBox');
 
         if (pdfArticleTitle) pdfArticleTitle.value = scan.displayTitle;
-        if (articlePreviewBox) articlePreviewBox.innerHTML = scan.htmlContent;
         if (scan.hasWideContent && articleOrientation) {
           articleOrientation.value = 'landscape';
         }

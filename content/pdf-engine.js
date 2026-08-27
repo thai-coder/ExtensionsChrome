@@ -252,8 +252,9 @@
               color: #2563eb;
               text-decoration: none;
             }
-            p {
-              margin-bottom: 12px;
+            button, input, select, textarea, form, [role="button"], [role="dialog"],
+            .btn, .button, .share-buttons, .social-share, .ad, .ads, .sidebar, .widget {
+              display: none !important;
             }
           </style>
         </head>

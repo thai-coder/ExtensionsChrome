@@ -49,61 +49,80 @@
         const pageNum = sortedPages[i];
         const buffer = downloadedMap.get(pageNum);
         const blob = new Blob([buffer]);
-        const imgUrl = URL.createObjectURL(blob);
+        const blobUrl = URL.createObjectURL(blob);
 
-        // Đọc kích thước ảnh thực tế
-        const imgMeta = await new Promise((resolve) => {
+        const imgInfo = await new Promise((resolve, reject) => {
           const img = new Image();
-          img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
-          img.onerror = () => resolve({ width: 800, height: 1100 });
-          img.src = imgUrl;
+          img.onload = () => {
+            try {
+              const canvas = document.createElement('canvas');
+              canvas.width = img.naturalWidth || 800;
+              canvas.height = img.naturalHeight || 1100;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0);
+              const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+              URL.revokeObjectURL(blobUrl);
+              resolve({
+                dataUrl,
+                width: canvas.width,
+                height: canvas.height
+              });
+            } catch (err) {
+              URL.revokeObjectURL(blobUrl);
+              reject(err);
+            }
+          };
+          img.onerror = () => {
+            URL.revokeObjectURL(blobUrl);
+            reject(new Error(`Không thể giải mã ảnh trang ${pageNum}`));
+          };
+          img.src = blobUrl;
         });
 
         // Xác định hướng trang: Dọc hay Ngang
-        let pageOrientation = 'p'; // portrait
+        let pageOrientation = 'p';
         if (orientation === 'landscape') {
           pageOrientation = 'l';
         } else if (orientation === 'portrait') {
           pageOrientation = 'p';
         } else {
-          // 'auto': Tự động xoay theo tỷ lệ ảnh thực tế
-          pageOrientation = imgMeta.width > imgMeta.height ? 'l' : 'p';
+          pageOrientation = imgInfo.width > imgInfo.height ? 'l' : 'p';
         }
 
         // Kích thước trang PDF
+        const targetPaper = this.paperSizes[paperSize] || this.paperSizes.a4;
         let pWidth = 210;
         let pHeight = 297;
-        const targetPaper = this.paperSizes[paperSize] || this.paperSizes.a4;
 
         if (paperSize === 'auto') {
-          // Co dãn PDF đúng bằng kích thước ảnh gốc (Points)
-          pWidth = (imgMeta.width * 25.4) / 96;
-          pHeight = (imgMeta.height * 25.4) / 96;
-          pageOrientation = imgMeta.width > imgMeta.height ? 'l' : 'p';
+          pWidth = (imgInfo.width * 25.4) / 96;
+          pHeight = (imgInfo.height * 25.4) / 96;
+          pageOrientation = imgInfo.width > imgInfo.height ? 'l' : 'p';
         } else {
           pWidth = pageOrientation === 'l' ? targetPaper.height : targetPaper.width;
           pHeight = pageOrientation === 'l' ? targetPaper.width : targetPaper.height;
         }
 
+        const format = paperSize === 'auto' ? [pWidth, pHeight] : [targetPaper.width, targetPaper.height];
+
         if (i === 0) {
           pdfDoc = new jsPDFClass({
             orientation: pageOrientation,
             unit: 'mm',
-            format: paperSize === 'auto' ? [pWidth, pHeight] : [targetPaper.width, targetPaper.height]
+            format: format
           });
         } else {
-          pdfDoc.addPage(paperSize === 'auto' ? [pWidth, pHeight] : [targetPaper.width, targetPaper.height], pageOrientation);
+          pdfDoc.addPage(format, pageOrientation);
         }
 
         // Tính toán căn giữa và co dãn ảnh không bị méo tỷ lệ
-        const ratio = Math.min(pWidth / imgMeta.width, pHeight / imgMeta.height);
-        const renderW = imgMeta.width * ratio;
-        const renderH = imgMeta.height * ratio;
+        const ratio = Math.min(pWidth / imgInfo.width, pHeight / imgInfo.height);
+        const renderW = imgInfo.width * ratio;
+        const renderH = imgInfo.height * ratio;
         const posX = (pWidth - renderW) / 2;
         const posY = (pHeight - renderH) / 2;
 
-        pdfDoc.addImage(imgUrl, 'JPEG', posX, posY, renderW, renderH, undefined, 'FAST');
-        URL.revokeObjectURL(imgUrl);
+        pdfDoc.addImage(imgInfo.dataUrl, 'JPEG', posX, posY, renderW, renderH, undefined, 'FAST');
 
         if (onProgress) {
           const pct = Math.round(((i + 1) / total) * 100);
@@ -111,8 +130,19 @@
         }
       }
 
-      // Lưu file PDF về máy
-      pdfDoc.save(`${title}.pdf`);
+      // Lưu file PDF về máy an toàn qua Blob
+      const pdfBlob = pdfDoc.output('blob');
+      const downloadUrl = URL.createObjectURL(pdfBlob);
+      const downloadLink = document.createElement('a');
+      downloadLink.href = downloadUrl;
+      downloadLink.download = `${title}.pdf`;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      setTimeout(() => {
+        downloadLink.remove();
+        URL.revokeObjectURL(downloadUrl);
+      }, 2000);
+
       return true;
     }
 

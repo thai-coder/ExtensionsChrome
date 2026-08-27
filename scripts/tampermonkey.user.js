@@ -517,15 +517,35 @@
           for (let i = 0; i < sorted.length; i++) {
             const p = sorted[i];
             const imgBlob = new Blob([downloadedCache.get(p)]);
-            const imgUrl = URL.createObjectURL(imgBlob);
-            const meta = await new Promise(r => { const m = new Image(); m.onload = () => r(m); m.onerror = () => r({ naturalWidth: 800, naturalHeight: 1100 }); m.src = imgUrl; });
-            const orient = flipOrient.value === 'auto' ? (meta.naturalWidth > meta.naturalHeight ? 'l' : 'p') : flipOrient.value;
-            if (i === 0) doc = new jsPDFClass({ orientation: orient, unit: 'mm', format: flipPaper.value === 'auto' ? [meta.naturalWidth * 0.264, meta.naturalHeight * 0.264] : flipPaper.value });
-            else doc.addPage(flipPaper.value === 'auto' ? [meta.naturalWidth * 0.264, meta.naturalHeight * 0.264] : flipPaper.value, orient);
-            doc.addImage(imgUrl, 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-            URL.revokeObjectURL(imgUrl);
+            const blobUrl = URL.createObjectURL(imgBlob);
+            const imgInfo = await new Promise((res, rej) => {
+              const m = new Image();
+              m.onload = () => {
+                const c = document.createElement('canvas');
+                c.width = m.naturalWidth || 800; c.height = m.naturalHeight || 1100;
+                c.getContext('2d').drawImage(m, 0, 0);
+                const dUrl = c.toDataURL('image/jpeg', 0.95);
+                URL.revokeObjectURL(blobUrl);
+                res({ dataUrl: dUrl, width: c.width, height: c.height });
+              };
+              m.onerror = () => { URL.revokeObjectURL(blobUrl); rej(new Error('Lỗi ảnh ' + p)); };
+              m.src = blobUrl;
+            });
+            const orient = flipOrient.value === 'auto' ? (imgInfo.width > imgInfo.height ? 'l' : 'p') : flipOrient.value;
+            const pWidth = (imgInfo.width * 25.4) / 96;
+            const pHeight = (imgInfo.height * 25.4) / 96;
+            const fmt = flipPaper.value === 'auto' ? [pWidth, pHeight] : flipPaper.value;
+            if (i === 0) doc = new jsPDFClass({ orientation: orient, unit: 'mm', format: fmt });
+            else doc.addPage(fmt, orient);
+            doc.addImage(imgInfo.dataUrl, 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight(), undefined, 'FAST');
           }
-          doc.save(`${title}.pdf`);
+          const pdfBlob = doc.output('blob');
+          const dlUrl = URL.createObjectURL(pdfBlob);
+          const dlLink = document.createElement('a');
+          dlLink.href = dlUrl; dlLink.download = `${title}.pdf`;
+          document.body.appendChild(dlLink);
+          dlLink.click();
+          setTimeout(() => { dlLink.remove(); URL.revokeObjectURL(dlUrl); }, 2000);
           appendLog(`🎉 Đã xuất PDF: ${title}.pdf`);
         }
         statusText.textContent = 'Hoàn tất 100%';

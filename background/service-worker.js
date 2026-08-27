@@ -22,54 +22,73 @@ chrome.runtime.onInstalled.addListener(() => {
   }
 });
 
-// 2. Xử lý khi click vào Context Menu
-if (chrome.contextMenus && chrome.contextMenus.onClicked) {
-  chrome.contextMenus.onClicked.addListener(async (info, tab) => {
-    if (info.menuItemId !== 'toggle_flipbook_downloader' || !tab || !tab.id) return;
+// Hàm kích hoạt mở panel tải trên tab mục tiêu
+async function triggerToggleUI(tab) {
+  if (!tab || !tab.id) return;
+  const url = tab.url || '';
+  if (
+    url.startsWith('chrome://') ||
+    url.startsWith('edge://') ||
+    url.startsWith('chrome-extension://') ||
+    url.startsWith('about:') ||
+    url.includes('chrome.google.com/webstore')
+  ) {
+    return;
+  }
 
-    const url = tab.url || '';
-    if (
-      url.startsWith('chrome://') ||
-      url.startsWith('edge://') ||
-      url.startsWith('chrome-extension://') ||
-      url.startsWith('about:') ||
-      url.includes('chrome.google.com/webstore')
-    ) {
+  chrome.tabs.sendMessage(tab.id, { action: 'TOGGLE_DOWNLOADER_UI' }, async (res) => {
+    if (!chrome.runtime.lastError && res && res.status === 'ok') {
       return;
     }
 
-    chrome.tabs.sendMessage(tab.id, { action: 'TOGGLE_DOWNLOADER_UI' }, async (res) => {
-      if (!chrome.runtime.lastError && res && res.status === 'ok') {
-        return;
-      }
+    // Nạp script trực tiếp nếu tab chưa nạp trước đó
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: [
+          'lib/jszip.min.js',
+          'content/unblocker.js',
+          'content/detector.js',
+          'content/downloader.js',
+          'content/ui.js',
+          'content/content-main.js'
+        ]
+      });
 
-      // Nạp script trực tiếp nếu tab chưa nạp
-      try {
-        await chrome.scripting.executeScript({
-          target: { tabId: tab.id },
-          files: [
-            'lib/jszip.min.js',
-            'content/unblocker.js',
-            'content/detector.js',
-            'content/downloader.js',
-            'content/ui.js',
-            'content/content-main.js'
-          ]
-        });
-
-        await chrome.scripting.executeScript({
-          target: { tabId: tab.id },
-          func: () => {
-            if (typeof window.__toggleFlipbookDownloader === 'function') {
-              window.__toggleFlipbookDownloader();
-            } else if (window.__FlipbookFloatingUI) {
-              new window.__FlipbookFloatingUI();
-            }
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: () => {
+          if (typeof window.__toggleFlipbookDownloader === 'function') {
+            window.__toggleFlipbookDownloader();
+          } else if (window.__FlipbookFloatingUI) {
+            new window.__FlipbookFloatingUI();
           }
-        });
-      } catch (err) {
-        console.warn('Không thể inject script vào tab:', err);
-      }
-    });
+        }
+      });
+    } catch (err) {
+      console.warn('Không thể inject script vào tab:', err);
+    }
   });
 }
+
+// 2. Xử lý khi click vào Context Menu
+if (chrome.contextMenus && chrome.contextMenus.onClicked) {
+  chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+    if (info.menuItemId === 'toggle_flipbook_downloader') {
+      await triggerToggleUI(tab);
+    }
+  });
+}
+
+// 3. Xử lý khi bấm phím tắt Commands (Alt+Shift+D)
+if (chrome.commands && chrome.commands.onCommand) {
+  chrome.commands.onCommand.addListener(async (command) => {
+    if (command === 'toggle_downloader') {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab) {
+        await triggerToggleUI(tab);
+      }
+    }
+  });
+}
+

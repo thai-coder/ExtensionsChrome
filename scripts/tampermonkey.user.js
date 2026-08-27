@@ -453,12 +453,16 @@
 
   // 1. Đăng ký Menu Command trong Tampermonkey Popup Menu
   if (typeof GM_registerMenuCommand === 'function') {
-    GM_registerMenuCommand('📖 Mở Flipbook Downloader Pro (Alt + D)', toggleUI);
+    GM_registerMenuCommand('📖 Mở Flipbook Downloader Pro (Alt+Shift+D / Alt+Z)', toggleUI);
   }
 
-  // 2. Phím tắt Alt + D để mở/đóng Panel tải sách trực tiếp
+  // 2. Phím tắt Alt + Shift + D hoặc Alt + Z để mở/đóng Panel tải sách trực tiếp
   window.addEventListener('keydown', (e) => {
-    if (e.altKey && (e.key === 'd' || e.key === 'D')) {
+    const isAltShiftD = e.altKey && e.shiftKey && (e.key === 'd' || e.key === 'D');
+    const isAltZ = e.altKey && !e.shiftKey && !e.ctrlKey && (e.key === 'z' || e.key === 'Z');
+    const isCtrlShiftF = e.ctrlKey && e.shiftKey && (e.key === 'f' || e.key === 'F');
+
+    if (isAltShiftD || isAltZ || isCtrlShiftF) {
       e.preventDefault();
       toggleUI();
     }

@@ -21,6 +21,15 @@
       "128": "icons/icon128.png"
     }
   },
+  "commands": {
+    "toggle_downloader": {
+      "suggested_key": {
+        "default": "Alt+Shift+D",
+        "mac": "Alt+Shift+D"
+      },
+      "description": "Mở hoặc đóng bảng điều khiển tải sách"
+    }
+  },
   "background": {
     "service_worker": "background/service-worker.js"
   },

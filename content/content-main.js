@@ -30,9 +30,13 @@
     });
   }
 
-  // Phím tắt nhanh: Alt + D để mở/đóng Panel tải sách tại tab hiện tại
+  // Phím tắt nhanh: Alt + Shift + D hoặc Alt + Z (tránh trùng Alt + D của Chrome)
   window.addEventListener('keydown', (e) => {
-    if (e.altKey && (e.key === 'd' || e.key === 'D')) {
+    const isAltShiftD = e.altKey && e.shiftKey && (e.key === 'd' || e.key === 'D');
+    const isAltZ = e.altKey && !e.shiftKey && !e.ctrlKey && (e.key === 'z' || e.key === 'Z');
+    const isCtrlShiftF = e.ctrlKey && e.shiftKey && (e.key === 'f' || e.key === 'F');
+
+    if (isAltShiftD || isAltZ || isCtrlShiftF) {
       e.preventDefault();
       toggleUI();
     }

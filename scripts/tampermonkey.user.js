@@ -397,8 +397,7 @@
         <div class="toolbar">
           <div style="font-weight:800; font-size:15px; color:#0f172a;">📄 PrintFriendly Preview</div>
           <div style="display:flex; gap:8px; align-items:center;">
-            <button class="btn btn-primary" id="btnVectorPdf" style="background:#059669;">📄 Xuất PDF Chữ Thật (Vector)</button>
-            <button class="btn" id="btnDlPdf">📥 Tải PDF Nhanh</button>
+            <button class="btn btn-primary" id="btnVectorPdf" style="background:#059669;">📄 Xuất PDF</button>
             <button class="btn" id="btnHideImg">🖼️ Ẩn/Hiện ảnh</button>
             <button class="btn" id="btnUndo" disabled>↩️ Hoàn tác</button>
           </div>
@@ -443,40 +442,11 @@
       hide = !hide; cnt.querySelectorAll('img').forEach((img) => (img.style.display = hide ? 'none' : 'block'));
     });
 
-    // Xuất PDF Vector Chữ thật 100%
-    shadow.getElementById('btnVectorPdf').addEventListener('click', () => {
-      const title = (shadow.getElementById('tmDocTitle').innerText || articleData.displayTitle || 'Tai_Lieu').trim();
-      const iframe = document.createElement('iframe');
-      iframe.style.position = 'fixed'; iframe.style.right = '0'; iframe.style.bottom = '0'; iframe.style.width = '0'; iframe.style.height = '0'; iframe.style.border = 'none';
-      document.body.appendChild(iframe);
-      const doc = iframe.contentWindow.document;
-      doc.open();
-      doc.write(`
-        <!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title>
-        <style>
-          @page { size: ${opts.paperSize || 'a4'} ${opts.orientation || 'portrait'}; margin: 15mm 12mm; }
-          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.65; color: #111827; margin: 0; padding: 0; }
-          h1.doc-title { font-size: 22px; font-weight: 800; color: #0f172a; margin-bottom: 8px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
-          p, li { word-break: break-word; line-height: 1.7; margin-bottom: 12px; }
-          img { max-width: 100%!important; height: auto!important; margin: 12px auto; display: ${hide ? 'none!important' : 'block'}; page-break-inside: avoid; }
-          table { width: 100%!important; border-collapse: collapse; margin: 14px 0; page-break-inside: avoid; font-size: 13px; }
-          th, td { border: 1px solid #cbd5e1; padding: 6px 10px; text-align: left; }
-          th { background: #f8fafc; font-weight: 600; }
-          pre, code { background: #f1f5f9; border-radius: 4px; font-family: Consolas, monospace; font-size: 12.5px; page-break-inside: avoid; }
-          pre { padding: 10px; overflow-x: auto; white-space: pre-wrap; word-break: break-all; }
-        </style></head><body>
-          <h1 class="doc-title">${title}</h1>
-          <div style="font-size:11px; color:#64748b; margin-bottom:20px;">🌐 Nguồn: ${window.location.hostname} | 📅 Ngày: ${new Date().toLocaleDateString('vi-VN')}</div>
-          <div>${cnt.innerHTML}</div>
-        </body></html>
-      `);
-      doc.close();
-      setTimeout(() => { iframe.contentWindow.focus(); iframe.contentWindow.print(); setTimeout(() => iframe.remove(), 2500); }, 350);
-    });
-
-    shadow.getElementById('btnDlPdf').addEventListener('click', async () => {
-      const btn = shadow.getElementById('btnDlPdf');
-      btn.disabled = true; btn.textContent = '⏳ Đang tạo...';
+    // Xuất PDF trực tiếp (không dùng máy in Chrome)
+    shadow.getElementById('btnVectorPdf').addEventListener('click', async () => {
+      const btn = shadow.getElementById('btnVectorPdf');
+      const origText = btn.textContent;
+      btn.disabled = true; btn.textContent = '⏳ Đang tạo PDF...';
       try {
         const h2c = await loadHtml2Canvas(), jsPDFClass = await loadJsPDF();
         const paper = shadow.getElementById('paper');
@@ -503,23 +473,25 @@
         const isL = opts.orientation === 'landscape', tw = isL ? 297 : 210, th = isL ? 210 : 297;
         const pdf = new jsPDFClass({ orientation: isL ? 'l' : 'p', unit: 'mm', format: [tw, th] });
         const imgH = (canvas.height * tw) / canvas.width;
-        let hl = imgH, pos = 0, dUrl = canvas.toDataURL('image/jpeg', 0.95);
+        let hl = imgH, pos = 0, pageIdx = 0, dUrl = canvas.toDataURL('image/jpeg', 0.95);
         pdf.addImage(dUrl, 'JPEG', 0, pos, tw, imgH, undefined, 'FAST');
         hl -= th;
         while (hl > 0) {
-          pos = hl - imgH;
+          pageIdx++;
+          pos = -(pageIdx * th);
           pdf.addPage([tw, th], isL ? 'l' : 'p');
           pdf.addImage(dUrl, 'JPEG', 0, pos, tw, imgH, undefined, 'FAST');
           hl -= th;
         }
+        const title = (shadow.getElementById('tmDocTitle').innerText || articleData.displayTitle || 'Tai_Lieu').trim().replace(/[\\/:*?"<>|]/g, '_');
         const b = pdf.output('blob'), u = URL.createObjectURL(b), a = document.createElement('a');
-        a.href = u; a.download = `${articleData.displayTitle}.pdf`;
+        a.href = u; a.download = `${title}.pdf`;
         document.body.appendChild(a); a.click();
         setTimeout(() => { a.remove(); URL.revokeObjectURL(u); }, 2000);
       } catch (err) {
         alert('Lỗi tạo PDF: ' + err.message);
       } finally {
-        btn.disabled = false; btn.textContent = '📥 Tải PDF Nhanh';
+        btn.disabled = false; btn.textContent = origText;
       }
     });
   }

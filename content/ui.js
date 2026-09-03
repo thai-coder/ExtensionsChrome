@@ -290,7 +290,7 @@
             <div style="font-size:11.5px; color:#94a3b8; line-height:1.5;">
               • Xem bản giấy A4/A3 màu trắng sạch sẽ trên nền xám.<br>
               • Di chuột & click để xóa đoạn thừa hoặc ảnh rác.<br>
-              • Bấm <strong>"📥 Tải PDF Ngay"</strong> để tải file PDF trực tiếp (không qua hộp thoại in Chrome).
+              • Bấm <strong>"📄 Xuất PDF"</strong> để tải file PDF Vector chữ thật 100% (không qua hộp thoại in Chrome).
             </div>
           </div>
 

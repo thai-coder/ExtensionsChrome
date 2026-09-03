@@ -36,6 +36,31 @@
       const existing = document.getElementById(this.modalId);
       if (existing) existing.remove();
 
+      // Tiêm style toàn cục để khi Chromium gọi lệnh in (CDP), trang gốc sẽ ẩn và chỉ in nội dung sạch
+      let globalPrintStyle = document.getElementById('__print_friendly_global_print_style__');
+      if (!globalPrintStyle) {
+        globalPrintStyle = document.createElement('style');
+        globalPrintStyle.id = '__print_friendly_global_print_style__';
+        globalPrintStyle.textContent = `
+          @media print {
+            body > *:not(#__print_friendly_fullscreen_modal__) {
+              display: none !important;
+            }
+            #__print_friendly_fullscreen_modal__ {
+              display: block !important;
+              position: static !important;
+              width: 100% !important;
+              height: auto !important;
+              background: #ffffff !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              overflow: visible !important;
+            }
+          }
+        `;
+        document.head.appendChild(globalPrintStyle);
+      }
+
       this.container = document.createElement('div');
       this.container.id = this.modalId;
       document.body.appendChild(this.container);
@@ -58,6 +83,53 @@
           color: #1e293b; overflow: hidden; animation: fadeIn 0.15s ease;
         }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        @media print {
+          *, *::before, *::after {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .overlay {
+            position: static !important;
+            display: block !important;
+            background: #ffffff !important;
+            width: 100% !important;
+            height: auto !important;
+            overflow: visible !important;
+          }
+          .toolbar, .status-toast, .btn-close {
+            display: none !important;
+          }
+          .workspace-body {
+            padding: 0 !important;
+            margin: 0 !important;
+            overflow: visible !important;
+            display: block !important;
+            width: 100% !important;
+            height: auto !important;
+          }
+          .paper-sheet {
+            box-shadow: none !important;
+            border: none !important;
+            border-radius: 0 !important;
+            padding: 0 !important;
+            margin: 0 auto !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            min-height: auto !important;
+          }
+          .doc-title {
+            border: none !important;
+            padding: 0 0 8px 0 !important;
+          }
+          .content-area > *:hover {
+            background: transparent !important;
+            outline: none !important;
+          }
+          .content-area > *:hover::after {
+            display: none !important;
+          }
+        }
 
         .toolbar {
           height: 56px; background: #ffffff; border-bottom: 1px solid #cbd5e1;
@@ -85,11 +157,6 @@
           font-weight: 700; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35); padding: 7px 14px;
         }
         .btn-vector-pdf:hover { background: linear-gradient(135deg, #047857, #059669); color: #fff; }
-
-        .btn-download-pdf {
-          background: #f8fafc; color: #2563eb; border: 1px solid #93c5fd; font-weight: 700;
-        }
-        .btn-download-pdf:hover { background: #eff6ff; }
 
         .tool-select {
           padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px;
@@ -173,9 +240,6 @@
             <button class="tool-btn btn-vector-pdf" id="btnVectorPdf" title="Xuất file PDF giữ nguyên 100% chữ thật có thể bôi đen, copy và tìm kiếm Ctrl+F">
               <span>📄 Xuất PDF</span>
             </button>
-            <button class="tool-btn btn-download-pdf" id="btnDownloadPdf" title="Tải file PDF nhanh trực tiếp">
-              <span>📥 Tải PDF Nhanh</span>
-            </button>
 
             <div style="height:20px; width:1px; background:#cbd5e1; margin:0 2px;"></div>
 
@@ -237,7 +301,6 @@
     bindEvents() {
       const btnClose = this.shadow.getElementById('btnClose');
       const btnVectorPdf = this.shadow.getElementById('btnVectorPdf');
-      const btnDownloadPdf = this.shadow.getElementById('btnDownloadPdf');
       const selectPaper = this.shadow.getElementById('selectPaper');
       const selectOrient = this.shadow.getElementById('selectOrient');
       const btnDecFont = this.shadow.getElementById('btnDecFont');
@@ -316,26 +379,21 @@
         this.updatePaperDimensions();
       });
 
-      // 5. XUẤT PDF CHỮ THẬT VECTOR 100%
-      btnVectorPdf.addEventListener('click', () => {
+      // 5. XUẤT PDF TRỰC TIẾP (100% VECTOR TEXT THẬT QUA CHROME NATIVE CDP ENGINE)
+      btnVectorPdf.addEventListener('click', async () => {
         const titleText = (docTitleHeading.innerText || docTitleHeading.textContent || 'Tai_Lieu').trim().replace(/[\\/:*?"<>|]/g, '_');
-        this.exportVectorPdf(titleText);
-      });
-
-      // 6. TẢI PDF NHANH TRỰC TIẾP
-      btnDownloadPdf.addEventListener('click', async () => {
-        const titleText = (docTitleHeading.innerText || docTitleHeading.textContent || 'Tai_Lieu').trim().replace(/[\\/:*?"<>|]/g, '_');
-        btnDownloadPdf.disabled = true;
-        btnDownloadPdf.innerHTML = '<span>⏳ Đang tạo...</span>';
+        btnVectorPdf.disabled = true;
+        const originalHtml = btnVectorPdf.innerHTML;
+        btnVectorPdf.innerHTML = '<span>⏳ Đang xuất PDF Text thật...</span>';
         try {
-          await this.generateAndDownloadDirectPdf(titleText);
-          this.showToast(`🎉 Đã tải xong: ${titleText}.pdf`);
+          await this.exportPdf(titleText);
+          this.showToast(`🎉 Đã xuất xong file PDF (100% Vector Text): ${titleText}.pdf`);
         } catch (err) {
           console.error(err);
           alert(`Lỗi xuất PDF: ${err.message}`);
         } finally {
-          btnDownloadPdf.disabled = false;
-          btnDownloadPdf.innerHTML = '<span>📥 Tải PDF Nhanh</span>';
+          btnVectorPdf.disabled = false;
+          btnVectorPdf.innerHTML = originalHtml;
         }
       });
     }
@@ -358,174 +416,37 @@
     }
 
     /**
-     * Xuất PDF Vector Chữ Thật 100% bằng Isolated Clean Print Engine
+     * Xuất PDF Vector 100% Text Thật tự động qua Chrome CDP Engine
      */
-    exportVectorPdf(title) {
-      const contentArea = this.shadow.getElementById('contentArea');
-      const htmlContent = contentArea.innerHTML;
-      const fontSizePx = (14 * this.fontSizePercent) / 100;
+    async exportPdf(filename) {
+      this.showToast('🚀 Đang xuất PDF Vector 100% Text Thật...');
 
-      const iframe = document.createElement('iframe');
-      iframe.style.position = 'fixed';
-      iframe.style.right = '0';
-      iframe.style.bottom = '0';
-      iframe.style.width = '0';
-      iframe.style.height = '0';
-      iframe.style.border = 'none';
-      document.body.appendChild(iframe);
-
-      const doc = iframe.contentWindow.document;
-      doc.open();
-      doc.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <title>${title}</title>
-          <style>
-            @page {
-              size: ${this.paperSize} ${this.orientation};
-              margin: 15mm 12mm 15mm 12mm;
-            }
-            body {
-              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-              font-size: ${fontSizePx}px;
-              line-height: 1.65;
-              color: #111827;
-              background: #ffffff;
-              margin: 0;
-              padding: 0;
-            }
-            h1.doc-title {
-              font-size: 22px;
-              font-weight: 800;
-              color: #0f172a;
-              line-height: 1.35;
-              margin: 0 0 10px 0;
-              word-break: break-word;
-              border-bottom: 2px solid #e2e8f0;
-              padding-bottom: 8px;
-            }
-            .doc-meta { font-size: 11px; color: #64748b; margin-bottom: 22px; display: flex; gap: 16px; }
-            p, li { word-break: break-word; line-height: 1.7; margin-bottom: 12px; }
-            h1, h2, h3, h4 { color: #0f172a; page-break-after: avoid; }
-            img {
-              max-width: 100% !important; height: auto !important; margin: 14px auto;
-              display: ${this.hideImages ? 'none !important' : 'block'};
-              border-radius: 4px; page-break-inside: avoid;
-            }
-            table { width: 100% !important; border-collapse: collapse; margin: 16px 0; page-break-inside: avoid; font-size: 13px; }
-            th, td { border: 1px solid #cbd5e1; padding: 7px 10px; text-align: left; }
-            th { background: #f8fafc; font-weight: 600; }
-            pre, code { background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 4px; font-family: Consolas, monospace; font-size: 12.5px; page-break-inside: avoid; }
-            pre { padding: 10px; overflow-x: auto; white-space: pre-wrap; word-break: break-all; }
-            blockquote { border-left: 4px solid #6366f1; padding-left: 12px; margin-left: 0; color: #475569; font-style: italic; }
-            .doc-footer { margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 8px; font-size: 10.5px; color: #94a3b8; display: flex; justify-content: space-between; }
-          </style>
-        </head>
-        <body>
-          <h1 class="doc-title">${title}</h1>
-          <div class="doc-meta">
-            <span>🌐 Nguồn: ${window.location.hostname}</span>
-            <span>📅 Ngày: ${new Date().toLocaleDateString('vi-VN')}</span>
-          </div>
-          <div class="content">${htmlContent}</div>
-          <div class="doc-footer">
-            <span>📄 ${window.location.hostname}</span>
-            <span>Tài liệu xuất bản sạch - 100% Vector Text</span>
-          </div>
-        </body>
-        </html>
-      `);
-      doc.close();
-
-      setTimeout(() => {
-        iframe.contentWindow.focus();
-        iframe.contentWindow.print();
-        setTimeout(() => iframe.remove(), 2500);
-      }, 350);
-    }
-
-    async getJsPDF() {
-      if (global.jspdf && global.jspdf.jsPDF) return global.jspdf.jsPDF;
-      if (global.jsPDF) return global.jsPDF;
-      if (window.jspdf && window.jspdf.jsPDF) return window.jspdf.jsPDF;
-      throw new Error('Chưa nạp thư viện jsPDF');
-    }
-
-    async getHtml2Canvas() {
-      if (window.html2canvas) return window.html2canvas;
-      if (global.html2canvas) return global.html2canvas;
-      throw new Error('Chưa nạp thư viện html2canvas');
-    }
-
-    async generateAndDownloadDirectPdf(filename) {
-      const paperSheet = this.shadow.getElementById('paperSheet');
-      const jsPDFClass = await this.getJsPDF();
-      const html2canvasFunc = await this.getHtml2Canvas();
-
-      this.showToast('🚀 Đang kết xuất PDF...');
-
-      const canvas = await html2canvasFunc(paperSheet, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        logging: false,
-        onclone: (clonedDoc) => {
-          const paper = clonedDoc.getElementById('paperSheet') || clonedDoc.querySelector('.paper-sheet') || clonedDoc.getElementById('paper');
-          if (!paper) return;
-          const dummyCtx = document.createElement('canvas').getContext('2d');
-          const cleanColor = (c) => {
-            if (!c || typeof c !== 'string') return c;
-            if (!c.includes('oklch') && !c.includes('oklab') && !c.includes('color-mix') && !c.includes('lch') && !c.includes('lab')) return c;
-            try { dummyCtx.fillStyle = '#000000'; dummyCtx.fillStyle = c; return dummyCtx.fillStyle; } catch (e) { return '#1e293b'; }
-          };
-          paper.querySelectorAll('*').forEach((el) => {
-            if (el.style) {
-              ['color', 'backgroundColor', 'borderColor', 'outlineColor', 'fill', 'stroke'].forEach((p) => {
-                if (el.style[p]) el.style[p] = cleanColor(el.style[p]);
-              });
-            }
-          });
-        }
-      });
-
-      const isLandscape = this.orientation === 'landscape';
-      const dim = this.paperDimensions[this.paperSize] || this.paperDimensions.a4;
-      const targetW = isLandscape ? dim.landscape.w : dim.portrait.w;
-      const targetH = isLandscape ? dim.landscape.h : dim.portrait.h;
-
-      const pdf = new jsPDFClass({
-        orientation: isLandscape ? 'l' : 'p',
-        unit: 'mm',
-        format: [targetW, targetH]
-      });
-
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
-      const imgWidth = targetW;
-      const imgHeight = (canvas.height * targetW) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
-      heightLeft -= targetH;
-
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage([targetW, targetH], isLandscape ? 'l' : 'p');
-        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
-        heightLeft -= targetH;
+      if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.sendMessage) {
+        throw new Error('Tính năng xuất Vector PDF yêu cầu chạy trong môi trường Chrome Extension.');
       }
 
-      const pdfBlob = pdf.output('blob');
-      const downloadUrl = URL.createObjectURL(pdfBlob);
-      const dl = document.createElement('a');
-      dl.href = downloadUrl;
-      dl.download = `${filename}.pdf`;
-      document.body.appendChild(dl);
-      dl.click();
-      setTimeout(() => { dl.remove(); URL.revokeObjectURL(downloadUrl); }, 2000);
+      const res = await new Promise((resolve) => {
+        chrome.runtime.sendMessage(
+          {
+            action: 'EXPORT_VECTOR_PDF',
+            filename: filename,
+            paperSize: this.paperSize,
+            orientation: this.orientation
+          },
+          (response) => {
+            if (chrome.runtime.lastError) {
+              resolve({ success: false, error: chrome.runtime.lastError.message });
+            } else {
+              resolve(response || { success: false, error: 'Không nhận được phản hồi từ Background Service Worker' });
+            }
+          }
+        );
+      });
+
+      if (!res || !res.success) {
+        throw new Error(res?.error || 'Lỗi khi kết xuất Vector PDF qua Chromium engine');
+      }
+
       return true;
     }
   }

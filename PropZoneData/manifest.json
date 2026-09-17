@@ -1,0 +1,45 @@
+{
+  "manifest_version": 3,
+  "name": "PropZone Data - Smart Value Extractor",
+  "version": "1.0.0",
+  "description": "Trích xuất giá trị dữ liệu chính xác từ các website cố định với cơ chế nhận diện và bảo vệ clipboard an toàn.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "clipboardWrite"
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "PropZone Data Extractor",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "options_page": "options/options.html",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://propzone.gridics.com/*"],
+      "js": ["config/rules.js", "content/extractor.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+Shift+E",
+        "mac": "Alt+Shift+E"
+      },
+      "description": "Mở nhanh PropZone Data Extractor"
+    }
+  }
+}

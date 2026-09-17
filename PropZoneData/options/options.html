@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cài Đặt Cấu Hình - PropZone Data</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="brand">
+        <img src="../icons/icon48.png" alt="Logo" class="logo-img">
+        <div>
+          <h1>PropZone Data - Quản Lý Website Mục Tiêu</h1>
+          <p>Cấu hình danh sách trang web và quy tắc bóc tách dữ liệu an toàn</p>
+        </div>
+      </div>
+      <button id="btn-add-new-rule" class="btn btn-primary">+ Thêm Quy Tắc Mới</button>
+    </header>
+
+    <main class="main-content">
+      <!-- Section: Custom Rules List -->
+      <section class="card">
+        <div class="card-header">
+          <h2>Quy Tắc Tùy Biến (Custom Rules)</h2>
+          <span id="rules-count" class="badge">0 quy tắc</span>
+        </div>
+        <div id="rules-container" class="rules-list">
+          <div class="empty-state">Chưa có quy tắc tùy biến nào. Hãy nhấn "+ Thêm Quy Tắc Mới".</div>
+        </div>
+      </section>
+
+      <!-- Section: System Default Rules Info -->
+      <section class="card">
+        <div class="card-header">
+          <h2>Quy Tắc Mặc Định Của Hệ Thống (Built-in)</h2>
+        </div>
+        <div id="builtin-rules-container" class="rules-list"></div>
+      </section>
+    </main>
+
+    <!-- Modal Form: Add/Edit Rule -->
+    <div id="modal-rule" class="modal hidden">
+      <div class="modal-backdrop"></div>
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3 id="modal-title">Thêm Quy Tắc Trang Web Mới</h3>
+          <button id="btn-close-modal" class="btn-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="rule-name">Tên hiển thị / Website:</label>
+            <input type="text" id="rule-name" placeholder="Ví dụ: Trang Chi Tiết Sản Phẩm A">
+          </div>
+
+          <div class="form-group">
+            <label for="rule-pattern">URL Pattern (Regular Expression):</label>
+            <input type="text" id="rule-pattern" placeholder="Ví dụ: ^https://example\.com/product/.*">
+            <small>Chỉ cho phép chạy bóc tách khi URL trình duyệt khớp với biểu thức này.</small>
+          </div>
+
+          <div class="form-group">
+            <label>Danh Sách Trường Dữ Liệu Cần Trích Xuất (Fields):</label>
+            <div id="fields-editor" class="fields-editor"></div>
+            <button id="btn-add-field-row" type="button" class="btn btn-sm btn-secondary">+ Thêm Trường</button>
+          </div>
+
+          <div class="form-group">
+            <label for="rule-template">Định dạng Văn Bản Mẫu (Output Template):</label>
+            <textarea id="rule-template" rows="3" placeholder="Ví dụ: Mã: {id} | Tên: {title} | Giá: {price}"></textarea>
+            <small>Sử dụng cú pháp {key} tương ứng với mã trường ở trên.</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="btn-cancel-modal" class="btn btn-secondary">Hủy</button>
+          <button id="btn-save-rule" class="btn btn-primary">Lưu Quy Tắc</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast hidden">Đã lưu thành công!</div>
+  </div>
+
+  <script src="../config/rules.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

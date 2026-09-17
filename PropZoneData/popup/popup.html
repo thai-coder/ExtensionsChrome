@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PropZone Data Extractor</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Header -->
+    <header class="top-bar">
+      <div class="brand">
+        <img src="../icons/icon48.png" alt="Logo" class="brand-icon">
+        <div class="brand-text">
+          <h1 class="brand-title">PropZone Data</h1>
+          <div id="status-pill" class="status-pill pending">
+            <span class="status-dot"></span>
+            <span id="status-label">Checking...</span>
+          </div>
+        </div>
+      </div>
+      <button id="btn-refresh" class="icon-action-btn" title="Refresh & Rescan Data">
+        <svg id="refresh-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <polyline points="1 20 1 14 7 14"></polyline>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+        </svg>
+      </button>
+    </header>
+
+    <!-- Main Workspace -->
+    <main id="active-panel" class="main-panel hidden">
+      <!-- Segmented Navigation -->
+      <nav class="segmented-control">
+        <button id="tab-overview" class="seg-btn active">Overview</button>
+        <button id="tab-lot" class="seg-btn">Lot</button>
+        <button id="tab-zoning" class="seg-btn">Zoning</button>
+        <button id="tab-setbacks" class="seg-btn">Setbacks</button>
+        <button id="tab-capacity" class="seg-btn">Capacity</button>
+      </nav>
+
+      <!-- Scrollable Tab Content Area -->
+      <div class="content-scroll">
+        <!-- 1. Overview Tab -->
+        <div id="view-overview" class="tab-view active">
+          <div class="stat-grid">
+            <div class="stat-box">
+              <span class="s-lbl">Lot Area (Tax)</span>
+              <span id="v-ov-taxArea" class="s-val text-cyan">-</span>
+            </div>
+            <div class="stat-box">
+              <span class="s-lbl">Existing Bldg</span>
+              <span id="v-ov-bldgArea" class="s-val">-</span>
+            </div>
+            <div class="stat-box">
+              <span class="s-lbl">Max Height</span>
+              <span id="v-ov-maxHeight" class="s-val text-amber">-</span>
+            </div>
+            <div class="stat-box">
+              <span class="s-lbl">Max Units</span>
+              <span id="v-ov-maxUnits" class="s-val text-green">-</span>
+            </div>
+          </div>
+
+          <div class="card-section">
+            <div class="data-table">
+              <div class="data-row">
+                <span class="d-key">Year Built:</span>
+                <span id="v-ov-yearBuilt" class="d-val">-</span>
+              </div>
+              <div class="data-row">
+                <span class="d-key">Lot Type / Acres:</span>
+                <span id="v-ov-typeAcres" class="d-val">-</span>
+              </div>
+              <div class="data-row">
+                <span class="d-key">Primary / Rear Setback:</span>
+                <span id="v-ov-setbacks" class="d-val">-</span>
+              </div>
+              <div class="data-row">
+                <span class="d-key">Max Building Area:</span>
+                <span id="v-ov-maxBldgArea" class="d-val">-</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Lot Tab -->
+        <div id="view-lot" class="tab-view hidden">
+          <div class="card-section">
+            <div class="data-table">
+              <div class="data-row"><span class="d-key">Existing Building Area:</span><span id="v-lot-bldgArea" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Existing Building Use:</span><span id="v-lot-bldgUse" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Existing Living Units:</span><span id="v-lot-units" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Year Built:</span><span id="v-lot-yearBuilt" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Neighborhood:</span><span id="v-lot-neighborhood" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Parcel ID:</span><span id="v-lot-parcelId" class="d-val highlight">-</span></div>
+              <div class="data-row"><span class="d-key">Group ID:</span><span id="v-lot-groupId" class="d-val text-dim">-</span></div>
+              <div class="data-row"><span class="d-key">Lot Area - Tax Record:</span><span id="v-lot-taxRecord" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Lot Area - Parcel Shape:</span><span id="v-lot-parcelShape" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Lot Area - Acres:</span><span id="v-lot-acres" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Lot Type:</span><span id="v-lot-type" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Frontage Length:</span><span id="v-lot-frontage" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Vacant:</span><span id="v-lot-vacant" class="d-val">-</span></div>
+              <div class="data-row col-wrap"><span class="d-key">Legal Description:</span><span id="v-lot-legal" class="d-val-full">-</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Zoning Tab -->
+        <div id="view-zoning" class="tab-view hidden">
+          <div class="card-section">
+            <div class="data-table">
+              <div class="data-row"><span class="d-key">Existing Land Use:</span><span id="v-zn-landUse" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Zoning Code:</span><span id="v-zn-code" class="d-val text-cyan">-</span></div>
+              <div class="data-row"><span class="d-key">Zoning District(s):</span><span id="v-zn-district" class="d-val highlight">-</span></div>
+              <div class="data-row col-wrap"><span class="d-key">Zone Description:</span><span id="v-zn-desc" class="d-val-full">-</span></div>
+              <div class="data-row col-wrap"><span class="d-key">Allowed Use(s):</span><span id="v-zn-allowed" class="d-val-full text-dim">-</span></div>
+              <div class="data-row"><span class="d-key">FEMA Flood Zone:</span><span id="v-zn-flood" class="d-val">-</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Setbacks Tab -->
+        <div id="view-setbacks" class="tab-view hidden">
+          <div class="card-section">
+            <div class="data-table">
+              <div class="data-row"><span class="d-key">Minimum Primary Frontage:</span><span id="v-sb-primary" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Minimum Secondary Frontage:</span><span id="v-sb-secondary" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Minimum Side Setback:</span><span id="v-sb-side" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Minimum Rear Setback:</span><span id="v-sb-rear" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Minimum Water Setback:</span><span id="v-sb-water" class="d-val">-</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Capacity Tab -->
+        <div id="view-capacity" class="tab-view hidden">
+          <div class="card-section">
+            <div class="data-table">
+              <div class="data-row"><span class="d-key">Maximum Building Area:</span><span id="v-cp-bldgArea" class="d-val text-cyan">-</span></div>
+              <div class="data-row"><span class="d-key">Maximum Height - Stories:</span><span id="v-cp-stories" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Maximum Building Height:</span><span id="v-cp-height" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Floor Area Ratio (FAR):</span><span id="v-cp-far" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Maximum Lot Coverage:</span><span id="v-cp-lotCov" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Maximum Building Footprint:</span><span id="v-cp-footprint" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Minimum Open Space:</span><span id="v-cp-openSpace" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Residential Density:</span><span id="v-cp-resDensity" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Max Residential Area Allowed:</span><span id="v-cp-resArea" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Max Residential Units Allowed:</span><span id="v-cp-resUnits" class="d-val text-green">-</span></div>
+              <div class="data-row"><span class="d-key">Lodging Density:</span><span id="v-cp-lodgingDensity" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Max Lodging Area Allowed:</span><span id="v-cp-lodgingArea" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Max Office Area Allowed:</span><span id="v-cp-officeArea" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Max Commercial Area Allowed:</span><span id="v-cp-commArea" class="d-val">-</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Action Bar -->
+      <footer class="bottom-bar">
+        <button id="btn-copy-json" class="primary-action-btn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          <span>Copy JSON Payload</span>
+        </button>
+      </footer>
+    </main>
+
+    <!-- Blocked State -->
+    <div id="blocked-panel" class="blocked-state hidden">
+      <div class="blocked-icon-box">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+        </svg>
+      </div>
+      <h3 class="blocked-title">Unsupported Website</h3>
+      <p class="blocked-desc">This extension only operates on:</p>
+      <div class="allowed-url-tag">https://propzone.gridics.com/</div>
+      <p class="blocked-note">Clipboard safety guard is actively protecting your data.</p>
+      <button id="btn-open-propzone" class="btn-goto">Open PropZone Gridics</button>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden">JSON Copied to Clipboard!</div>
+  </div>
+
+  <script src="../config/rules.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,17 +1,35 @@
 {
   "manifest_version": 3,
-  "name": "PropZone Data - Smart Value Extractor",
+  "name": "FEASIBILITY STUDY Data",
   "version": "1.0.0",
-  "description": "Trích xuất giá trị dữ liệu chính xác từ các website cố định với cơ chế nhận diện và bảo vệ clipboard an toàn.",
+  "description": "Smart property, zoning, setbacks & capacity data extractor for Feasibility Studies.",
   "permissions": [
     "activeTab",
     "scripting",
     "storage",
-    "clipboardWrite"
+    "clipboardWrite",
+    "tabs",
+    "downloads"
+  ],
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
+  "host_permissions": [
+    "https://propzone.gridics.com/*",
+    "https://*.redfin.com/*",
+    "https://*.zillow.com/*",
+    "https://portal.assessor.lacounty.gov/*",
+    "https://webapps.ocgis.com/*",
+    "https://experience.arcgis.com/*",
+    "https://*.google.com/*",
+    "https://*.google.com.vn/*",
+    "https://*.google.ca/*",
+    "https://*.google.co.uk/*",
+    "https://*.google.com.au/*"
   ],
   "action": {
     "default_popup": "popup/popup.html",
-    "default_title": "PropZone Data Extractor",
+    "default_title": "FEASIBILITY STUDY Data Extractor",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",
@@ -28,8 +46,26 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://propzone.gridics.com/*"],
-      "js": ["config/rules.js", "content/extractor.js"],
+      "matches": [
+        "https://propzone.gridics.com/*",
+        "https://portal.assessor.lacounty.gov/*",
+        "https://webapps.ocgis.com/*",
+        "https://experience.arcgis.com/*",
+        "https://*.redfin.com/*",
+        "https://*.zillow.com/*"
+      ],
+      "js": ["config/county-detector.js", "config/rules.js", "content/extractor.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://*.google.com/search*",
+        "https://*.google.com.vn/search*",
+        "https://*.google.ca/search*",
+        "https://*.google.co.uk/search*",
+        "https://*.google.com.au/search*"
+      ],
+      "js": ["config/county-detector.js", "content/google-extractor.js"],
       "run_at": "document_idle"
     }
   ],

@@ -1,6 +1,6 @@
-# PropZone Data - Smart Value Extractor (Chrome Extension)
+# FEASIBILITY STUDY Data (Chrome Extension)
 
-Chrome Extension chuyên dụng trích xuất chính xác các giá trị dữ liệu từ các website cố định với cơ chế nhận dạng domain an toàn và chống copy đè Clipboard ngoài ý muốn.
+Chrome Extension chuyên dụng trích xuất chính xác các giá trị dữ liệu (Lot, Zoning, Setbacks, Capacity) từ hệ thống quy hoạch phục vụ báo cáo Feasibility Studies.
 
 ---
 

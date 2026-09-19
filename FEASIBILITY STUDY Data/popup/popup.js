@@ -87,7 +87,16 @@ document.addEventListener("DOMContentLoaded", () => {
               window.location.href = "fs-update://run";
             }
 
-            showToast("⚡ Đang kích hoạt bộ cài FS.exe...");
+            showToast("⚡ Đang cài đặt cập nhật ngầm...");
+
+            // 3. Sau 3 giây khi bộ cài đặt im lặng hoàn tất, tự động reload Extension để nhận bản mới
+            setTimeout(() => {
+              try {
+                if (chrome.runtime && chrome.runtime.reload) {
+                  chrome.runtime.reload();
+                }
+              } catch (e) {}
+            }, 3000);
           };
         }
       } else if (updateBanner) {

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "FEASIBILITY STUDY Data",
-  "version": "1.6.3",
+  "version": "1.6.1",
   "description": "Smart property, zoning, setbacks & capacity data extractor for Feasibility Studies.",
   "permissions": [
     "activeTab",

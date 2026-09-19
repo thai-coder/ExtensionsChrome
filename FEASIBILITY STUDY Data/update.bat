@@ -15,11 +15,11 @@ if exist "%ServerInstaller%" (
     echo [OK] Dang lay bo cai dat moi nhat tu Server...
     copy /Y "%ServerInstaller%" "%LocalInstaller%" > nul
     if exist "%LocalInstaller%" (
-        echo [OK] Khoi chay bo cai dat...
-        start "" "%LocalInstaller%"
+        echo [OK] Khoi chay bo cai dat o che do im lang...
+        start /wait "" "%LocalInstaller%" /VERYSILENT /SUPPRESSMSGBOXES
         exit /b 0
     ) else (
-        start "" "%ServerInstaller%"
+        start /wait "" "%ServerInstaller%" /VERYSILENT /SUPPRESSMSGBOXES
         exit /b 0
     )
 ) else (

@@ -486,9 +486,9 @@
             isCompleted = true;
             cleanup();
 
-            console.log(`%c✅ [PropZone Pipeline] Thu thập THÀNH CÔNG (${status.count} trường, ${elapsedSec.toFixed(1)}s)!`, "color: #10b981; font-weight: bold; font-size: 14px;", data);
+            console.log(`%c✅ [PropZone Pipeline] Thu thập THÀNH CÔNG (${status.count} trường, ${elapsedSec.toFixed(1)}s)! Dữ liệu đã lưu vào Extension. Tab này được giữ mở trong 10 phút để bạn xem bản đồ quy hoạch.`, "color: #10b981; font-weight: bold; font-size: 14px;", data);
 
-            // Đợi 600ms an toàn rồi gửi lệnh lưu và đóng tab
+            // Đợi 600ms an toàn rồi gửi lệnh lưu dữ liệu vào storage
             setTimeout(() => {
               chrome.runtime.sendMessage({
                 action: "AUTO_SAVE_AND_CLOSE_TAB",
@@ -499,7 +499,7 @@
           }
 
           // Kiểm tra nếu trang thông báo không tìm thấy lô đất
-          if (elapsedSec >= 3 && checkPropZoneNotFound()) {
+          if (elapsedSec >= 5 && checkPropZoneNotFound()) {
             isCompleted = true;
             cleanup();
             console.warn(`⚠️ [PropZone Pipeline] Folio không tìm thấy trên PropZone (${elapsedSec.toFixed(1)}s). Lưu dữ liệu hiện có.`);
@@ -535,19 +535,19 @@
         if (maxWaitTimer) clearTimeout(maxWaitTimer);
       };
 
-      // 4. Timeout an toàn 12s (thay vì 45s trước đây)
+      // 4. Timeout quét dự phòng 45s (đảm bảo trang SPA tải xong hoàn toàn dữ liệu)
       const maxWaitTimer = setTimeout(() => {
         if (isCompleted) return;
         isCompleted = true;
         cleanup();
 
-        console.warn(`⚠️ [PropZone Pipeline] Hết thời gian chờ tối đa (12s). Gửi dữ liệu hiện có và đóng tab.`);
+        console.warn(`⚠️ [PropZone Pipeline] Kết thúc chu kỳ quét (45s). Gửi dữ liệu hiện có về lưu trữ (Tab vẫn giữ mở).`);
         const currentData = extractAllData();
         chrome.runtime.sendMessage({
           action: "AUTO_SAVE_AND_CLOSE_TAB",
           data: currentData
         });
-      }, 12000);
+      }, 45000);
     });
     } catch (e) {}
   }

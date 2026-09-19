@@ -100,10 +100,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     });
 
     if (sender.tab && sender.tab.id) {
+      console.log(`⏳ [Service-Worker] Tab PropZone ${sender.tab.id} sẽ được giữ mở trong 10 phút (600s) để người dùng quan sát/thao tác thủ công trước khi tự động đóng.`);
       setTimeout(() => {
         chrome.tabs.remove(sender.tab.id).catch(() => {});
-        console.log(`🧹 [Service-Worker] Closed failed PropZone tab: ${sender.tab.id}`);
-      }, 600);
+        console.log(`🧹 [Service-Worker] Đã hết 10 phút. Tự động đóng tab PropZone: ${sender.tab.id}`);
+      }, PROPZONE_TAB_LIFETIME_MS);
     }
 
     sendResponse({ success: true });
@@ -345,12 +346,12 @@ async function handleStep3SaveAndClose(data, tabId) {
   });
 
   if (tabId) {
+    console.log(`⏳ [Pipeline-Step 3] Dữ liệu PropZone đã được bóc tách và lưu trữ thành công! Tab ${tabId} sẽ tiếp tục được giữ mở trong 10 phút (600s) để người dùng xem bản đồ quy hoạch trước khi đóng.`);
     setTimeout(() => {
       chrome.tabs.remove(tabId).catch(() => {});
-      console.log(`🧹 [Pipeline-Step 3] PropZone extraction complete. Closed tab: ${tabId}`);
-    }, 500);
+      console.log(`🧹 [Pipeline-Step 3] Đã hết 10 phút. Tự động đóng tab PropZone: ${tabId}`);
+    }, PROPZONE_TAB_LIFETIME_MS);
   }
-  pipelineSession.propZoneTabId = null;
 }
 
 /**

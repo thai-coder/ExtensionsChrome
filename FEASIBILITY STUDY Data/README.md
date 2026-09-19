@@ -25,7 +25,7 @@ Chrome Extension chuyên dụng trích xuất chính xác các giá trị dữ l
 ## 📁 Cấu Trúc Thư Mục
 
 ```
-PropZoneData/
+FEASIBILITY STUDY Data/
 ├── manifest.json              # Cấu hình Manifest V3
 ├── config/
 │   └── rules.js               # Danh sách cấu hình website mặc định & Matcher Engine
@@ -50,5 +50,5 @@ PropZoneData/
 2. Bật công tắc **"Developer mode"** (Chế độ dành cho nhà phát triển) ở góc trên bên phải.
 3. Nhấn vào nút **"Load unpacked"** (Tải tiện ích đã giải nén).
 4. Chọn thư mục:
-   `c:\Users\thailka\Desktop\SoftWare\Web\ExtensionsChrome\PropZoneData`
-5. Ghim tiện ích **PropZone Data** lên thanh công cụ để sử dụng.
+   `c:\Users\thailka\Desktop\SoftWare\Web\ExtensionsChrome\FEASIBILITY STUDY Data`
+5. Ghim tiện ích **FEASIBILITY STUDY Data** lên thanh công cụ để sử dụng.

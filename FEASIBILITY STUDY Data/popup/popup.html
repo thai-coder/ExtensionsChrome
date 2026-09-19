@@ -127,6 +127,10 @@
                 <span id="v-ov-typeAcres" class="d-val">-</span>
               </div>
               <div class="data-row">
+                <span class="d-key">Stories / Parking:</span>
+                <span id="v-ov-storiesParking" class="d-val text-cyan">-</span>
+              </div>
+              <div class="data-row">
                 <span class="d-key">Primary / Rear Setback:</span>
                 <span id="v-ov-setbacks" class="d-val">-</span>
               </div>
@@ -145,6 +149,9 @@
               <div class="data-row"><span class="d-key">Project Address:</span><span id="v-lot-address" class="d-val text-cyan">-</span></div>
               <div class="data-row"><span class="d-key">Existing Building Area:</span><span id="v-lot-bldgArea" class="d-val">-</span></div>
               <div class="data-row"><span class="d-key">Existing Building Use:</span><span id="v-lot-bldgUse" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Stories:</span><span id="v-lot-stories" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Parking / Garage:</span><span id="v-lot-parking" class="d-val highlight">-</span></div>
+              <div class="data-row"><span class="d-key">Garage Area (Est.):</span><span id="v-lot-garageArea" class="d-val text-amber">-</span></div>
               <div class="data-row"><span class="d-key">Existing Living Units:</span><span id="v-lot-units" class="d-val">-</span></div>
               <div class="data-row"><span class="d-key">Year Built:</span><span id="v-lot-yearBuilt" class="d-val">-</span></div>
               <div class="data-row"><span class="d-key">Neighborhood:</span><span id="v-lot-neighborhood" class="d-val">-</span></div>
@@ -233,9 +240,28 @@
 
     <!-- Toast Notification -->
     <div id="toast" class="toast hidden">JSON Copied to Clipboard!</div>
+
+    <!-- VPN Notice Modal -->
+    <div id="vpn-modal" class="modal-backdrop hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <span class="modal-icon">⚠️</span>
+          <h3 class="modal-title">Orange County (OCGIS) Yêu Cầu VPN</h3>
+        </div>
+        <p class="modal-desc">
+          Hệ thống OCGIS chặn kết nối ngoài Hoa Kỳ. Vui lòng bật VPN máy chủ US (Mỹ) để tải bản đồ PDF gốc, hoặc chọn tải bản đồ quy hoạch dự phòng.
+        </p>
+        <div class="modal-actions">
+          <button id="btn-vpn-retry" class="modal-btn btn-vpn-primary">⚡ Đã Bật VPN US (Thử Lại)</button>
+          <button id="btn-vpn-fallback" class="modal-btn btn-vpn-secondary">🗺️ Mở Bản Đồ Dự Phòng</button>
+          <button id="btn-vpn-close" class="modal-btn btn-vpn-close">Đóng</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="../config/county-detector.js"></script>
+  <script src="../config/map-sources.js"></script>
   <script src="../config/rules.js"></script>
   <script src="popup.js"></script>
 </body>

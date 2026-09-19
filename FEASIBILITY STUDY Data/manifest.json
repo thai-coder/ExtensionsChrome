@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "FEASIBILITY STUDY Data",
-  "version": "1.0.0",
+  "version": "1.6.0",
   "description": "Smart property, zoning, setbacks & capacity data extractor for Feasibility Studies.",
   "permissions": [
     "activeTab",
@@ -19,7 +19,16 @@
     "https://*.redfin.com/*",
     "https://*.zillow.com/*",
     "https://portal.assessor.lacounty.gov/*",
+    "https://maps.assessor.lacounty.gov/*",
     "https://webapps.ocgis.com/*",
+    "https://tax.ocgov.com/*",
+    "https://*.rivcoacr.org/*",
+    "https://ca-riverside-acr.civicplus.pro/*",
+    "https://gis.countyofriverside.us/*",
+    "https://*.sbcounty.gov/*",
+    "https://www.arcgis.com/*",
+    "http://www.ci.ontario.ca.us/*",
+    "https://*.ontarioca.gov/*",
     "https://experience.arcgis.com/*",
     "https://*.google.com/*",
     "https://*.google.com.vn/*",
@@ -67,6 +76,39 @@
       ],
       "js": ["config/county-detector.js", "content/google-extractor.js"],
       "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://webapps.ocgis.com/*"
+      ],
+      "js": ["content/ocgis-map-extractor.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://*.rivcoacr.org/*",
+        "https://ca-riverside-acr.civicplus.pro/*",
+        "https://gis.countyofriverside.us/*"
+      ],
+      "js": ["content/rivco-map-extractor.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://portal.assessor.lacounty.gov/*"
+      ],
+      "js": ["content/la-map-extractor.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://www.arcgis.com/apps/webappviewer/*",
+        "https://*.sbcounty.gov/*",
+        "http://www.ci.ontario.ca.us/*",
+        "https://*.ontarioca.gov/*"
+      ],
+      "js": ["content/sanbernardino-map-extractor.js"],
+      "run_at": "document_idle"
     }
   ],
   "commands": {
@@ -75,7 +117,7 @@
         "default": "Alt+Shift+E",
         "mac": "Alt+Shift+E"
       },
-      "description": "Mở nhanh PropZone Data Extractor"
+      "description": "Mở nhanh FEASIBILITY STUDY Data Extractor"
     }
   }
 }

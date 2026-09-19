@@ -63,13 +63,38 @@
       cities: ["san bernardino", "fontana", "ontario", "rancho cucamonga", "victorville", "rialto", "hesperia", "chino", "chino hills", "upland"],
       zipPrefixes: ["923", "924", "917"],
       assessorUrl: "https://www.arcgis.com/apps/webappviewer/index.html?id=e704eb0429f448c4a45a5d115e5102a2",
-      getParcelMapUrl: (apn) => `https://www.arcgis.com/apps/webappviewer/index.html?id=e704eb0429f448c4a45a5d115e5102a2`
+      getParcelMapUrl: (apn) => `https://www.arcgis.com/apps/webappviewer/index.html?id=e704eb0429f448c4a45a5d115e5102a2`,
+      cityProfiles: {
+        ontario: {
+          cityName: "Ontario",
+          jurisdiction: "City of Ontario",
+          zoning: "CITY OF ONTARIO",
+          zoningDesc: "City of Ontario",
+          zoningUrl: "http://www.ci.ontario.ca.us/",
+          officialUrl: "http://www.ci.ontario.ca.us/"
+        }
+      }
+    }
+  };
+
+  const CITY_SPECIFIC_PROFILES = {
+    ontario: {
+      cityName: "Ontario",
+      countyKey: "sanBernardino",
+      countyName: "San Bernardino County",
+      jurisdiction: "City of Ontario",
+      zoning: "CITY OF ONTARIO",
+      zoningDistrict: "CITY OF ONTARIO",
+      zoningDesc: "City of Ontario",
+      zoningCode: "CITY OF ONTARIO",
+      zoningCodeUrl: "http://www.ci.ontario.ca.us/",
+      officialUrl: "http://www.ci.ontario.ca.us/"
     }
   };
 
   class CountyDetector {
     /**
-     * Phân tích địa chỉ và trả về thông tin Quận tương ứng
+     * Phân tích địa chỉ và trả về thông tin Quận & Thành phố tương ứng
      * @param {string} address 
      * @returns {Object}
      */
@@ -78,6 +103,21 @@
 
       const lower = address.toLowerCase();
 
+      // 0. Kiểm tra trực tiếp City Profiles đặc biệt (như City of Ontario)
+      for (const [cityKey, profile] of Object.entries(CITY_SPECIFIC_PROFILES)) {
+        const regex = new RegExp(`\\b${cityKey}\\b`, "i");
+        if (regex.test(lower)) {
+          const county = CA_COUNTY_DATABASE[profile.countyKey] || CA_COUNTY_DATABASE.sanBernardino;
+          return {
+            countyKey: profile.countyKey,
+            ...county,
+            ...profile,
+            matchedCity: profile.cityName.toLowerCase(),
+            confidence: "city_profile_match"
+          };
+        }
+      }
+
       // 1. Kiểm tra trực tiếp tên Quận trong chuỗi
       if (lower.includes("orange county") || lower.includes("orange, ca")) {
         return { countyKey: "orange", ...CA_COUNTY_DATABASE.orange, confidence: "high" };
@@ -85,13 +125,26 @@
       if (lower.includes("los angeles county") || lower.includes("la county")) {
         return { countyKey: "losAngeles", ...CA_COUNTY_DATABASE.losAngeles, confidence: "high" };
       }
+      if (lower.includes("riverside county")) {
+        return { countyKey: "riverside", ...CA_COUNTY_DATABASE.riverside, confidence: "high" };
+      }
+      if (lower.includes("san bernardino county")) {
+        return { countyKey: "sanBernardino", ...CA_COUNTY_DATABASE.sanBernardino, confidence: "high" };
+      }
 
       // 2. Kiểm tra theo tên Thành Phố
       for (const [key, county] of Object.entries(CA_COUNTY_DATABASE)) {
         for (const city of county.cities) {
           const regex = new RegExp(`\\b${city}\\b`, "i");
           if (regex.test(lower)) {
-            return { countyKey: key, ...county, matchedCity: city, confidence: "city_match" };
+            const cityProf = (county.cityProfiles && county.cityProfiles[city]) || null;
+            return {
+              countyKey: key,
+              ...county,
+              ...(cityProf || {}),
+              matchedCity: city,
+              confidence: "city_match"
+            };
           }
         }
       }

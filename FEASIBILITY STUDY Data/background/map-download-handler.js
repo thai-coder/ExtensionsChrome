@@ -1,0 +1,144 @@
+/**
+ * FEASIBILITY STUDY Data - Map Download Background Handler (Modular Engine)
+ * Quản lý định tuyến tải bản đồ đa quận và xử lý VPN / Chặn IP độc lập.
+ */
+
+const MapDownloadHandler = {
+  session: {
+    tabId: null,
+    countyKey: null,
+    apn: null,
+    address: null
+  },
+
+  /**
+   * Kiểm tra khả năng kết nối tới máy chủ Orange County OCGIS (Kiểm tra VPN US)
+   */
+  async checkOcgisConnectivity() {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+      const res = await fetch("https://webapps.ocgis.com/oclandinsights/map-viewer?id=2", {
+        method: "HEAD",
+        mode: "no-cors",
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      // Nếu không ném lỗi -> Kết nối tới OCGIS thành công (đã bật VPN US)
+      return { reachable: true, isVpnActive: true };
+    } catch (err) {
+      console.warn("⚠️ [MapDownloadHandler] OCGIS connectivity failed (Likely Geo-blocked / No VPN):", err.message);
+      return { reachable: false, isVpnActive: false, error: err.message };
+    }
+  },
+
+  /**
+   * Khởi chạy quy trình tải bản đồ tương ứng theo Quận
+   */
+  async startDownload(params) {
+    const { address, apn, countyKey } = params;
+    const cleanApn = (apn || "").replace(/[^0-9A-Za-z]/g, "");
+
+    // 1. Xác định Quận
+    const detected = CountyDetector.detect(address);
+    const targetCountyKey = countyKey || detected.countyKey || "orange";
+    const sourceConfig = MapSourcesEngine.getSource(targetCountyKey);
+
+    console.log(`🗺️ [MapDownloadHandler] Starting map pipeline for: ${targetCountyKey} (APN: ${cleanApn})`);
+
+    // 2. Xử lý riêng biệt cho Orange County khi yêu cầu VPN
+    if (sourceConfig.requiresVpn) {
+      const connectivity = await this.checkOcgisConnectivity();
+      if (!connectivity.reachable) {
+        console.warn("⚠️ [MapDownloadHandler] Orange County portal is unreachable. Prompting VPN requirement.");
+        return {
+          success: false,
+          vpnRequired: true,
+          countyKey: "orange",
+          countyName: sourceConfig.countyName,
+          apn: cleanApn,
+          portalUrl: sourceConfig.getUrl(cleanApn),
+          fallbackUrl: sourceConfig.fallbackUrl(address, cleanApn),
+          message: "Orange County (OCGIS) chặn IP ngoài Hoa Kỳ. Vui lòng bật VPN kết nối máy chủ US."
+        };
+      }
+    }
+
+    // 3. Mở trang đích chuyên biệt cho từng Quận
+    const targetUrl = sourceConfig.getUrl(cleanApn);
+    console.log(`🚀 [MapDownloadHandler] Opening dedicated portal tab: ${targetUrl}`);
+
+    const tab = await chrome.tabs.create({ url: targetUrl, active: true });
+    this.session = {
+      tabId: tab.id,
+      countyKey: targetCountyKey,
+      apn: cleanApn,
+      address: address
+    };
+
+    return {
+      success: true,
+      tabId: tab.id,
+      countyKey: targetCountyKey,
+      portalUrl: targetUrl
+    };
+  },
+
+  /**
+   * Kiểm tra vai trò của tab khi Content Script hỏi
+   */
+  getTabRole(tabId) {
+    if (tabId && tabId === this.session.tabId) {
+      return {
+        role: "MAP_DOWNLOAD",
+        countyKey: this.session.countyKey,
+        apn: this.session.apn,
+        address: this.session.address
+      };
+    }
+    return { role: "NONE" };
+  },
+
+  /**
+   * Nhận link PDF, kích hoạt chrome.downloads và đóng tab tự động
+   */
+  async handlePdfFoundAndDownload(data, tabId) {
+    const { countyKey, countyName, apn, pdfUrl, isDirectLink } = data;
+    const cleanApn = (apn || "").replace(/[^0-9]/g, "") || "Unknown";
+    const safeCountyName = (countyName || countyKey || "County").replace(/\s+/g, "_");
+    const filename = `Parcel_Map_${safeCountyName}_${cleanApn}.pdf`;
+
+    console.log(`📥 [MapDownloadHandler] Initiating download: ${filename} from ${pdfUrl}`);
+
+    if (pdfUrl && pdfUrl.startsWith("http")) {
+      try {
+        await chrome.downloads.download({
+          url: pdfUrl,
+          filename: filename,
+          conflictAction: "uniquify",
+          saveAs: false
+        });
+        console.log(`✅ [MapDownloadHandler] Download started successfully.`);
+      } catch (err) {
+        console.error("❌ [MapDownloadHandler] chrome.downloads error:", err);
+      }
+    }
+
+    // Đóng tab tự động sau khi đã kích hoạt lệnh tải
+    const currentTabId = tabId || this.session.tabId;
+    if (currentTabId) {
+      setTimeout(() => {
+        chrome.tabs.remove(currentTabId).catch(() => {});
+        console.log(`🧹 [MapDownloadHandler] Closed map extraction tab: ${currentTabId}`);
+      }, 1200);
+    }
+
+    this.session = { tabId: null, countyKey: null, apn: null, address: null };
+  }
+};
+
+if (typeof globalThis !== "undefined") {
+  globalThis.MapDownloadHandler = MapDownloadHandler;
+}

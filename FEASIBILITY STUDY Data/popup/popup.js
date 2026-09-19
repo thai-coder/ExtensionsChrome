@@ -42,10 +42,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnCopyJson = document.getElementById("btn-copy-json");
   const btnDownloadMap = document.getElementById("btn-download-map");
 
+  // VPN Modal Elements
+  const vpnModal = document.getElementById("vpn-modal");
+  const btnVpnRetry = document.getElementById("btn-vpn-retry");
+  const btnVpnFallback = document.getElementById("btn-vpn-fallback");
+  const btnVpnClose = document.getElementById("btn-vpn-close");
+
   let currentPayload = null;
   let toastTimer = null;
   let currentDetectedCounty = null;
   let storedApn = null;
+  let lastVpnRetryParams = null;
+  let lastVpnFallbackUrl = null;
 
   // Deep merge utility to retain session data across multiple page scans
   function mergeDeep(target, source) {
@@ -86,8 +94,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const allFieldIds = [
       "v-ov-apn", "v-ov-taxArea", "v-ov-bldgArea", "v-ov-maxHeight", "v-ov-maxUnits",
-      "v-ov-zoning", "v-ov-yearBuilt", "v-ov-typeAcres", "v-ov-setbacks", "v-ov-maxBldgArea",
-      "v-lot-address", "v-lot-bldgArea", "v-lot-bldgUse", "v-lot-units", "v-lot-yearBuilt", "v-lot-neighborhood",
+      "v-ov-zoning", "v-ov-yearBuilt", "v-ov-typeAcres", "v-ov-storiesParking", "v-ov-setbacks", "v-ov-maxBldgArea",
+      "v-lot-address", "v-lot-bldgArea", "v-lot-bldgUse", "v-lot-stories", "v-lot-parking", "v-lot-garageArea", "v-lot-units", "v-lot-yearBuilt", "v-lot-neighborhood",
       "v-lot-parcelId", "v-lot-groupId", "v-lot-taxRecord", "v-lot-parcelShape", "v-lot-acres",
       "v-lot-type", "v-lot-frontage", "v-lot-vacant", "v-lot-legal",
       "v-zn-landUse", "v-zn-code", "v-zn-district", "v-zn-desc", "v-zn-allowed", "v-zn-flood",
@@ -281,28 +289,20 @@ document.addEventListener("DOMContentLoaded", () => {
       statusPill.className = "status-pill active";
       showToast(`Opening PropZone for APN: ${cleanApn}`);
       
-      const propZoneUrl = window.CountyDetector?.getPropZoneUrl(address, cleanApn) || `https://propzone.gridics.com/`;
+      const propZoneUrl = window.CountyDetector?.getPropZoneUrl(address, cleanApn, true) || `https://propzone.gridics.com/`;
       chrome.tabs.create({ url: propZoneUrl });
       return;
     }
 
-    // MỞ TAB GOOGLE SEARCH TÌM APN VÀ TỰ ĐỘNG CHUYỂN TỚI PROPZONE
-    const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(address + " The Assessor's Parcel Number (APN)")}`;
-    showToast("Searching Google for APN...");
-    chrome.tabs.create({ url: googleSearchUrl, active: true });
-
-    // Lưu trạng thái
-    chrome.storage.local.set({
-      lastPipelineResult: {
-        address: address,
-        county: county?.name || "California",
-        countyKey: county?.countyKey || "other",
-        updatedAt: new Date().toISOString()
-      }
-    });
-
-    statusLabel.textContent = county?.name || "Searching...";
+    // GỬI LỆNH ĐẾN BACKGROUND SERVICE WORKER KHỞI CHẠY QUY TRÌNH 3 BƯỚC CHUẨN XÁC
+    showToast("Starting 3-Step Pipeline: APN → Property Overview → PropZone...");
+    statusLabel.textContent = "Step 1: Finding APN...";
     statusPill.className = "status-pill active";
+
+    chrome.runtime.sendMessage({
+      action: "START_AUTO_PIPELINE",
+      address: address
+    });
   });
 
   // 5. Multi-Portal Navigation Router
@@ -359,20 +359,64 @@ document.addEventListener("DOMContentLoaded", () => {
     if (item.btn) item.btn.addEventListener("click", () => navigateToPortal(item.key));
   });
 
-  // 6. Download Parcel Map Action
+  // 6. Download Parcel Map Action (Isolated Multi-County Engine)
   btnDownloadMap.addEventListener("click", () => {
     const apn = storedApn || currentPayload?.lot?.parcelId || inputAddress.value.trim();
     const query = inputAddress.value.trim();
     const county = currentDetectedCounty || window.CountyDetector?.detect(query);
+    const countyKey = county?.countyKey || "orange";
 
-    showToast("Opening Official Parcel Map...");
+    showToast(`Checking ${county?.name || "County"} Map Portal...`);
+    
     chrome.runtime.sendMessage({
-      action: "DOWNLOAD_PARCEL_MAP",
+      action: "START_MAP_DOWNLOAD_PIPELINE",
       apn: apn,
       address: query,
-      countyKey: county?.countyKey
+      countyKey: countyKey
+    }, (response) => {
+      if (chrome.runtime.lastError) {
+        showToast("Error starting map download.");
+        return;
+      }
+
+      if (response && response.vpnRequired) {
+        lastVpnRetryParams = { apn, address: query, countyKey };
+        lastVpnFallbackUrl = response.fallbackUrl || response.portalUrl;
+        if (vpnModal) vpnModal.classList.remove("hidden");
+      } else if (response && response.success) {
+        showToast(`Connecting & Downloading Map PDF...`);
+      }
     });
   });
+
+  // VPN Modal Event Listeners
+  if (btnVpnRetry) {
+    btnVpnRetry.addEventListener("click", () => {
+      if (vpnModal) vpnModal.classList.add("hidden");
+      showToast("Retrying connection with VPN...");
+      if (lastVpnRetryParams) {
+        chrome.runtime.sendMessage({
+          action: "START_MAP_DOWNLOAD_PIPELINE",
+          ...lastVpnRetryParams
+        });
+      }
+    });
+  }
+
+  if (btnVpnFallback) {
+    btnVpnFallback.addEventListener("click", () => {
+      if (vpnModal) vpnModal.classList.add("hidden");
+      if (lastVpnFallbackUrl) {
+        chrome.tabs.create({ url: lastVpnFallbackUrl });
+      }
+    });
+  }
+
+  if (btnVpnClose) {
+    btnVpnClose.addEventListener("click", () => {
+      if (vpnModal) vpnModal.classList.add("hidden");
+    });
+  }
 
   function showToast(msg) {
     if (toastTimer) clearTimeout(toastTimer);
@@ -493,15 +537,29 @@ document.addEventListener("DOMContentLoaded", () => {
     setText("v-ov-apn", currentApn);
     setText("v-lot-parcelId", currentApn);
 
+    // Detect City / County info for fallback zoning metadata
+    const currentAddr = data.address || lot.projectAddress || inputAddress.value || "";
+    const detectedCityInfo = window.CountyDetector ? window.CountyDetector.detect(currentAddr) : null;
+
+    const finalZoningDistrict = zoning.zoningDistrict ?? zoning.zoningDistricts ?? zoning.zoningCode ?? detectedCityInfo?.zoningDistrict ?? detectedCityInfo?.zoning ?? "-";
+    const finalZoningDesc = zoning.zoneDescription ?? zoning.description ?? zoning.zoningDesc ?? detectedCityInfo?.zoningDesc ?? "-";
+    const finalZoningCode = zoning.zoningCode ?? zoning.code ?? detectedCityInfo?.zoningCode ?? detectedCityInfo?.zoning ?? "-";
+    const finalZoningUrl = zoning.zoningCodeUrl ?? zoning.codeUrl ?? zoning.zoningUrl ?? detectedCityInfo?.zoningCodeUrl ?? detectedCityInfo?.officialUrl ?? null;
+
     setText("v-ov-taxArea", formatSqFt(lot.lotAreaTaxRecord));
     setText("v-ov-bldgArea", formatSqFt(lot.existingBuildingArea));
     setText("v-ov-maxHeight", formatFt(capacity.maximumBuildingHeight));
     setText("v-ov-maxUnits", capacity.maximumResidentialUnitsAllowed ?? "-");
-    setText("v-ov-zoning", zoning.zoningDistrict ?? zoning.zoningDistricts ?? zoning.zoningCode ?? "-");
+    setText("v-ov-zoning", finalZoningDistrict);
     setText("v-ov-yearBuilt", lot.yearBuilt);
     
     const lotTypeStr = `${lot.lotType ?? "-"} / ${lot.lotAreaAcres ? lot.lotAreaAcres + " ac" : "-"}`;
     setText("v-ov-typeAcres", lotTypeStr);
+
+    const stVal = lot.stories ?? capacity.maximumHeightStories ?? "-";
+    const pkVal = lot.parking ?? "-";
+    const stPkStr = `${stVal !== "-" ? (stVal + " st") : "-"} / ${pkVal}`;
+    setText("v-ov-storiesParking", stPkStr);
 
     const sbPrim = setbacks.minimumPrimaryFrontageSetback ?? setbacks.frontSetback ?? "-";
     const sbRear = setbacks.minimumRearSetback ?? setbacks.rearSetback ?? "-";
@@ -512,6 +570,20 @@ document.addEventListener("DOMContentLoaded", () => {
     setText("v-lot-address", data.address || lot.projectAddress || lot.address || lot.situsAddress || inputAddress.value || "-");
     setText("v-lot-bldgArea", formatSqFt(lot.existingBuildingArea));
     setText("v-lot-bldgUse", lot.existingBuildingUse);
+    setText("v-lot-stories", lot.stories ?? capacity.maximumHeightStories);
+    setText("v-lot-parking", lot.parking);
+
+    let garageAreaStr = "-";
+    if (lot.garageArea) {
+      garageAreaStr = `${Number(lot.garageArea).toLocaleString()} ft²${lot.garageDimension ? ` (${lot.garageDimension})` : ""}`;
+    } else if (lot.parking) {
+      const pInfo = parseGarageParking(lot.parking);
+      if (pInfo.garageArea) {
+        garageAreaStr = `${Number(pInfo.garageArea).toLocaleString()} ft²${pInfo.garageDimension ? ` (${pInfo.garageDimension})` : ""}`;
+      }
+    }
+    setText("v-lot-garageArea", garageAreaStr);
+
     setText("v-lot-units", lot.existingLivingUnits);
     setText("v-lot-yearBuilt", lot.yearBuilt);
     setText("v-lot-neighborhood", lot.neighborhood);
@@ -527,9 +599,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 3. Zoning Tab
     setText("v-zn-landUse", zoning.existingLandUse ?? zoning.landUse);
-    setText("v-zn-code", zoning.zoningCode ?? zoning.code);
-    setText("v-zn-district", zoning.zoningDistrict ?? zoning.zoningDistricts ?? zoning.district);
-    setText("v-zn-desc", zoning.zoneDescription ?? zoning.description);
+    
+    const zCode = finalZoningCode;
+    const zUrl = finalZoningUrl;
+    const znCodeEl = document.getElementById("v-zn-code");
+    if (znCodeEl) {
+      if (zCode && zCode !== "-") {
+        if (zUrl) {
+          znCodeEl.innerHTML = `<a href="${zUrl}" target="_blank" style="color: var(--accent-cyan); text-decoration: underline; word-break: break-all;">${zCode} ↗</a>`;
+        } else {
+          znCodeEl.textContent = String(zCode);
+          znCodeEl.style.color = "";
+        }
+      } else {
+        znCodeEl.textContent = "-";
+        znCodeEl.style.color = "#64748b";
+      }
+    }
+
+    setText("v-zn-district", finalZoningDistrict);
+    setText("v-zn-desc", finalZoningDesc);
     setText("v-zn-allowed", zoning.allowedUses ?? zoning.allowedUse ?? zoning.permittedUses);
     setText("v-zn-flood", zoning.femaFloodZone ?? zoning.floodZone ?? "N/A");
 
@@ -579,6 +668,59 @@ document.addEventListener("DOMContentLoaded", () => {
       el.textContent = String(value);
       el.style.color = "";
     }
+  }
+
+  function parseGarageParking(raw) {
+    if (!raw || raw === "-" || /^(none|n\/a|0)$/i.test(String(raw).trim())) {
+      return { garageSpaces: 0, drivewaySpaces: 0, garageArea: null, garageDimension: null, drivewayArea: null, totalParkingArea: null, formattedSummary: "-" };
+    }
+    const str = String(raw).trim();
+    let garageSpaces = 0;
+    let drivewaySpaces = 0;
+    const isAttached = /attached/i.test(str);
+    const isDetached = /detached/i.test(str);
+    const isCarport = /carport/i.test(str);
+
+    const garageMatch = str.match(/(\d+)\s*[-\s]?car\s*(?:attached|detached)?\s*(?:garage|covered)?/i)
+                     || str.match(/(\d+)\s*(?:garage|covered)\s*spaces?/i)
+                     || str.match(/garage(?:\s*spaces?)?[\s:\-–—]{1,5}(\d+)/i)
+                     || str.match(/garage[^\d]{0,15}(\d+)\s*chỗ/i);
+    if (garageMatch && garageMatch[1]) {
+      garageSpaces = parseInt(garageMatch[1], 10);
+    } else if (/garage/i.test(str)) {
+      garageSpaces = 2;
+    }
+
+    const driveMatch = str.match(/(\d+)\s*[-\s]?car\s*driveway/i)
+                    || str.match(/(\d+)\s*driveway\s*spaces?/i);
+    if (driveMatch && driveMatch[1]) {
+      drivewaySpaces = parseInt(driveMatch[1], 10);
+    }
+
+    if (garageSpaces === 0 && drivewaySpaces === 0) {
+      const spMatch = str.match(/(\d+)\s*(?:spaces?|cars?|parking)/i);
+      if (spMatch && spMatch[1]) garageSpaces = parseInt(spMatch[1], 10);
+    }
+
+    let garageArea = 0;
+    let garageDimension = "";
+    if (garageSpaces === 1) {
+      garageArea = 240;
+      garageDimension = "12×20 ft";
+    } else if (garageSpaces === 2) {
+      garageArea = 484;
+      garageDimension = "22×22 ft";
+    } else if (garageSpaces === 3) {
+      garageArea = 704;
+      garageDimension = "32×22 ft";
+    } else if (garageSpaces >= 4) {
+      garageArea = garageSpaces * 240;
+      garageDimension = `${garageSpaces} × (12×20 ft)`;
+    }
+
+    const drivewayArea = drivewaySpaces * 240;
+    const totalParkingArea = (garageArea || 0) + (drivewayArea || 0);
+    return { garageSpaces, drivewaySpaces, garageArea: garageArea || null, garageDimension: garageDimension || null, drivewayArea: drivewayArea || null, totalParkingArea: totalParkingArea || null };
   }
 
   // Copy JSON Action

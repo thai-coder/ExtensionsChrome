@@ -12,6 +12,8 @@
     let livingArea = null;
     let lotSize = null;
     let propertyUse = null;
+    let stories = null;
+    let parking = null;
 
     // 1. Phương pháp 1: Đọc trực tiếp từ cấu trúc dữ liệu JSON của React Next.js (window.__NEXT_DATA__)
     try {
@@ -28,6 +30,10 @@
             livingArea = property.resoFacts?.livingArea || property.livingArea || null;
             lotSize = property.resoFacts?.lotSize || property.lotSize || null;
             propertyUse = property.resoFacts?.homeType || property.homeType || null;
+            stories = property.resoFacts?.stories || property.resoFacts?.levels || null;
+            parking = property.resoFacts?.parkingCapacity 
+              ? `${property.resoFacts.parkingCapacity} spaces`
+              : (property.resoFacts?.garageParkingCapacity ? `${property.resoFacts.garageParkingCapacity} Car Garage` : null);
           }
         }
       }
@@ -66,6 +72,8 @@
       livingArea,
       lotSize,
       propertyUse,
+      stories,
+      parking,
       url: window.location.href,
       extractedAt: new Date().toISOString()
     };

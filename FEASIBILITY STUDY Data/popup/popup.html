@@ -21,6 +21,11 @@
         </div>
       </div>
       <div class="header-actions">
+        <button id="btn-reload-ext" class="icon-action-btn" title="Tải lại Extension ngay (Reload)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+          </svg>
+        </button>
         <button id="btn-clean" class="icon-action-btn" title="Clean / Reset Session Data">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="3 6 5 6 21 6"></polyline>
@@ -45,7 +50,10 @@
         <span class="fs-update-tag">CẬP NHẬT</span>
         <span id="fs-update-text">Đã có phiên bản mới!</span>
       </div>
-      <button id="fs-btn-copy-installer" class="fs-btn-copy-installer" title="Bấm để kích hoạt bộ cài FS.exe">⚡ Cập nhật ngay</button>
+      <div class="fs-update-actions">
+        <button id="fs-btn-copy-installer" class="fs-btn-copy-installer" title="Bấm để kích hoạt bộ cài FS.exe">⚡ Cập nhật</button>
+        <button id="fs-btn-reload-now" class="fs-btn-reload-now" title="Bấm để tải lại Extension ngay">🔄 Tải lại ngay</button>
+      </div>
     </div>
 
     <!-- Address & APN Quick Navigation & Auto Pipeline Bar -->

@@ -60,6 +60,31 @@ document.addEventListener("DOMContentLoaded", () => {
   const updateText = document.getElementById("fs-update-text");
   const btnCopyInstaller = document.getElementById("fs-btn-copy-installer");
 
+  // --- Nút Tải lại Extension chủ động (Reload) ---
+  const btnReloadExt = document.getElementById("btn-reload-ext");
+  const btnReloadNow = document.getElementById("fs-btn-reload-now");
+
+  function triggerProactiveReload() {
+    showToast("🔄 Đang tải lại Extension...");
+    try {
+      chrome.runtime.sendMessage({ action: "RELOAD_EXTENSION" });
+    } catch (e) {}
+    setTimeout(() => {
+      try {
+        if (chrome.runtime && chrome.runtime.reload) {
+          chrome.runtime.reload();
+        }
+      } catch (e) {}
+    }, 150);
+  }
+
+  if (btnReloadExt) {
+    btnReloadExt.onclick = triggerProactiveReload;
+  }
+  if (btnReloadNow) {
+    btnReloadNow.onclick = triggerProactiveReload;
+  }
+
   function checkAndDisplayUpdate() {
     chrome.storage.local.get("fs_update_info", (result) => {
       const info = result.fs_update_info;
@@ -74,29 +99,17 @@ document.addEventListener("DOMContentLoaded", () => {
             // 1. Copy đường dẫn vào Clipboard làm phương án dự phòng
             navigator.clipboard.writeText(path).catch(() => {});
 
-            // 2. Kích hoạt Custom Protocol để Windows tự mở FS.exe
-            try {
-              chrome.tabs.create({ url: "fs-update://run" }, (tab) => {
-                if (tab && tab.id) {
-                  setTimeout(() => {
-                    chrome.tabs.remove(tab.id).catch(() => {});
-                  }, 500);
-                }
-              });
-            } catch (e) {
-              window.location.href = "fs-update://run";
-            }
+            // 2. Cập nhật giao diện nút bấm để người dùng thấy rõ tiến trình
+            btnCopyInstaller.disabled = true;
+            btnCopyInstaller.textContent = "⏳ Đang chạy...";
 
-            showToast("⚡ Đang cài đặt cập nhật ngầm...");
+            // 3. Gửi lệnh xuống Background Service Worker để chạy cài đặt ngầm và tự động Reload
+            chrome.runtime.sendMessage({ 
+              action: "TRIGGER_SILENT_UPDATE_AND_RELOAD",
+              targetVersion: info.serverVersion || ""
+            });
 
-            // 3. Sau 3 giây khi bộ cài đặt im lặng hoàn tất, tự động reload Extension để nhận bản mới
-            setTimeout(() => {
-              try {
-                if (chrome.runtime && chrome.runtime.reload) {
-                  chrome.runtime.reload();
-                }
-              } catch (e) {}
-            }, 3000);
+            showToast("⚡ Đang cài đặt ngầm & tự động tải lại Extension...");
           };
         }
       } else if (updateBanner) {

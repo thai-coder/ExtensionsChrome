@@ -144,6 +144,11 @@ body {
   border-color: rgba(239, 68, 68, 0.4);
 }
 
+#btn-reload-ext:hover {
+  color: var(--accent-cyan);
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
 .spinning { animation: spin 0.8s linear infinite; }
 @keyframes spin { 100% { transform: rotate(360deg); } }
 
@@ -622,6 +627,12 @@ body {
   text-overflow: ellipsis;
 }
 
+.fs-update-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
 .fs-btn-copy-installer {
   background: #ef4444;
   color: #fff;
@@ -641,6 +652,30 @@ body {
 }
 
 .fs-btn-copy-installer:active {
+  transform: translateY(0);
+}
+
+.fs-btn-reload-now {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  border: none;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 4px rgba(16, 185, 129, 0.25);
+}
+
+.fs-btn-reload-now:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
+}
+
+.fs-btn-reload-now:active {
   transform: translateY(0);
 }
 

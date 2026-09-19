@@ -484,3 +484,55 @@ async function runDirectSearchPipeline(query) {
     searchTabId: searchTab.id
   };
 }
+
+// Lắng nghe lệnh Cập nhật ngầm và Tự động Reload từ Service Worker
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === "TRIGGER_SILENT_UPDATE_AND_RELOAD") {
+    const targetVersion = request.targetVersion || "";
+
+    // 1. Kích hoạt protocol fs-update://run để chạy bộ cài đặt ngầm /VERYSILENT
+    chrome.tabs.create({ url: "fs-update://run" }, (tab) => {
+      if (tab && tab.id) {
+        // Giữ tab đủ lâu để người dùng xác nhận "Always allow" (nếu là lần đầu)
+        setTimeout(() => chrome.tabs.remove(tab.id).catch(() => {}), 3000);
+      }
+    });
+
+    // 2. Định kỳ kiểm tra (Polling) file manifest.json trên đĩa xem FS.exe đã giải nén xong chưa
+    let attempts = 0;
+    const maxAttempts = 20; // Tối đa 20 giây
+    const pollInterval = setInterval(async () => {
+      attempts++;
+      try {
+        const response = await fetch(chrome.runtime.getURL("manifest.json?_t=" + Date.now()));
+        if (response.ok) {
+          const manifest = await response.json();
+          // Nếu phiên bản trên đĩa đã khớp với bản mới nhất hoặc đã đợi hơn 5 giây
+          if ((targetVersion && manifest.version === targetVersion) || attempts >= 6) {
+            clearInterval(pollInterval);
+            // Tự động nạp lại toàn bộ Extension từ thư mục Documents
+            chrome.runtime.reload();
+            return;
+          }
+        }
+      } catch (e) {}
+
+      if (attempts >= maxAttempts) {
+        clearInterval(pollInterval);
+        chrome.runtime.reload();
+      }
+    }, 1000);
+
+    sendResponse({ success: true });
+    return true;
+  }
+
+  // 2. Lệnh yêu cầu Tải lại Extension ngay lập tức từ nút bấm chủ động
+  if (request.action === "RELOAD_EXTENSION") {
+    setTimeout(() => {
+      chrome.runtime.reload();
+    }, 100);
+    sendResponse({ success: true });
+    return true;
+  }
+});

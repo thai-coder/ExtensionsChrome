@@ -55,6 +55,47 @@ document.addEventListener("DOMContentLoaded", () => {
   let lastVpnRetryParams = null;
   let lastVpnFallbackUrl = null;
 
+  // --- Kiểm tra & Hiển thị Thông Báo Cập Nhật ---
+  const updateBanner = document.getElementById("fs-update-banner");
+  const updateText = document.getElementById("fs-update-text");
+  const btnCopyInstaller = document.getElementById("fs-btn-copy-installer");
+
+  function checkAndDisplayUpdate() {
+    chrome.storage.local.get("fs_update_info", (result) => {
+      const info = result.fs_update_info;
+      if (info && info.hasUpdate && updateBanner) {
+        updateBanner.style.display = "flex";
+        if (updateText) {
+          updateText.textContent = `Đã có bản mới v${info.serverVersion}!`;
+        }
+        if (btnCopyInstaller) {
+          btnCopyInstaller.onclick = () => {
+            const path = info.installerPath || "\\\\192.168.11.250\\Sharing\\THAILE\\Tools\\Extensions\\FS.exe";
+            navigator.clipboard.writeText(path).then(() => {
+              showToast("Đã copy đường dẫn FS.exe vào Clipboard!");
+            }).catch(() => {
+              showToast("Vui lòng chạy FS.exe trên server");
+            });
+          };
+        }
+      } else if (updateBanner) {
+        updateBanner.style.display = "none";
+      }
+    });
+  }
+  checkAndDisplayUpdate();
+
+  // Hiển thị phiên bản đang sử dụng từ manifest.json
+  try {
+    const brandVersionEl = document.getElementById("brand-version");
+    const currentManifestVersion = chrome.runtime?.getManifest?.()?.version;
+    if (brandVersionEl && currentManifestVersion) {
+      brandVersionEl.textContent = `v${currentManifestVersion}`;
+    }
+  } catch (err) {
+    console.debug("[Popup] Không thể đọc manifest version:", err);
+  }
+
   // Deep merge utility to retain session data across multiple page scans
   function mergeDeep(target, source) {
     if (!source) return target;

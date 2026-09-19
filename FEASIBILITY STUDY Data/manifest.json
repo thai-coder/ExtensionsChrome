@@ -9,12 +9,14 @@
     "storage",
     "clipboardWrite",
     "tabs",
-    "downloads"
+    "downloads",
+    "alarms"
   ],
   "background": {
     "service_worker": "background/service-worker.js"
   },
   "host_permissions": [
+    "https://api.github.com/*",
     "https://propzone.gridics.com/*",
     "https://*.redfin.com/*",
     "https://*.zillow.com/*",

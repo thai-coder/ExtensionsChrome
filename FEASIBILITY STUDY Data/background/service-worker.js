@@ -9,6 +9,8 @@
 importScripts("../config/county-detector.js");
 importScripts("../config/map-sources.js");
 importScripts("./map-download-handler.js");
+importScripts("../config/update-config.js");
+importScripts("./update-checker.js");
 
 // Thời gian kéo dài giữ mở tab PropZone Gridics trước khi tự động đóng: 10 phút (600,000 ms)
 const PROPZONE_TAB_LIFETIME_MS = 10 * 60 * 1000;

@@ -1,74 +1,98 @@
-; Script generated for DropboxCP Installer
-; Inno Setup Compiler configuration
+; =====================================================================
+; INNO SETUP SCRIPT CHO CHROME EXTENSION: FEASIBILITY STUDY DATA
+; Triển khai trực tiếp vào thư mục Documents của người dùng:
+; - Thư mục cài đặt: %USERPROFILE%\Documents\FEASIBILITY STUDY Data
+; - BỎ QUA mọi can thiệp Chrome: KHÔNG tắt Chrome, KHÔNG sửa shortcut
+; - Người dùng chỉ cần vào chrome://extensions bấm "Load unpacked" trỏ vào thư mục này 1 lần duy nhất
+; - Khi cập nhật: Chạy FS.exe sẽ tự động làm mới mã nguồn trong thư mục Documents
+; - Hỗ trợ Gỡ cài đặt sạch sẽ trong Windows Settings / Control Panel
+; =====================================================================
 
-#define MyAppName "DropboxCP"
-#define MyAppVersion "26.09.18.00"
+#define MyAppName "FEASIBILITY STUDY Data"
+#define MyAppVersion "1.6.0"
 #define MyAppPublisher "TIC, Inc."
 #define MyAppURL "http://www.tectonicsgroup.com/"
-#define FileVersion "26.09.18.00"
 
 [Setup]
-AppId={{9FF96D55-A852-4746-B772-3A9D403D77F8}
+AppId={{C8E649F2-A59B-4D8E-B1F7-3F72B581729A}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 VersionInfoVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
-AppSupportURL={#MyAppURL}
-AppUpdatesURL={#MyAppURL}
-DefaultDirName={autoappdata}\DropboxCP
+
+; Cài đặt trực tiếp vào C:\Users\[user]\Documents\FEASIBILITY STUDY Data
+DefaultDirName={userdocs}\{#MyAppName}
 DisableDirPage=yes
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
-VersionInfoOriginalFileName="Dropbox-CP.exe"
-VersionInfoCopyright="Copyright (C) 2026 TIC, Inc."
+
+; Quyền hạn: User thông thường, 1-click cài đặt không cần Admin (không hiện UAC)
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=commandline
+
+; Xuất file cài đặt FS.exe ra thư mục Deploy
 OutputDir=..\
-OutputBaseFilename=DropboxCP
-SetupIconFile=DropboxCP.ico
-Compression=lzma
+OutputBaseFilename=FS
+SetupIconFile=FS.ico
+Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
+DisableReadyPage=yes
+DisableFinishedPage=no
+
+; Cấu hình GỠ CÀI ĐẶT trong Windows Settings / Control Panel
 UninstallDisplayName={#MyAppName}
-Uninstallable=True
-UninstallDisplayIcon={app}\DropboxCP.ico
-UninstallLogMode=append
+UninstallDisplayIcon={app}\FS.ico
+CreateUninstallRegKey=yes
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
-Source: "..\..\bin\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs restartreplace
-Source: "DropboxCP.ico"; DestDir: "{app}"; Flags: ignoreversion
+; 1. Đóng gói các thành phần cốt lõi của Chrome Extension vào thư mục Documents
+Source: "..\..\..\manifest.json"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\..\background\*"; DestDir: "{app}\background"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\..\config\*"; DestDir: "{app}\config"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\..\content\*"; DestDir: "{app}\content"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\..\icons\*"; DestDir: "{app}\icons"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\..\options\*"; DestDir: "{app}\options"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\..\popup\*"; DestDir: "{app}\popup"; Flags: ignoreversion recursesubdirs createallsubdirs
 
-[Icons]
-Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\Dropbox-CP.exe"
-Name: "{userdesktop}\{#MyAppName}"; Filename: "{app}\Dropbox-CP.exe"; WorkingDir: "{app}"; IconFilename: "{app}\DropboxCP.ico"
+; 2. Copy icon ứng dụng
+Source: "FS.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 [Run]
-Filename: "{app}\Dropbox-CP.exe"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+; Mở sẵn thư mục Documents\FEASIBILITY STUDY Data để người dùng dễ dàng bấm Load unpacked trong Chrome
+Filename: "explorer.exe"; Parameters: """{app}"""; Description: "Mở thư mục Extension trong File Explorer"; Flags: postinstall nowait skipifsilent
 
 [Code]
-// SỰ KIỆN AN TOÀN: Xóa sạch các file cũ trong thư mục {app} trước khi giải nén phiên bản mới
+// =====================================================================
+// DỌN SẠCH FILE CŨ TRƯỚC KHI GIẢI NÉN BẢN MỚI VÀO DOCUMENTS
+// =====================================================================
 procedure CurStepChanged(CurStep: TSetupStep);
 var
-  ResultCode: Integer;
+  AppDir: String;
 begin
   if CurStep = ssInstall then
   begin
-    // Xóa sạch toàn bộ file và thư mục con cũ bên trong {app} để đảm bảo không bị sót file thừa của bản cũ
-    if DirExists(ExpandConstant('{app}')) then
+    AppDir := ExpandConstant('{app}');
+    // Nếu thư mục đã tồn tại từ bản trước: Xóa sạch file cũ để không bị sót file rác
+    if DirExists(AppDir) then
     begin
-      DelTree(ExpandConstant('{app}\*'), False, True, True);
+      DelTree(AppDir + '\*', False, True, True);
     end;
-  end
-  else if CurStep = ssPostInstall then
+  end;
+end;
+
+// =====================================================================
+// SỰ KIỆN GỠ CÀI ĐẶT (UNINSTALL)
+// =====================================================================
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+begin
+  if CurUninstallStep = usPostUninstall then
   begin
-    // Nếu có tham số /AUTOSTART=1 hoặc trong chế độ silent từ app, tự động khởi chạy lại app
-    if (ExpandConstant('{param:AUTOSTART|0}') = '1') or WizardSilent then
-    begin
-      Exec(ExpandConstant('{app}\Dropbox-CP.exe'), '', '', SW_SHOWNORMAL, ewNoWait, ResultCode);
-    end;
+    // Xóa sạch toàn bộ thư mục trong Documents khi người dùng chọn Gỡ cài đặt
+    DelTree(ExpandConstant('{app}'), True, True, True);
   end;
 end;

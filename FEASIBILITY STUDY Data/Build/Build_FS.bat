@@ -30,7 +30,7 @@ if not exist "%InnoCompiler%" (
 echo [1/4] Trinh bien dich: %InnoCompiler%
 
 :: 2. DOC VERSION TU MANIFEST.JSON
-set "ExtVersion=1.6.0"
+set "ExtVersion=1.6.2"
 if exist "%ManifestFile%" (
     for /f "tokens=2 delims=:, " %%a in ('findstr /i "\"version\"" "%ManifestFile%"') do (
         set "ExtVersion=%%~a"
@@ -60,16 +60,14 @@ if errorlevel 1 (
 
 set "ServerTarget=\\192.168.11.250\Sharing\THAILE\Tools\Extensions\"
 
-:: 5. DAY BO CAI DAT VA METADATA LEN SERVER
+:: 5. DAY BO CAI DAT LEN SERVER
 echo.
 echo [4/4] Dang day bo cai dat len Server: %ServerTarget%...
 if exist "%DeployDir%FS.exe" (
     if not exist "%ServerTarget%" mkdir "%ServerTarget%" 2>nul
     copy /Y "%DeployDir%FS.exe" "%ServerTarget%FS.exe" > nul
     if not errorlevel 1 (
-        copy /Y "%DeployDir%version.json" "%ServerTarget%version.json" > nul
         echo   [DA COPY] %ServerTarget%FS.exe
-        echo   [DA COPY] %ServerTarget%version.json
         echo.
         echo ================================================================
         echo [THANH CONG] DA PHAT HANH BO CAI DAT LEN SERVER THANH CONG

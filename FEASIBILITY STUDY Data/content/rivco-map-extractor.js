@@ -8,16 +8,12 @@
   if (window.__RIVCO_MAP_EXTRACTOR_LOADED__) return;
   window.__RIVCO_MAP_EXTRACTOR_LOADED__ = true;
 
-  console.log("🟦 [RivCo-Map-Extractor] Initialized on Riverside County portal.");
-
   // Hỏi Service Worker xem tab này có nhiệm vụ tải Map không
   chrome.runtime.sendMessage({ action: "GET_MAP_DOWNLOAD_TAB_ROLE" }, (response) => {
     if (chrome.runtime.lastError || !response || response.role !== "MAP_DOWNLOAD") {
-      console.log("ℹ️ [RivCo-Map-Extractor] Manual user browsing mode.");
       return;
     }
 
-    console.log("🎯 [RivCo-Map-Extractor] Automation mode active for APN:", response.apn);
     startRiversideExtraction(response.apn);
   });
 
@@ -31,7 +27,6 @@
 
       if (pdfUrl) {
         clearInterval(interval);
-        console.log("✅ [RivCo-Map-Extractor] Found Map PDF URL:", pdfUrl);
         chrome.runtime.sendMessage({
           action: "MAP_PDF_FOUND_AND_DOWNLOAD",
           countyKey: "riverside",
@@ -41,7 +36,6 @@
         });
       } else if (attempts >= maxAttempts) {
         clearInterval(interval);
-        console.warn("⚠️ [RivCo-Map-Extractor] Timeout scanning DOM, generating standard Riverside GIS Plat Map URL.");
         
         const cleanApn = (targetApn || "").replace(/[^0-9]/g, "");
         let directPdf = null;

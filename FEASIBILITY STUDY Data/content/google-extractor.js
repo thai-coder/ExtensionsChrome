@@ -367,7 +367,6 @@
       }
 
       const role = response.role;
-      console.log(`⚡ [Google-Extractor] Trang đã load xong hoàn toàn. Bắt đầu vai trò: "${role}"`);
 
       // =========================================================================
       // VAI TRÒ 1: APN_SEARCH (Bước 1 - Tìm mã APN)
@@ -380,7 +379,6 @@
           const data = parseGoogleSpecs();
           if (data && data.apn) {
             isDone = true;
-            console.log(`✅ [Step 1 APN Found]: ${data.apn}`, data);
             chrome.runtime.sendMessage({
               action: "STEP1_APN_FOUND",
               apn: data.apn,
@@ -430,7 +428,6 @@
           // Nếu đã lấy được dữ liệu hoặc đã chờ tối đa 10 giây
           if (hasKeyData || checkCount >= 20) {
             isDone = true;
-            console.log(`✅ [Step 2 Property Overview Extracted]:`, data);
             chrome.runtime.sendMessage({
               action: "STEP2_PROPERTY_OVERVIEW_FOUND",
               details: data || {}

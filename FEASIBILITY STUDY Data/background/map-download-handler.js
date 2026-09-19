@@ -29,7 +29,6 @@ const MapDownloadHandler = {
       // Nếu không ném lỗi -> Kết nối tới OCGIS thành công (đã bật VPN US)
       return { reachable: true, isVpnActive: true };
     } catch (err) {
-      console.warn("⚠️ [MapDownloadHandler] OCGIS connectivity failed (Likely Geo-blocked / No VPN):", err.message);
       return { reachable: false, isVpnActive: false, error: err.message };
     }
   },
@@ -46,13 +45,10 @@ const MapDownloadHandler = {
     const targetCountyKey = countyKey || detected.countyKey || "orange";
     const sourceConfig = MapSourcesEngine.getSource(targetCountyKey);
 
-    console.log(`🗺️ [MapDownloadHandler] Starting map pipeline for: ${targetCountyKey} (APN: ${cleanApn})`);
-
     // 2. Xử lý riêng biệt cho Orange County khi yêu cầu VPN
     if (sourceConfig.requiresVpn) {
       const connectivity = await this.checkOcgisConnectivity();
       if (!connectivity.reachable) {
-        console.warn("⚠️ [MapDownloadHandler] Orange County portal is unreachable. Prompting VPN requirement.");
         return {
           success: false,
           vpnRequired: true,
@@ -68,7 +64,6 @@ const MapDownloadHandler = {
 
     // 3. Mở trang đích chuyên biệt cho từng Quận
     const targetUrl = sourceConfig.getUrl(cleanApn);
-    console.log(`🚀 [MapDownloadHandler] Opening dedicated portal tab: ${targetUrl}`);
 
     const tab = await chrome.tabs.create({ url: targetUrl, active: true });
     this.session = {
@@ -110,8 +105,6 @@ const MapDownloadHandler = {
     const safeCountyName = (countyName || countyKey || "County").replace(/\s+/g, "_");
     const filename = `Parcel_Map_${safeCountyName}_${cleanApn}.pdf`;
 
-    console.log(`📥 [MapDownloadHandler] Initiating download: ${filename} from ${pdfUrl}`);
-
     if (pdfUrl && pdfUrl.startsWith("http")) {
       try {
         await chrome.downloads.download({
@@ -120,10 +113,7 @@ const MapDownloadHandler = {
           conflictAction: "uniquify",
           saveAs: false
         });
-        console.log(`✅ [MapDownloadHandler] Download started successfully.`);
-      } catch (err) {
-        console.error("❌ [MapDownloadHandler] chrome.downloads error:", err);
-      }
+      } catch (err) {}
     }
 
     // Đóng tab tự động sau khi đã kích hoạt lệnh tải
@@ -131,7 +121,6 @@ const MapDownloadHandler = {
     if (currentTabId) {
       setTimeout(() => {
         chrome.tabs.remove(currentTabId).catch(() => {});
-        console.log(`🧹 [MapDownloadHandler] Closed map extraction tab: ${currentTabId}`);
       }, 1200);
     }
 

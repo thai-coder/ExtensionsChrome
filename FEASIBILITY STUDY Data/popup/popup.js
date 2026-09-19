@@ -71,11 +71,23 @@ document.addEventListener("DOMContentLoaded", () => {
         if (btnCopyInstaller) {
           btnCopyInstaller.onclick = () => {
             const path = info.installerPath || "\\\\192.168.11.250\\Sharing\\THAILE\\Tools\\Extensions\\FS.exe";
-            navigator.clipboard.writeText(path).then(() => {
-              showToast("Đã copy đường dẫn FS.exe vào Clipboard!");
-            }).catch(() => {
-              showToast("Vui lòng chạy FS.exe trên server");
-            });
+            // 1. Copy đường dẫn vào Clipboard làm phương án dự phòng
+            navigator.clipboard.writeText(path).catch(() => {});
+
+            // 2. Kích hoạt Custom Protocol để Windows tự mở FS.exe
+            try {
+              chrome.tabs.create({ url: "fs-update://run" }, (tab) => {
+                if (tab && tab.id) {
+                  setTimeout(() => {
+                    chrome.tabs.remove(tab.id).catch(() => {});
+                  }, 500);
+                }
+              });
+            } catch (e) {
+              window.location.href = "fs-update://run";
+            }
+
+            showToast("⚡ Đang kích hoạt bộ cài FS.exe...");
           };
         }
       } else if (updateBanner) {
@@ -83,7 +95,18 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
   checkAndDisplayUpdate();
+  // Kích hoạt kiểm tra phiên bản mới từ background service worker khi mở popup
+  try {
+    chrome.runtime.sendMessage({ action: "MANUAL_CHECK_UPDATE" }, (res) => {
+      if (!chrome.runtime.lastError) {
+        checkAndDisplayUpdate();
+      }
+    });
+  } catch (e) {
+    // Service worker có thể đang bận
+  }
 
   // Hiển thị phiên bản đang sử dụng từ manifest.json
   try {
@@ -93,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
       brandVersionEl.textContent = `v${currentManifestVersion}`;
     }
   } catch (err) {
-    console.debug("[Popup] Không thể đọc manifest version:", err);
+    // Không đọc được version
   }
 
   // Deep merge utility to retain session data across multiple page scans
@@ -118,9 +141,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Reset/Clean session data explicitly on Clean button click
   function resetSessionData() {
-    chrome.storage.local.remove(["lastSearchQuery", "lastPipelineResult", "lastApn"], () => {
-      console.log("🧹 [Popup] Session data wiped.");
-    });
+    chrome.storage.local.remove(["lastSearchQuery", "lastPipelineResult", "lastApn"]);
 
     currentPayload = null;
     storedApn = null;
@@ -262,7 +283,6 @@ document.addEventListener("DOMContentLoaded", () => {
         statusPill.className = "status-pill active";
       }
       if (changes.lastPipelineResult && changes.lastPipelineResult.newValue) {
-        console.log("⚡ [Popup] Real-time storage update received:", changes.lastPipelineResult.newValue);
         const res = changes.lastPipelineResult.newValue;
         if (res.status === "FAILED_5_RETRIES") {
           statusLabel.textContent = "Failed (5 retries)";

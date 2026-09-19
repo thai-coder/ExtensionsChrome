@@ -88,7 +88,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   // XỬ LÝ KHI PROPZONE THẤT BẠI SAU 5 LẦN THỬ LẠI
   if (request.action === "PROPZONE_EXTRACTION_FAILED") {
-    console.error(`❌ [Service-Worker] PropZone extraction failed after 5 retries for folio: ${request.folio}`);
     chrome.storage.local.get(["lastPipelineResult"], (res) => {
       const prev = res.lastPipelineResult || {};
       chrome.storage.local.set({
@@ -102,10 +101,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     });
 
     if (sender.tab && sender.tab.id) {
-      console.log(`⏳ [Service-Worker] Tab PropZone ${sender.tab.id} sẽ được giữ mở trong 10 phút (600s) để người dùng quan sát/thao tác thủ công trước khi tự động đóng.`);
       setTimeout(() => {
         chrome.tabs.remove(sender.tab.id).catch(() => {});
-        console.log(`🧹 [Service-Worker] Đã hết 10 phút. Tự động đóng tab PropZone: ${sender.tab.id}`);
       }, PROPZONE_TAB_LIFETIME_MS);
     }
 
@@ -194,8 +191,6 @@ async function handleStep1ApnFound(apn, details, tabId) {
   pipelineSession.apn = formattedApn;
   pipelineSession.specs = { ...pipelineSession.specs, ...(details || {}) };
 
-  console.log(`🎯 [Pipeline-Step 1] APN Found: "${formattedApn}" (Digits: ${cleanDigits}). Closing Tab 1 and opening Tab 2 (properties overview)...`);
-
   const { lastSearchQuery, lastPipelineResult } = await chrome.storage.local.get(["lastSearchQuery", "lastPipelineResult"]);
   const address = (details && details.canonicalAddress) || (details && details.address) || pipelineSession.address || lastSearchQuery || lastPipelineResult?.address || "";
   pipelineSession.address = address;
@@ -227,7 +222,6 @@ async function handleStep1ApnFound(apn, details, tabId) {
   if (tabId) {
     try {
       await chrome.tabs.remove(tabId);
-      console.log(`🧹 [Pipeline-Step 1] Closed APN Search Tab: ${tabId}`);
     } catch (e) {}
   }
   pipelineSession.apnTabId = null;
@@ -235,7 +229,6 @@ async function handleStep1ApnFound(apn, details, tabId) {
   // Mở Bước 2: Google "[Địa chỉ] properties"
   const propOverviewQuery = `${address} properties`;
   const propOverviewUrl = `https://www.google.com/search?q=${encodeURIComponent(propOverviewQuery)}`;
-  console.log(`🚀 [Pipeline-Step 2] Opening Properties Search Tab: ${propOverviewUrl}`);
   
   const propTab = await chrome.tabs.create({ url: propOverviewUrl, active: true });
   pipelineSession.propertyOverviewTabId = propTab.id;
@@ -245,7 +238,6 @@ async function handleStep1ApnFound(apn, details, tabId) {
  * Xử lý Bước 2: Nhận thông tin Property Overview / AI Overview -> Đóng Tab 2 -> Mở Tab 3 (PropZone)
  */
 async function handleStep2PropertyOverviewFound(details, tabId) {
-  console.log(`🎯 [Pipeline-Step 2] Property Overview Specs received:`, details);
 
   const { lastSearchQuery, lastPipelineResult } = await chrome.storage.local.get(["lastSearchQuery", "lastPipelineResult"]);
   const address = (details && details.canonicalAddress) || (details && details.address) || pipelineSession.address || lastSearchQuery || lastPipelineResult?.address || "";
@@ -303,7 +295,6 @@ async function handleStep2PropertyOverviewFound(details, tabId) {
   if (tabId) {
     try {
       await chrome.tabs.remove(tabId);
-      console.log(`🧹 [Pipeline-Step 2] Closed Properties Overview Tab: ${tabId}`);
     } catch (e) {}
   }
   pipelineSession.propertyOverviewTabId = null;
@@ -313,7 +304,6 @@ async function handleStep2PropertyOverviewFound(details, tabId) {
   if (targetPropZoneUrl) {
     lastOpenedPropZoneUrl = targetPropZoneUrl;
     lastOpenedTime = Date.now();
-    console.log(`🚀 [Pipeline-Step 3] Opening single PropZone Tab: ${targetPropZoneUrl}`);
     const pzTab = await chrome.tabs.create({ url: targetPropZoneUrl, active: true });
     pipelineSession.propZoneTabId = pzTab.id;
   }
@@ -348,10 +338,8 @@ async function handleStep3SaveAndClose(data, tabId) {
   });
 
   if (tabId) {
-    console.log(`⏳ [Pipeline-Step 3] Dữ liệu PropZone đã được bóc tách và lưu trữ thành công! Tab ${tabId} sẽ tiếp tục được giữ mở trong 10 phút (600s) để người dùng xem bản đồ quy hoạch trước khi đóng.`);
     setTimeout(() => {
       chrome.tabs.remove(tabId).catch(() => {});
-      console.log(`🧹 [Pipeline-Step 3] Đã hết 10 phút. Tự động đóng tab PropZone: ${tabId}`);
     }, PROPZONE_TAB_LIFETIME_MS);
   }
 }
@@ -365,7 +353,6 @@ async function runDirectSearchPipeline(query) {
   }
 
   const cleanQuery = query.trim();
-  console.log(`🚀 [Auto-Pipeline] Executing search for: "${cleanQuery}"`);
 
   // 1. KIỂM TRA NẾU CÓ APN ĐỨNG ĐẦU ĐỊA CHỈ (VD: "104944121, 1026 S GREENWOOD AVE, ONTARIO, CA, 91761")
   let leadApn = null;
@@ -374,7 +361,6 @@ async function runDirectSearchPipeline(query) {
   if (leadApnMatch) {
     leadApn = leadApnMatch[1].trim().replace(/\s+/g, '-');
     targetAddress = leadApnMatch[2].trim();
-    console.log(`🎯 [Auto-Pipeline] Detected Leading APN: "${leadApn}", Target Address: "${targetAddress}"`);
   }
 
   // 2. KIỂM TRA NẾU LÀ APN TRỰC TIẾP

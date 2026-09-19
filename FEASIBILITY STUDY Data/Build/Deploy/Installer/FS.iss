@@ -10,7 +10,7 @@
 
 #define MyAppName "FEASIBILITY STUDY Data"
 #ifndef MyAppVersion
-#define MyAppVersion "1.6.2"
+#define MyAppVersion "1.6.3"
 #endif
 #define MyAppPublisher "TIC, Inc."
 #define MyAppURL "http://www.tectonicsgroup.com/"
@@ -61,8 +61,16 @@ Source: "..\..\..\icons\*"; DestDir: "{app}\icons"; Flags: ignoreversion recurse
 Source: "..\..\..\options\*"; DestDir: "{app}\options"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\..\..\popup\*"; DestDir: "{app}\popup"; Flags: ignoreversion recursesubdirs createallsubdirs
 
-; 2. Copy icon ứng dụng
+; 2. Copy icon ứng dụng & file cập nhật
 Source: "FS.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\..\update.bat"; DestDir: "{app}"; Flags: ignoreversion
+
+[Registry]
+; Đăng ký Custom URL Protocol: fs-update://run để Chrome Extension có thể kích hoạt file cài đặt từ xa
+Root: HKCU; Subkey: "Software\Classes\fs-update"; ValueType: string; ValueName: ""; ValueData: "URL:FS Update Protocol"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\fs-update"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\fs-update\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\FS.ico,0"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\fs-update\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\update.bat"" ""%1"""; Flags: uninsdeletekey
 
 [Run]
 ; Mở sẵn thư mục Documents\FEASIBILITY STUDY Data để người dùng dễ dàng bấm Load unpacked trong Chrome

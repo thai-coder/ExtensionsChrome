@@ -8,15 +8,11 @@
   if (window.__LA_MAP_EXTRACTOR_LOADED__) return;
   window.__LA_MAP_EXTRACTOR_LOADED__ = true;
 
-  console.log("🟪 [LA-Map-Extractor] Initialized on LA County Assessor portal.");
-
   chrome.runtime.sendMessage({ action: "GET_MAP_DOWNLOAD_TAB_ROLE" }, (response) => {
     if (chrome.runtime.lastError || !response || response.role !== "MAP_DOWNLOAD") {
-      console.log("ℹ️ [LA-Map-Extractor] Manual user browsing mode.");
       return;
     }
 
-    console.log("🎯 [LA-Map-Extractor] Automation mode active for APN:", response.apn);
     startLAExtraction(response.apn);
   });
 
@@ -30,7 +26,6 @@
 
       if (pdfUrl) {
         clearInterval(interval);
-        console.log("✅ [LA-Map-Extractor] Found LA Map PDF URL:", pdfUrl);
         chrome.runtime.sendMessage({
           action: "MAP_PDF_FOUND_AND_DOWNLOAD",
           countyKey: "losAngeles",
@@ -40,7 +35,6 @@
         });
       } else if (attempts >= maxAttempts) {
         clearInterval(interval);
-        console.warn("⚠️ [LA-Map-Extractor] Generating direct LA County Assessor Map URL from AIN.");
         
         const cleanApn = (targetApn || "").replace(/[^0-9]/g, "");
         let directPdf = null;

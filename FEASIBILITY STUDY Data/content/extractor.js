@@ -451,8 +451,6 @@
           return; // Mở thủ công: tuyệt đối không can thiệp hay thay đổi bất cứ điều gì trên trang web
         }
 
-      console.log(`%c⚡ [PropZone Pipeline] Kích hoạt Eager Extraction thời gian thực...`, "color: #38bdf8; font-weight: bold; font-size: 13px;");
-
       let isCompleted = false;
       let checkCount = 0;
       let lastFieldCount = 0;
@@ -486,8 +484,6 @@
             isCompleted = true;
             cleanup();
 
-            console.log(`%c✅ [PropZone Pipeline] Thu thập THÀNH CÔNG (${status.count} trường, ${elapsedSec.toFixed(1)}s)! Dữ liệu đã lưu vào Extension. Tab này được giữ mở trong 10 phút để bạn xem bản đồ quy hoạch.`, "color: #10b981; font-weight: bold; font-size: 14px;", data);
-
             // Đợi 600ms an toàn rồi gửi lệnh lưu dữ liệu vào storage
             setTimeout(() => {
               chrome.runtime.sendMessage({
@@ -502,7 +498,6 @@
           if (elapsedSec >= 5 && checkPropZoneNotFound()) {
             isCompleted = true;
             cleanup();
-            console.warn(`⚠️ [PropZone Pipeline] Folio không tìm thấy trên PropZone (${elapsedSec.toFixed(1)}s). Lưu dữ liệu hiện có.`);
             chrome.runtime.sendMessage({
               action: "AUTO_SAVE_AND_CLOSE_TAB",
               data: data
@@ -541,7 +536,6 @@
         isCompleted = true;
         cleanup();
 
-        console.warn(`⚠️ [PropZone Pipeline] Kết thúc chu kỳ quét (45s). Gửi dữ liệu hiện có về lưu trữ (Tab vẫn giữ mở).`);
         const currentData = extractAllData();
         chrome.runtime.sendMessage({
           action: "AUTO_SAVE_AND_CLOSE_TAB",

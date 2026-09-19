@@ -24,38 +24,43 @@ function compareSemver(v1, v2) {
 async function checkForExtensionUpdates() {
   try {
     if (typeof UPDATE_CONFIG === "undefined") {
-      console.warn("[UpdateChecker] Chưa nạp file config/update-config.js");
-      return;
-    }
-
-    // Nếu người dùng chưa cấu hình Token, không gọi API
-    if (!UPDATE_CONFIG.GITHUB_TOKEN || UPDATE_CONFIG.GITHUB_TOKEN === "YOUR_GITHUB_TOKEN_HERE") {
-      console.log("[UpdateChecker] Chưa cấu hình GITHUB_TOKEN trong config/update-config.js. Bỏ qua kiểm tra.");
       return;
     }
 
     const apiUrl = `https://api.github.com/repos/${UPDATE_CONFIG.GITHUB_REPO}/contents/${encodeURIComponent(UPDATE_CONFIG.VERSION_FILE_PATH)}?ref=${UPDATE_CONFIG.BRANCH || 'main'}`;
 
-    const response = await fetch(apiUrl, {
+    const headers = {
+      "Accept": "application/vnd.github.raw+json",
+      "X-GitHub-Api-Version": "2022-11-28"
+    };
+
+    if (UPDATE_CONFIG.GITHUB_TOKEN && UPDATE_CONFIG.GITHUB_TOKEN !== "YOUR_GITHUB_TOKEN_HERE" && UPDATE_CONFIG.GITHUB_TOKEN.trim() !== "") {
+      headers["Authorization"] = `Bearer ${UPDATE_CONFIG.GITHUB_TOKEN.trim()}`;
+    }
+
+    let response = await fetch(apiUrl, {
       method: "GET",
-      headers: {
-        "Authorization": `Bearer ${UPDATE_CONFIG.GITHUB_TOKEN.trim()}`,
-        "Accept": "application/vnd.github.raw+json",
-        "X-GitHub-Api-Version": "2022-11-28"
-      },
+      headers: headers,
       cache: "no-store"
     });
 
+    // Nếu có token nhưng bị lỗi 401 (token bị thu hồi hoặc hết hạn), thử lại không kèm token (dành cho repo Public)
+    if (response.status === 401 && headers["Authorization"]) {
+      delete headers["Authorization"];
+      response = await fetch(apiUrl, {
+        method: "GET",
+        headers: headers,
+        cache: "no-store"
+      });
+    }
+
     if (!response.ok) {
-      console.warn(`[UpdateChecker] GitHub API trả về mã lỗi: ${response.status} ${response.statusText}`);
       return;
     }
 
     const data = await response.json();
     const currentVersion = chrome.runtime.getManifest().version;
     const serverVersion = data.version;
-
-    console.log(`[UpdateChecker] Phiên bản hiện tại: v${currentVersion} | Phiên bản trên GitHub: v${serverVersion}`);
 
     if (compareSemver(serverVersion, currentVersion) > 0) {
       // 1. Bật huy hiệu NEW màu đỏ trên icon Extension
@@ -82,7 +87,7 @@ async function checkForExtensionUpdates() {
       await chrome.storage.local.remove("fs_update_info");
     }
   } catch (error) {
-    console.error("[UpdateChecker] Lỗi khi kết nối GitHub API:", error);
+    // Bỏ qua lỗi ngầm, tránh log rác vào console
   }
 }
 

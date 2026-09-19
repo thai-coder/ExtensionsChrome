@@ -8,16 +8,12 @@
   if (window.__OCGIS_MAP_EXTRACTOR_LOADED__) return;
   window.__OCGIS_MAP_EXTRACTOR_LOADED__ = true;
 
-  console.log("🟧 [OCGIS-Map-Extractor] Initialized on Orange County portal.");
-
   // Hỏi Background Service Worker xem tab này có phải tab tự động tải Map không
   chrome.runtime.sendMessage({ action: "GET_MAP_DOWNLOAD_TAB_ROLE" }, (response) => {
     if (chrome.runtime.lastError || !response || response.role !== "MAP_DOWNLOAD") {
-      console.log("ℹ️ [OCGIS-Map-Extractor] Manual user browsing mode.");
       return;
     }
 
-    console.log("🎯 [OCGIS-Map-Extractor] Automation mode active for APN:", response.apn);
     startExtractionPipeline(response.apn);
   });
 
@@ -31,7 +27,6 @@
 
       if (pdfUrl) {
         clearInterval(interval);
-        console.log("✅ [OCGIS-Map-Extractor] Found Map PDF URL:", pdfUrl);
         chrome.runtime.sendMessage({
           action: "MAP_PDF_FOUND_AND_DOWNLOAD",
           countyKey: "orange",
@@ -41,7 +36,6 @@
         });
       } else if (attempts >= maxAttempts) {
         clearInterval(interval);
-        console.warn("⚠️ [OCGIS-Map-Extractor] Timeout finding interactive PDF link, using standard Assessor Map book fallback.");
         
         // Tạo link chuẩn theo APN nếu không tìm thấy nút trên DOM
         const cleanApn = (targetApn || "").replace(/[^0-9]/g, "");

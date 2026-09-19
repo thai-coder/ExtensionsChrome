@@ -8,15 +8,11 @@
   if (window.__SB_ONTARIO_MAP_EXTRACTOR_LOADED__) return;
   window.__SB_ONTARIO_MAP_EXTRACTOR_LOADED__ = true;
 
-  console.log("🟧 [SB-Ontario-Map-Extractor] Initialized on San Bernardino County / City of Ontario portal.");
-
   chrome.runtime.sendMessage({ action: "GET_MAP_DOWNLOAD_TAB_ROLE" }, (response) => {
     if (chrome.runtime.lastError || !response || response.role !== "MAP_DOWNLOAD") {
-      console.log("ℹ️ [SB-Ontario-Map-Extractor] Manual user browsing mode.");
       return;
     }
 
-    console.log("🎯 [SB-Ontario-Map-Extractor] Automation active for APN:", response.apn);
     startSBExtraction(response.apn);
   });
 
@@ -30,7 +26,6 @@
 
       if (pdfUrl) {
         clearInterval(interval);
-        console.log("✅ [SB-Ontario-Map-Extractor] Found Map URL:", pdfUrl);
         chrome.runtime.sendMessage({
           action: "MAP_PDF_FOUND_AND_DOWNLOAD",
           countyKey: "sanBernardino",
@@ -40,7 +35,6 @@
         });
       } else if (attempts >= maxAttempts) {
         clearInterval(interval);
-        console.warn("⚠️ [SB-Ontario-Map-Extractor] Timeout finding interactive PDF link, using fallback portal view.");
         
         chrome.runtime.sendMessage({
           action: "MAP_PDF_FOUND_AND_DOWNLOAD",

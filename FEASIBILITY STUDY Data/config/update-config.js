@@ -12,11 +12,9 @@ const UPDATE_CONFIG = {
   // Nhánh Git chứa bản phát hành mới nhất
   BRANCH: "main",
 
-  // =========================================================================
-  // BẠN HÃY DÁN TOKEN GITHUB FINE-GRAINED (CHẾ ĐỘ READ-ONLY) VÀO DÒNG DƯỚI ĐÂY:
-  // (Tạo tại: GitHub > Settings > Developer Settings > Fine-grained tokens > Contents: Read-only)
-  // =========================================================================
-  GITHUB_TOKEN: "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",
+  // BẠN CÓ THỂ DÁN TOKEN GITHUB FINE-GRAINED (READ-ONLY) NẾU REPO LÀ PRIVATE:
+  // (Với repo Public thì để trống "", Extension vẫn tự động kiểm tra bình thường)
+  GITHUB_TOKEN: "",
 
   // Chu kỳ tự động kiểm tra bản mới (phút)
   CHECK_INTERVAL_MINUTES: 30,

@@ -10,7 +10,7 @@
 
 #define MyAppName "FEASIBILITY STUDY Data"
 #ifndef MyAppVersion
-#define MyAppVersion "1.6.3"
+#define MyAppVersion "1.6.4"
 #endif
 #define MyAppPublisher "TIC, Inc."
 #define MyAppURL "http://www.tectonicsgroup.com/"

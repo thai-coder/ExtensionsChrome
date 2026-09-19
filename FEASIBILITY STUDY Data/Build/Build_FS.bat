@@ -30,7 +30,7 @@ if not exist "%InnoCompiler%" (
 echo [1/4] Trinh bien dich: %InnoCompiler%
 
 :: 2. DOC VERSION TU MANIFEST.JSON
-set "ExtVersion=1.6.3"
+set "ExtVersion=1.6.4"
 if exist "%ManifestFile%" (
     for /f "tokens=2 delims=:, " %%a in ('findstr /i "\"version\"" "%ManifestFile%"') do (
         set "ExtVersion=%%~a"

@@ -399,51 +399,72 @@
 
 
   // ==========================================
-  // BƯỚC 1 & BƯỚC 2: THEO DÕI SỰ KIỆN TẢI TRANG
+  // KHỞI ĐỘNG CHƯƠNG TRÌNH (Chỉ chạy khi có lệnh từ Extension)
   // ==========================================
-  console.log("[OCGIS Extractor] BƯỚC 1 & 2: Theo dõi trang và Disclaimer modal...");
+  function startExtraction() {
+    console.log("[OCGIS Extractor] BƯỚC 1 & 2: Theo dõi trang và Disclaimer modal...");
 
-  step3_checkAndCloseDisclaimerModal();
-
-  const mainLoop = setInterval(() => {
     step3_checkAndCloseDisclaimerModal();
-    if (!step4Completed) {
-      step4_attemptLayerTicking();
-    } else {
-      clearInterval(mainLoop);
-    }
-  }, 500);
 
-  try {
-    const observer = new MutationObserver(() => {
+    const mainLoop = setInterval(() => {
       step3_checkAndCloseDisclaimerModal();
       if (!step4Completed) {
         step4_attemptLayerTicking();
-      }
-    });
-
-    const initObserver = () => {
-      if (document.body) {
-        observer.observe(document.body, { childList: true, subtree: true });
       } else {
-        document.addEventListener('DOMContentLoaded', () => {
-          if (document.body) observer.observe(document.body, { childList: true, subtree: true });
-        });
+        clearInterval(mainLoop);
       }
-    };
-    initObserver();
-  } catch (e) { }
+    }, 500);
 
-  window.addEventListener('focus', () => {
-    step3_checkAndCloseDisclaimerModal();
-    if (!step4Completed) step4_attemptLayerTicking();
-  }, { passive: true });
+    try {
+      const observer = new MutationObserver(() => {
+        step3_checkAndCloseDisclaimerModal();
+        if (!step4Completed) {
+          step4_attemptLayerTicking();
+        }
+      });
 
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
+      const initObserver = () => {
+        if (document.body) {
+          observer.observe(document.body, { childList: true, subtree: true });
+        } else {
+          document.addEventListener('DOMContentLoaded', () => {
+            if (document.body) observer.observe(document.body, { childList: true, subtree: true });
+          });
+        }
+      };
+      initObserver();
+    } catch (e) { }
+
+    window.addEventListener('focus', () => {
       step3_checkAndCloseDisclaimerModal();
       if (!step4Completed) step4_attemptLayerTicking();
+    }, { passive: true });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        step3_checkAndCloseDisclaimerModal();
+        if (!step4Completed) step4_attemptLayerTicking();
+      }
+    }, { passive: true });
+  }
+
+  // KIỂM TRA QUYỀN KHỞI CHẠY TỪ BACKGROUND
+  if (typeof chrome !== 'undefined' && chrome.runtime) {
+    try {
+      chrome.runtime.sendMessage({ action: "GET_MAP_DOWNLOAD_TAB_ROLE" }, (response) => {
+        if (response && response.role === "MAP_DOWNLOAD") {
+          console.log("[OCGIS Extractor] Đã nhận lệnh khởi chạy (role: MAP_DOWNLOAD). Bắt đầu quy trình...");
+          startExtraction();
+        } else {
+          console.log("[OCGIS Extractor] Không có lệnh chạy tự động (role: NONE). Extractor đang tạm ngủ.");
+        }
+      });
+    } catch (e) {
+      console.warn("[OCGIS Extractor] Lỗi khi kiểm tra role:", e);
     }
-  }, { passive: true });
+  } else {
+    // Test mode
+    startExtraction();
+  }
 
 })();

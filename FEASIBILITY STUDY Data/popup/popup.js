@@ -347,14 +347,16 @@ document.addEventListener("DOMContentLoaded", () => {
       btnLinkParcels.classList.remove("disabled");
       btnLinkParcels.classList.add("active");
       btnLinkParcels.disabled = false;
-      btnLinkParcels.onclick = () => chrome.tabs.create({ url: linksData.parcels });
+      // SWAPPED: Gán Tract Map link cho nút Parcels để sửa lỗi ngược link
+      btnLinkParcels.onclick = () => chrome.tabs.create({ url: linksData.tractMap || linksData.parcels });
     }
     
     if (linksData.tractMap && btnLinkTract) {
       btnLinkTract.classList.remove("disabled");
       btnLinkTract.classList.add("active");
       btnLinkTract.disabled = false;
-      btnLinkTract.onclick = () => chrome.tabs.create({ url: linksData.tractMap });
+      // SWAPPED: Gán Parcels link cho nút Tract Map để sửa lỗi ngược link
+      btnLinkTract.onclick = () => chrome.tabs.create({ url: linksData.parcels || linksData.tractMap });
     }
   }
 

@@ -1,26 +1,31 @@
 /**
  * FEASIBILITY STUDY Data - Orange County OCGIS Map Extractor (Isolated Content Script)
  * Dành riêng cho trang: webapps.ocgis.com / gis.ocgov.com
- * Quy trình bất đồng bộ:
- * - Bước 1: Truy cập link bản đồ
- * - Bước 2: Chờ web / bản đồ load hoàn tất -> Chạy Bước 4
- * - Bước 3: Theo dõi bất đồng bộ Disclaimer Modal -> Khi bấm "Agree" -> Chạy Bước 4
- * - Bước 4: Đợi Layer List render hoàn tất -> Tự động bật (tick = true) Parcels và Cities
+ * Quy trình tự động hóa:
+ * - Bước 1 & 2: Theo dõi trang tải (Observer/Interval)
+ * - Bước 3: Đóng Disclaimer Modal
+ * - Bước 4: Bật Layer (Parcels, Cities)
+ * - Bước 5: Nhập địa chỉ / APN
+ * - Bước 6: Chọn kết quả gợi ý
+ * - Bước 7: Click trung tâm bản đồ
+ * - Bước 8: Chờ và click nút Next popup
+ * - Bước 9: Mở tài liệu iframe trong tab mới
  */
 
 (function () {
   if (window.__OCGIS_MAP_EXTRACTOR_LOADED__) return;
   window.__OCGIS_MAP_EXTRACTOR_LOADED__ = true;
 
+  console.log("[OCGIS Extractor] Khởi động trình trích xuất bản đồ OC Land...");
+
   let lastHandledTime = 0;
   const COOLDOWN_MS = 2000;
-  const TARGET_LAYERS_TO_TICK = ["parcels", "cities"];
   let step4Completed = false;
 
-  /**
-   * BƯỚC 3: Kiểm tra Disclaimer modal và bấm nút "Agree" (Bất đồng bộ)
-   */
-  function checkAndCloseDisclaimerModal() {
+  // ==========================================
+  // BƯỚC 3: ĐÓNG DISCLAIMER MODAL
+  // ==========================================
+  function step3_checkAndCloseDisclaimerModal() {
     if (Date.now() - lastHandledTime < COOLDOWN_MS) return false;
 
     try {
@@ -35,18 +40,16 @@
           for (const btn of buttons) {
             const btnText = (btn.textContent || btn.innerText || '').trim().toLowerCase();
 
-            if (btnText.includes('disagree') || btn.closest('a[href]')) {
-              continue;
-            }
+            if (btnText.includes('disagree') || btn.closest('a[href]')) continue;
 
             if (btnText === 'agree' || /^agree$/i.test(btnText)) {
               lastHandledTime = Date.now();
               btn.click();
-              console.log('[OCGIS Extractor] Step 3: Successfully clicked Disclaimer "Agree" button.');
+              console.log('[OCGIS Extractor] BƯỚC 3: Đã tự động đóng Disclaimer Modal ("Agree").');
 
-              // BƯỚC 3 => BƯỚC 4: Sau khi đóng Disclaimer, đợi 1.5s để Esri render Layer List rồi chạy Bước 4
+              // Đợi 1.5s để Esri render Layer List rồi chạy Bước 4
               setTimeout(() => {
-                attemptStep4LayerTicking();
+                step4_attemptLayerTicking();
               }, 1500);
               return true;
             }
@@ -58,134 +61,53 @@
       const actionButtons = Array.from(document.querySelectorAll('.MuiDialogActions-root button, div[role="dialog"] button, .MuiDialog-paper button'));
       for (const btn of actionButtons) {
         const btnText = (btn.textContent || btn.innerText || '').trim().toLowerCase();
-
-        if (btnText.includes('disagree') || btn.closest('a[href]')) {
-          continue;
-        }
+        if (btnText.includes('disagree') || btn.closest('a[href]')) continue;
 
         if (btnText === 'agree' || /^agree$/i.test(btnText)) {
           lastHandledTime = Date.now();
           btn.click();
-          console.log('[OCGIS Extractor] Step 3: Clicked "Agree" button (Fallback).');
+          console.log('[OCGIS Extractor] BƯỚC 3: Đã tự động đóng Disclaimer Modal (Fallback).');
 
           setTimeout(() => {
-            attemptStep4LayerTicking();
+            step4_attemptLayerTicking();
           }, 1500);
           return true;
         }
       }
     } catch (e) {
-      console.warn('[OCGIS Extractor] Step 3 error:', e);
+      console.warn('[OCGIS Extractor] Lỗi Bước 3:', e);
     }
-
     return false;
   }
 
-  /**
-   * Kiểm tra chính xác trạng thái ĐÃ TICK (Checked) của Layer Esri theo chuẩn HTML DOM:
-   * - Checked: aria-checked="true", title="Hide layer", chứa icon .esri-icon-visible
-   * - Unchecked: aria-checked="false", title="Show layer", chứa icon .esri-icon-non-visible
-   */
-  function isEsriToggleChecked(toggleEl, itemEl) {
-    if (!toggleEl) return false;
-    const ariaChecked = toggleEl.getAttribute('aria-checked') === 'true';
-    const titleAttr = (toggleEl.getAttribute('title') || '').toLowerCase();
-    const isHideLayer = titleAttr.includes('hide layer');
-    const hasVisibleIcon = Boolean(toggleEl.querySelector('.esri-icon-visible')) ||
-      (itemEl && Boolean(itemEl.querySelector('.esri-icon-visible')));
-
-    return ariaChecked || isHideLayer || hasVisibleIcon;
-  }
-
-  /**
-   * Kích hoạt sự kiện Click thực tế cho công tắc Esri JS API Widget
-   * Kiểm tra xác nhận lại sau 120ms; nếu chưa bật (false) sẽ chạy lại tối đa 3 lần.
-   */
-  function triggerEsriToggleClick(toggleEl, itemEl, retryAttempt = 0) {
-    if (!toggleEl) return;
-
-    try {
-      // 1. Click trực tiếp vào icon chưa visible (.esri-icon-non-visible) nếu có
-      const nonVisibleIcon = toggleEl.querySelector('.esri-icon-non-visible');
-      if (nonVisibleIcon) {
-        nonVisibleIcon.click();
-      }
-
-      // 2. Click công tắc toggleEl
-      toggleEl.click();
-
-      // 3. Dispatch chuỗi sự kiện chuột / pointer events tương thích với ArcGIS JS API
-      ['pointerdown', 'mousedown', 'mouseup', 'click'].forEach(eventType => {
-        toggleEl.dispatchEvent(new MouseEvent(eventType, {
-          bubbles: true,
-          cancelable: true,
-          view: window
-        }));
-      });
-
-      // 4. Dispatch sự kiện bàn phím Space / Enter
-      toggleEl.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', keyCode: 32, code: 'Space', bubbles: true }));
-      toggleEl.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', keyCode: 32, code: 'Space', bubbles: true }));
-
-      // 5. Fallback: Nếu vẫn chưa tick, click vào label container
-      const label = itemEl ? itemEl.querySelector('.esri-layer-list__item-label') : null;
-      if (label && !isEsriToggleChecked(toggleEl, itemEl)) {
-        label.click();
-      }
-
-      // 6. Xác nhận lại sau 120ms. Nếu chưa được (false), chạy lại tối đa 3 lần
-      setTimeout(() => {
-        if (!isEsriToggleChecked(toggleEl, itemEl)) {
-          if (retryAttempt < 3) {
-            console.log(`[OCGIS Extractor] Retry ${retryAttempt + 1}/3 clicking Esri toggle...`);
-            triggerEsriToggleClick(toggleEl, itemEl, retryAttempt + 1);
-          } else {
-            console.warn('[OCGIS Extractor] Max 3 retries reached for Esri toggle click.');
-          }
-        }
-      }, 120);
-    } catch (e) {
-      console.warn('[OCGIS Extractor] Toggle click error:', e);
-    }
-  }
-
-  /**
-   * BƯỚC 4: Tự động bật các layer theo đúng đoạn mã console do người dùng cung cấp
-   * ĐẢM BẢO CHẠY 1 LẦN DUY NHẤT (Tránh spam / cướp sóng)
-   */
-  function attemptStep4LayerTicking() {
+  // ==========================================
+  // BƯỚC 4: BẬT LAYER BẢN ĐỒ (PARCELS, CITIES)
+  // ==========================================
+  function step4_attemptLayerTicking() {
     if (step4Completed) return;
 
     try {
-      // Khai báo một mảng chứa tên tất cả các layer bạn muốn bật
-      const cacLayerCanBat = ["Parcels"];
-
-      // Tìm tất cả các tiêu đề layer hiện có trên bản đồ
+      const cacLayerCanBat = ["Parcels", "Tract Map"];
       const danhSachLayer = document.querySelectorAll('.esri-layer-list__item-title');
       if (!danhSachLayer || danhSachLayer.length === 0) return;
 
-      // Đánh dấu ĐÃ CHẠY HOÀN TẤT -> CHỈ CHẠY 1 LẦN DUY NHẤT
-      step4Completed = true;
+      console.log("[OCGIS Extractor] BƯỚC 4: Đang kiểm tra và bật các Layer cần thiết...");
+      step4Completed = true; // Chỉ chạy 1 lần
 
       danhSachLayer.forEach(layer => {
         const tenLayer = layer.textContent.trim();
-
-        // Kiểm tra xem tên layer hiện tại có nằm trong mảng cần bật hay không
         if (cacLayerCanBat.includes(tenLayer)) {
-          // Tìm nút click (nằm ngay bên cạnh thẻ tên)
           const nutToggle = layer.parentElement ? layer.parentElement.querySelector('.esri-layer-list__item-toggle') : null;
-
-          // Nếu nó đang tắt thì click để bật
           if (nutToggle && nutToggle.getAttribute('aria-checked') === 'false') {
             nutToggle.click();
-            console.log('Đã click bật layer: ' + tenLayer);
+            console.log(`[OCGIS Extractor] -> Đã tự động bật layer: ${tenLayer}`);
           }
         }
       });
 
-      // BƯỚC 4 XONG CHỜ 200 MS -> BƯỚC 5: Tự động nhập địa chỉ từ Popup
+      // Chuyển sang Bước 5 sau 200ms
       setTimeout(() => {
-        getPopupAddressAndExecuteStep5();
+        step5_getPopupAddressAndExecute();
       }, 200);
 
     } catch (e) {
@@ -193,115 +115,120 @@
     }
   }
 
-  /**
-   * BƯỚC 5: Nhập địa chỉ/thửa đất từ Popup vào ô tìm kiếm .esri-search__input
-   */
-  function executeStep5SearchInput(targetAddress) {
-    if (!targetAddress) {
-      console.log("[OCGIS Extractor] Bước 5: Không có giá trị địa chỉ/APN từ Popup để điền.");
-      return;
-    }
+  // ==========================================
+  // BƯỚC 5: LẤY ĐỊA CHỈ & NHẬP VÀO Ô TÌM KIẾM
+  // ==========================================
+  function step5_getPopupAddressAndExecute() {
+    console.log("[OCGIS Extractor] BƯỚC 5: Bắt đầu lấy địa chỉ để tìm kiếm...");
 
     try {
-      // 1. Tìm ô nhập liệu bằng class (không dùng ID vì nó thay đổi liên tục)
-      const oTimKiem = document.querySelector('.esri-search__input');
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlVal = urlParams.get('address') || urlParams.get('q') || urlParams.get('apn');
 
-      if (oTimKiem) {
-        // 2. Điền địa chỉ lấy từ Popup vào đây
-        oTimKiem.value = targetAddress;
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.get(["lastSearchQuery", "lastApn", "lastPipelineResult"], (res) => {
+          const popupVal = (res && res.lastSearchQuery) ||
+            (res && res.lastApn) ||
+            (res && res.lastPipelineResult && (res.lastPipelineResult.address || res.lastPipelineResult.lot?.projectAddress));
 
-        // 3. Giả lập sự kiện để bản đồ nhận diện có chữ vừa được gõ vào
-        oTimKiem.dispatchEvent(new Event('input', { bubbles: true }));
-        oTimKiem.dispatchEvent(new Event('change', { bubbles: true }));
-
-        // Focus vào ô để bạn dễ thao tác tiếp (ví dụ: nhấn Enter)
-        oTimKiem.focus();
-
-        console.log(`Đã nhập địa chỉ thành công: "${targetAddress}"!`);
-
-        // BƯỚC 5 => BƯỚC 6: Kích hoạt Bước 6 tự động chờ và chọn gợi ý
-        thucHienBuoc6();
+          const finalSearchVal = popupVal || urlVal || "";
+          step5_executeSearchInput(finalSearchVal);
+        });
+      } else if (urlVal) {
+        step5_executeSearchInput(urlVal);
       } else {
-        console.log("Không tìm thấy ô tìm kiếm.");
+        console.log("[OCGIS Extractor] BƯỚC 5: Không có giá trị địa chỉ/APN để tìm kiếm.");
       }
     } catch (e) {
-      console.warn('[OCGIS Extractor] Lỗi Bước 5:', e);
+      console.warn('[OCGIS Extractor] Lỗi lấy địa chỉ (Bước 5):', e);
     }
   }
 
-  /**
-   * BƯỚC 6: Hàm tạo độ trễ và kiểm tra bất đồng bộ trả về một Promise
-   */
+  function step5_executeSearchInput(targetAddress) {
+    if (!targetAddress) return;
+
+    try {
+      const oTimKiem = document.querySelector('.esri-search__input');
+      if (oTimKiem) {
+        oTimKiem.value = targetAddress;
+        oTimKiem.dispatchEvent(new Event('input', { bubbles: true }));
+        oTimKiem.dispatchEvent(new Event('change', { bubbles: true }));
+        oTimKiem.focus();
+
+        console.log(`[OCGIS Extractor] -> Đã nhập địa chỉ thành công: "${targetAddress}"`);
+
+        // Chuyển sang Bước 6
+        step6_thucHien();
+      } else {
+        console.log("[OCGIS Extractor] BƯỚC 5: Không tìm thấy ô tìm kiếm.");
+      }
+    } catch (e) {
+      console.warn('[OCGIS Extractor] Lỗi điền địa chỉ (Bước 5):', e);
+    }
+  }
+
+  // ==========================================
+  // BƯỚC 6: CHỌN GỢI Ý ArcGIS
+  // ==========================================
   function choBangGoiYXuatHien(thoiGianToiDa = 5000) {
     return new Promise((resolve) => {
       let thoiGianDaQua = 0;
-      const thoiGianKiemTra = 200; // Cứ mỗi 200ms sẽ kiểm tra 1 lần
+      const thoiGianKiemTra = 200;
 
       const kiemTra = setInterval(() => {
         thoiGianDaQua += thoiGianKiemTra;
-
-        // Tìm menu gợi ý xuất hiện trên trang
         const menuGoiY = document.querySelector('.esri-search__suggestions-menu');
 
         if (menuGoiY) {
-          // Tìm các tiêu đề bên trong menu
           const cacTieuDe = menuGoiY.querySelectorAll('.esri-menu__header');
           for (let tieuDe of cacTieuDe) {
             if (tieuDe.textContent.trim() === "Address ArcGIS world locator") {
-              clearInterval(kiemTra); // Dừng vòng lặp kiểm tra
-              resolve(tieuDe); // Trả về thẻ tiêu đề thành công
+              clearInterval(kiemTra);
+              resolve(tieuDe);
               return;
             }
           }
         }
 
-        // Nếu hết thời gian tối đa (5 giây) mà không thấy thì dừng lại
         if (thoiGianDaQua >= thoiGianToiDa) {
           clearInterval(kiemTra);
-          resolve(null); // Trả về null báo hiệu thất bại
+          resolve(null);
         }
       }, thoiGianKiemTra);
     });
   }
 
-  /**
-   * BƯỚC 6: Hàm thực thi chính (sử dụng async/await) chọn kết quả gợi ý
-   */
-  async function thucHienBuoc6() {
-    console.log("Đang chờ bảng gợi ý tải (bất đồng bộ)...");
+  async function step6_thucHien() {
+    console.log("[OCGIS Extractor] BƯỚC 6: Đang chờ bảng gợi ý tìm kiếm...");
 
-    // Mã sẽ "tạm dừng" ở đây chờ cho đến khi tìm thấy bảng hoặc hết giờ
-    const tieuDeArcGIS = await choBangGoiYXuatHien(5000); // Đợi tối đa 5 giây
+    const tieuDeArcGIS = await choBangGoiYXuatHien(5000);
 
     if (tieuDeArcGIS) {
       const danhSachUL = tieuDeArcGIS.nextElementSibling;
-
       if (danhSachUL && danhSachUL.tagName === 'UL') {
         const ketQuaDauTien = danhSachUL.querySelector('li.esri-menu__list-item');
-
         if (ketQuaDauTien) {
           ketQuaDauTien.click();
-          console.log("Đã click chọn kết quả Address ArcGIS world locator thành công!");
+          console.log("[OCGIS Extractor] -> Đã chọn kết quả đầu tiên từ Address ArcGIS world locator.");
 
-          // BƯỚC 6 => BƯỚC 7 & 8: Chờ 500ms rồi kích hoạt kịch bản thử lại (Retry) click canvas & click Next feature
+          // Chờ 500ms để bản đồ di chuyển rồi thực hiện Bước 7 & 8
           setTimeout(() => {
-            batDauTimKiemPopup(5);
+            step7_8_batDauTimKiemPopup(5);
           }, 500);
         }
       }
     } else {
-      console.log("Quá thời gian! Không tìm thấy bảng gợi ý ArcGIS.");
+      console.log("[OCGIS Extractor] BƯỚC 6: Hết giờ, không tìm thấy bảng gợi ý.");
     }
   }
 
-  /**
-   * BƯỚC 7: Đóng gói Bước 7 thành một hàm để giả lập click vào trung tâm canvas bản đồ
-   */
-  function clickCanvasCenter() {
+  // ==========================================
+  // BƯỚC 7 & BƯỚC 8: CLICK BẢN ĐỒ VÀ CHỜ NÚT NEXT
+  // ==========================================
+  function step7_clickCanvasCenter() {
     const canvas = document.querySelector('.esri-view-surface canvas');
     if (canvas) {
       const rect = canvas.getBoundingClientRect();
-      // Tùy chỉnh độ lệch ở đây nếu cần thiết
       const centerX = rect.width / 2;
       const centerY = rect.height / 2;
 
@@ -314,21 +241,19 @@
       canvas.dispatchEvent(taoSuKien('pointerdown'));
       canvas.dispatchEvent(taoSuKien('pointerup'));
       canvas.dispatchEvent(taoSuKien('click'));
-      console.log("Đã giả lập click vào tọa độ trung tâm bản đồ!");
+      console.log("[OCGIS Extractor] BƯỚC 7: Đã giả lập click vào trung tâm bản đồ.");
       return true;
     } else {
-      console.log("Lỗi: Không tìm thấy thẻ canvas của bản đồ.");
+      console.log("[OCGIS Extractor] BƯỚC 7: Lỗi - Không tìm thấy thẻ canvas bản đồ.");
       return false;
     }
   }
 
-  /**
-   * BƯỚC 8: Hàm chờ nút Next xuất hiện (trả về Promise: true nếu tìm thấy, false nếu quá giờ)
-   */
-  function choVaClickNutNext(thoiGianChoToiDa = 3000) {
+  function step8_choVaClickNutNext(thoiGianChoToiDa = 3000) {
     return new Promise((resolve) => {
       let thoiGianDaQua = 0;
-      const thoiGianKiemTra = 500; // Quét mỗi 500ms
+      const thoiGianKiemTra = 500;
+      console.log("[OCGIS Extractor] BƯỚC 8: Đang tìm nút Next trên popup...");
 
       const kiemTraPopup = setInterval(() => {
         thoiGianDaQua += thoiGianKiemTra;
@@ -339,94 +264,161 @@
           if (nutNext) {
             clearInterval(kiemTraPopup);
             nutNext.click();
-            console.log("-> Đã thấy và click nút Next feature thành công!");
-            resolve(true); // Báo hiệu thành công
+            console.log("[OCGIS Extractor] -> Đã thấy và click nút Next thành công!");
+            resolve(true);
             return;
           }
         }
 
-        // Hết thời gian chờ (ví dụ 3 giây) mà không thấy
         if (thoiGianDaQua >= thoiGianChoToiDa) {
           clearInterval(kiemTraPopup);
-          console.log("-> Không thấy nút Next. Cần click lại bản đồ...");
-          resolve(false); // Báo hiệu thất bại
+          console.log("[OCGIS Extractor] -> Hết giờ chờ nút Next ở lần thử này.");
+          resolve(false);
         }
       }, thoiGianKiemTra);
     });
   }
 
-  /**
-   * BƯỚC 7 & 8: Hàm thực thi chính với cơ chế lặp (Retry tối đa 5 lần)
-   */
-  async function batDauTimKiemPopup(soLanThuToiDa = 5) {
+  async function step7_8_batDauTimKiemPopup(soLanThuToiDa = 5) {
     for (let i = 1; i <= soLanThuToiDa; i++) {
-      console.log(`\n--- Đang thử lần thứ ${i} ---`);
+      console.log(`\n[OCGIS Extractor] === THỬ CLICK BẢN ĐỒ LẦN ${i} ===`);
 
-      // Thực hiện click vào giữa bản đồ (Bước 7)
-      const daClick = clickCanvasCenter();
-      if (!daClick) break; // Nếu không có canvas thì dừng toàn bộ
+      const daClick = step7_clickCanvasCenter();
+      if (!daClick) break;
 
-      // Đợi 3 giây để tìm nút Next (Bước 8)
-      const timThayNutNext = await choVaClickNutNext(3000);
+      const timThayNutNext = await step8_choVaClickNutNext(3000);
 
       if (timThayNutNext) {
-        console.log("🎉 Xong! Đã qua được bước click popup.");
-        return; // Thoát khỏi vòng lặp
+        console.log("[OCGIS Extractor] 🎉 Đã click thành công vào thửa đất, chuyển sang Bước 9.");
+        // Chờ 1 giây để bảng thông tin tải xong rồi chạy Bước 9
+        setTimeout(async () => {
+          await step9_timVaLayLink();
+        }, 1000);
+        return;
+      }
+    }
+    console.log(`[OCGIS Extractor] ❌ BƯỚC 7 & 8: Thử ${soLanThuToiDa} lần nhưng thất bại.`);
+  }
+
+  // ==========================================
+  // BƯỚC 9: TÌM VÀ LẤY LINK TÀI LIỆU (Parcels & Tract Map)
+  // ==========================================
+  const choDoi = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  async function timVaLayLink(tuKhoaCanTim, linkCuCuaBuocTruoc = "") {
+    console.log(`\n[OCGIS Extractor] 🔍 Bắt đầu tìm: "${tuKhoaCanTim}"`);
+    const soLanQuetToiDa = 10; 
+
+    for (let i = 0; i < soLanQuetToiDa; i++) {
+      const theTieuDe = document.querySelector('h2.esri-feature__title');
+      const noiDungTieuDeCu = theTieuDe ? theTieuDe.textContent : "";
+
+      if (noiDungTieuDeCu.includes(tuKhoaCanTim)) {
+        console.log(`[OCGIS Extractor] ✅ Đã đúng mục "${tuKhoaCanTim}". Đang chờ render link tải mới...`);
+        
+        let linkMoiTaiVe = "";
+        
+        for(let wait = 0; wait < 30; wait++) {
+          const theLinkBox = document.querySelector('.doc__navbar a[href*="box.com/s/"]');
+          
+          if (theLinkBox && theLinkBox.href && theLinkBox.href !== linkCuCuaBuocTruoc) {
+            linkMoiTaiVe = theLinkBox.href;
+            break;
+          }
+          await choDoi(500);
+        }
+        
+        if (linkMoiTaiVe !== "") {
+          console.log(`[OCGIS Extractor] 🎉 Thành công! Đã lấy được link: ${linkMoiTaiVe}`);
+          return linkMoiTaiVe;
+        } else {
+          console.log(`[OCGIS Extractor] ❌ Lỗi: Link cho ${tuKhoaCanTim} không xuất hiện, hoặc bị kẹt trùng với link cũ.`);
+          return null;
+        }
+      }
+
+      // Nếu tiêu đề không khớp, click Next
+      const nutNextFeature = document.querySelector('button[title="next identified feature"]');
+      if (nutNextFeature) {
+        console.log("[OCGIS Extractor] -> Chưa đúng mục. Click 'Next'...");
+        nutNextFeature.click();
+
+        let daTaiXong = false;
+        for(let wait = 0; wait < 40; wait++) { 
+          await choDoi(500);
+          const tieuDeMoi = document.querySelector('h2.esri-feature__title');
+          if (tieuDeMoi && tieuDeMoi.textContent !== noiDungTieuDeCu) {
+            daTaiXong = true;
+            break; 
+          }
+        }
+        if (!daTaiXong) console.log("[OCGIS Extractor] ⚠️ Mạng quá chậm, tiêu đề không đổi sau khi click Next.");
       } else {
-        console.log(`Lần ${i} thất bại. Chuẩn bị click lại...`);
-        // Vòng lặp sẽ tiếp tục và tự động gọi lại clickCanvasCenter()
+        console.log("[OCGIS Extractor] ⚠️ Đã hết trang. Không tìm thấy nút 'Next'.");
+        break; 
       }
     }
-
-    console.log(`❌ Đã thử tối đa ${soLanThuToiDa} lần nhưng vẫn không tìm thấy nút Next.`);
+    return null;
   }
 
-  /**
-   * Lấy địa chỉ/thửa đất từ Chrome Storage (Extension Popup) hoặc URL Parameter
-   */
-  function getPopupAddressAndExecuteStep5() {
-    try {
-      const urlParams = new URLSearchParams(window.location.search);
-      const urlVal = urlParams.get('address') || urlParams.get('q') || urlParams.get('apn');
+  async function step9_timVaLayLink() {
+    console.log("[OCGIS Extractor] BƯỚC 9: Đang lấy link Parcels và Tract Map...");
+    
+    // 1. Lấy link Parcels
+    let linkParcels = await timVaLayLink("Parcels:", "");
+    
+    console.log("[OCGIS Extractor] ⏳ Nghỉ 1.5 giây để hệ thống ổn định trước khi tìm mục tiếp theo...");
+    await choDoi(1500);
+    
+    // 2. Lấy link Tract Map
+    let linkTractMap = await timVaLayLink("Tract Map:", linkParcels || "");
+    
+    console.log("\n=============================");
+    console.log("📊 BÁO CÁO KẾT QUẢ TRÍCH XUẤT OCGIS MAP:");
+    console.log("- Link Parcels   :", linkParcels || "Không tìm thấy");
+    console.log("- Link Tract Map :", linkTractMap || "Không tìm thấy");
+    
+    if (linkParcels && linkTractMap && linkParcels !== linkTractMap) {
+        console.log("🎯 TUYỆT VỜI! Đã lấy thành công 2 link khác nhau hoàn toàn.");
+    } else if (linkParcels === linkTractMap && linkParcels !== null) {
+        console.log("⚠️ CẢNH BÁO: Link bị trùng nhau. Web xử lý quá chậm!");
+    }
 
-      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-        chrome.storage.local.get(["lastSearchQuery", "lastApn", "lastPipelineResult"], (res) => {
-          const popupVal = (res && res.lastSearchQuery) ||
-            (res && res.lastApn) ||
-            (res && res.lastPipelineResult && (res.lastPipelineResult.address || res.lastPipelineResult.lot?.projectAddress));
-
-          const finalSearchVal = popupVal || urlVal || "";
-          executeStep5SearchInput(finalSearchVal);
-        });
-      } else if (urlVal) {
-        executeStep5SearchInput(urlVal);
-      }
-    } catch (e) {
-      console.warn('[OCGIS Extractor] getPopupAddressAndExecuteStep5 error:', e);
+    // Lưu vào chrome storage để popup hiển thị
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.set({
+        ocgisMapLinks: {
+          parcels: linkParcels,
+          tractMap: linkTractMap,
+          updatedAt: Date.now()
+        }
+      });
+      console.log("[OCGIS Extractor] Đã lưu link vào storage cho Popup.");
     }
   }
 
-  // 1. BƯỚC 3: Chạy theo dõi bất đồng bộ Disclaimer Modal ngầm liên tục
-  checkAndCloseDisclaimerModal();
 
-  // 2. BƯỚC 2 => BƯỚC 4 & BƯỚC 3 => BƯỚC 4: Polling chờ web load xong -> Chạy Bước 4 đúng 1 lần duy nhất
+  // ==========================================
+  // BƯỚC 1 & BƯỚC 2: THEO DÕI SỰ KIỆN TẢI TRANG
+  // ==========================================
+  console.log("[OCGIS Extractor] BƯỚC 1 & 2: Theo dõi trang và Disclaimer modal...");
+
+  step3_checkAndCloseDisclaimerModal();
+
   const mainLoop = setInterval(() => {
-    checkAndCloseDisclaimerModal();
-
+    step3_checkAndCloseDisclaimerModal();
     if (!step4Completed) {
-      attemptStep4LayerTicking();
+      step4_attemptLayerTicking();
     } else {
-      // Đã thực hiện xong Bước 4 -> Dừng ngay lập tức, không spam hay cướp sóng
       clearInterval(mainLoop);
     }
   }, 500);
 
-  // 3. Persistent MutationObserver: Theo dõi toàn bộ sự thay đổi của DOM
   try {
     const observer = new MutationObserver(() => {
-      checkAndCloseDisclaimerModal();
+      step3_checkAndCloseDisclaimerModal();
       if (!step4Completed) {
-        attemptStep4LayerTicking();
+        step4_attemptLayerTicking();
       }
     });
 
@@ -442,16 +434,15 @@
     initObserver();
   } catch (e) { }
 
-  // 4. Lắng nghe thêm sự kiện focus / visibilitychange
   window.addEventListener('focus', () => {
-    checkAndCloseDisclaimerModal();
-    if (!step4Completed) attemptStep4LayerTicking();
+    step3_checkAndCloseDisclaimerModal();
+    if (!step4Completed) step4_attemptLayerTicking();
   }, { passive: true });
 
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
-      checkAndCloseDisclaimerModal();
-      if (!step4Completed) attemptStep4LayerTicking();
+      step3_checkAndCloseDisclaimerModal();
+      if (!step4Completed) step4_attemptLayerTicking();
     }
   }, { passive: true });
 

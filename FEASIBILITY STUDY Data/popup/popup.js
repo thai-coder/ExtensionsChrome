@@ -42,6 +42,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnCopyJson = document.getElementById("btn-copy-json");
   const btnDownloadMap = document.getElementById("btn-download-map");
 
+  // OCGIS Map Links
+  const btnLinkParcels = document.getElementById("btn-link-parcels");
+  const btnLinkTract = document.getElementById("btn-link-tract");
+
   // VPN Modal Elements
   const vpnModal = document.getElementById("vpn-modal");
   const btnVpnRetry = document.getElementById("btn-vpn-retry");
@@ -163,7 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Reset/Clean session data explicitly on Clean button click
   function resetSessionData() {
-    chrome.storage.local.remove(["lastSearchQuery", "lastPipelineResult", "lastApn"]);
+    chrome.storage.local.remove(["lastSearchQuery", "lastPipelineResult", "lastApn", "ocgisMapLinks"]);
 
     currentPayload = null;
     storedApn = null;
@@ -196,6 +200,19 @@ document.addEventListener("DOMContentLoaded", () => {
         el.style.color = "#64748b";
       }
     });
+
+    if (btnLinkParcels) {
+      btnLinkParcels.classList.add("disabled");
+      btnLinkParcels.classList.remove("active");
+      btnLinkParcels.disabled = true;
+      btnLinkParcels.onclick = null;
+    }
+    if (btnLinkTract) {
+      btnLinkTract.classList.add("disabled");
+      btnLinkTract.classList.remove("active");
+      btnLinkTract.disabled = true;
+      btnLinkTract.onclick = null;
+    }
 
     showToast("Session data cleaned!");
   }
@@ -244,7 +261,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Load Stored Address & Pipeline Result
   function loadStoredData() {
-    chrome.storage.local.get(["lastSearchQuery", "lastPipelineResult", "lastApn"], (res) => {
+    chrome.storage.local.get(["lastSearchQuery", "lastPipelineResult", "lastApn", "ocgisMapLinks"], (res) => {
       if (res.lastSearchQuery && !inputAddress.value) {
         inputAddress.value = res.lastSearchQuery;
         btnClearAddress.classList.remove("hidden");
@@ -259,6 +276,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       if (res.lastPipelineResult) {
         applyPipelineResult(res.lastPipelineResult);
+      }
+      if (res.ocgisMapLinks) {
+        updateMapLinksUI(res.ocgisMapLinks);
       }
     });
   }
@@ -314,8 +334,29 @@ document.addEventListener("DOMContentLoaded", () => {
           applyPipelineResult(res);
         }
       }
+      if (changes.ocgisMapLinks && changes.ocgisMapLinks.newValue) {
+        updateMapLinksUI(changes.ocgisMapLinks.newValue);
+      }
     }
   });
+
+  function updateMapLinksUI(linksData) {
+    if (!linksData) return;
+    
+    if (linksData.parcels && btnLinkParcels) {
+      btnLinkParcels.classList.remove("disabled");
+      btnLinkParcels.classList.add("active");
+      btnLinkParcels.disabled = false;
+      btnLinkParcels.onclick = () => chrome.tabs.create({ url: linksData.parcels });
+    }
+    
+    if (linksData.tractMap && btnLinkTract) {
+      btnLinkTract.classList.remove("disabled");
+      btnLinkTract.classList.add("active");
+      btnLinkTract.disabled = false;
+      btnLinkTract.onclick = () => chrome.tabs.create({ url: linksData.tractMap });
+    }
+  }
 
   loadStoredData();
 
@@ -567,7 +608,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const lot = currentPayload.lot || {};
       const extractedAddress = currentPayload.address || lot.projectAddress || lot.address || lot.situsAddress;
-      if (extractedAddress && (!inputAddress.value || inputAddress.value !== extractedAddress)) {
+      // BUG FIX: Chỉ cập nhật ô textbox nếu người dùng chưa nhập gì (để trống). Không tự ý sửa địa chỉ đã nhập.
+      if (extractedAddress && !inputAddress.value.trim()) {
         inputAddress.value = extractedAddress;
         btnClearAddress.classList.remove("hidden");
         updateCountyBadge(extractedAddress);

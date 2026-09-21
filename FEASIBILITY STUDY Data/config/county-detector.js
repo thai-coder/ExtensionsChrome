@@ -192,6 +192,35 @@
 
       return `https://propzone.gridics.com/city/us/${stateCode}/${countySlug}?leftOverlay=properties${cleanApn ? `&folio=${cleanApn}` : ''}`;
     }
+
+    /**
+     * Tạo URL chuẩn xác cho bản đồ Parcel / Plat Map dựa trên Quận / Thành phố nhận diện từ địa chỉ
+     * @param {string} address 
+     * @param {string} apn 
+     * @returns {string}
+     */
+    static getParcelPlatMapUrl(address, apn) {
+      const info = CountyDetector.detect(address);
+      const cleanApn = (apn || "").replace(/[^0-9]/g, "");
+
+      if (info.countyKey === "orange") {
+        return cleanApn 
+          ? `https://webapps.ocgis.com/oclandinsights/map-viewer?id=2&apn=${cleanApn}`
+          : `https://webapps.ocgis.com/oclandinsights/map-viewer?id=2`;
+      }
+      if (info.countyKey === "losAngeles") {
+        return cleanApn 
+          ? `https://portal.assessor.lacounty.gov/parceldetail/${cleanApn}`
+          : `https://portal.assessor.lacounty.gov/`;
+      }
+      if (info.countyKey === "riverside") {
+        return `https://ca-riverside-acr.civicplus.pro/`;
+      }
+      if (info.countyKey === "sanBernardino") {
+        return `https://www.arcgis.com/apps/webappviewer/index.html?id=e704eb0429f448c4a45a5d115e5102a2`;
+      }
+      return info.assessorUrl || "https://webapps.ocgis.com/oclandinsights/map-viewer?id=2";
+    }
   }
 
   if (typeof window !== "undefined") {

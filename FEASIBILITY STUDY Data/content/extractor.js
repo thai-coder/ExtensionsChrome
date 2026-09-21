@@ -437,6 +437,54 @@
     return { ready: false, count: realFieldCount, reason: "WAITING_TABLES_CONTENT" };
   }
 
+  /**
+   * Tự động tìm khung search #map-search trên PropZone, nhập địa chỉ và kích hoạt nút Search
+   */
+  function performPropZoneMapSearch(targetAddress) {
+    if (!targetAddress || !targetAddress.trim()) return false;
+    const cleanAddress = targetAddress.trim();
+
+    const searchInput = document.querySelector('#map-search input[name="search"]') || 
+                        document.querySelector('#map-search input') ||
+                        document.querySelector('.map-search input[name="search"]') ||
+                        document.querySelector('.search-box.map input') ||
+                        document.querySelector('input[placeholder="Place or Address"]');
+
+    if (!searchInput) return false;
+
+    try {
+      const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
+      if (nativeSetter) {
+        nativeSetter.call(searchInput, cleanAddress);
+      } else {
+        searchInput.value = cleanAddress;
+      }
+
+      searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+      searchInput.dispatchEvent(new Event('change', { bubbles: true }));
+
+      const submitBtn = document.querySelector('#map-search button.form-submit') || 
+                        document.querySelector('#map-search button[aria-label="Search"]') ||
+                        document.querySelector('.map-search button.form-submit') ||
+                        document.querySelector('button.form-submit.extra');
+
+      if (submitBtn) {
+        submitBtn.click();
+      } else {
+        const form = searchInput.closest('form');
+        if (form) {
+          form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+        } else {
+          searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13, bubbles: true }));
+        }
+      }
+      return true;
+    } catch (e) {
+      console.warn("[PropZone] Fallback map search failed:", e);
+      return false;
+    }
+  }
+
   // 4. QUY TRÌNH PIPELINE TRÊN PROPZONE (CHẾ ĐỘ EAGER EXTRACTION TỨC THÌ)
   async function startPropZonePipeline() {
     try {
@@ -451,11 +499,13 @@
           return; // Mở thủ công: tuyệt đối không can thiệp hay thay đổi bất cứ điều gì trên trang web
         }
 
+      const targetAddress = pzRoleRes.address || pzRoleRes.apn || "";
+      let hasAttemptedMapSearch = false;
       let isCompleted = false;
       let checkCount = 0;
       let lastFieldCount = 0;
       let stableConsecutiveCycles = 0;
-      const startTime = Date.now();
+      let startTime = Date.now();
 
       const tryExtract = () => {
         if (isCompleted) return;
@@ -494,8 +544,21 @@
             return;
           }
 
-          // Kiểm tra nếu trang thông báo không tìm thấy lô đất
-          if (elapsedSec >= 5 && checkPropZoneNotFound()) {
+          // NẾU KHÔNG TÌM THẤY LÔ ĐẤT HOẶC QUÁ 2.5S CHƯA TẢI ĐƯỢC .TABLES: TỰ ĐỘNG THỬ TÌM KIẾM TRỰC TIẾP TRÊN #MAP-SEARCH
+          const isNotFound = checkPropZoneNotFound();
+          const isDomMissing = elapsedSec >= 2.5 && !hasGridicsTablesDOM();
+
+          if ((isNotFound || isDomMissing) && !hasAttemptedMapSearch && targetAddress) {
+            hasAttemptedMapSearch = true;
+            const searchSuccess = performPropZoneMapSearch(targetAddress);
+            if (searchSuccess) {
+              startTime = Date.now(); // Reset lại timer để đợi kết quả từ ô search
+              return;
+            }
+          }
+
+          // Kiểm tra nếu trang thông báo không tìm thấy lô đất sau khi đã thử tìm kiếm
+          if (elapsedSec >= 5 && checkPropZoneNotFound() && hasAttemptedMapSearch) {
             isCompleted = true;
             cleanup();
             chrome.runtime.sendMessage({
@@ -566,6 +629,12 @@
           message: 'Error: ' + err.message
         });
       }
+      return true;
+    }
+
+    if (request.action === 'PERFORM_PROPZONE_MAP_SEARCH') {
+      const ok = performPropZoneMapSearch(request.address);
+      sendResponse({ success: ok });
       return true;
     }
   });

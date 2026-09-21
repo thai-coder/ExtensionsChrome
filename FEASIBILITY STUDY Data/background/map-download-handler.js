@@ -97,33 +97,9 @@ const MapDownloadHandler = {
   },
 
   /**
-   * Nhận link PDF, kích hoạt chrome.downloads và đóng tab tự động
+   * Mở xem bản đồ trực tiếp trên browser (không ép tải hay tự đóng tab)
    */
   async handlePdfFoundAndDownload(data, tabId) {
-    const { countyKey, countyName, apn, pdfUrl, isDirectLink } = data;
-    const cleanApn = (apn || "").replace(/[^0-9]/g, "") || "Unknown";
-    const safeCountyName = (countyName || countyKey || "County").replace(/\s+/g, "_");
-    const filename = `Parcel_Map_${safeCountyName}_${cleanApn}.pdf`;
-
-    if (pdfUrl && pdfUrl.startsWith("http")) {
-      try {
-        await chrome.downloads.download({
-          url: pdfUrl,
-          filename: filename,
-          conflictAction: "uniquify",
-          saveAs: false
-        });
-      } catch (err) {}
-    }
-
-    // Đóng tab tự động sau khi đã kích hoạt lệnh tải
-    const currentTabId = tabId || this.session.tabId;
-    if (currentTabId) {
-      setTimeout(() => {
-        chrome.tabs.remove(currentTabId).catch(() => {});
-      }, 1200);
-    }
-
     this.session = { tabId: null, countyKey: null, apn: null, address: null };
   }
 };

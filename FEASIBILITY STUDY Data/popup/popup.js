@@ -407,14 +407,7 @@ document.addEventListener("DOMContentLoaded", () => {
         break;
 
       case "assessor": {
-        const cleanApn = apn.replace(/[^0-9]/g, "");
-        if (county?.countyKey === "orange") {
-          targetUrl = county.getParcelMapUrl(cleanApn);
-        } else if (county?.countyKey === "losAngeles") {
-          targetUrl = cleanApn ? county.getParcelMapUrl(cleanApn) : county.assessorUrl;
-        } else {
-          targetUrl = county?.assessorUrl || "https://portal.assessor.lacounty.gov/";
-        }
+        targetUrl = window.CountyDetector?.getParcelPlatMapUrl(query, apn) || county?.assessorUrl || "https://webapps.ocgis.com/oclandinsights/map-viewer?id=2";
         break;
       }
 
@@ -442,14 +435,15 @@ document.addEventListener("DOMContentLoaded", () => {
     if (item.btn) item.btn.addEventListener("click", () => navigateToPortal(item.key));
   });
 
-  // 6. Download Parcel Map Action (Isolated Multi-County Engine)
+  // 6. Parcels / Plat Map Action (Isolated Multi-County & City Engine)
   btnDownloadMap.addEventListener("click", () => {
     const apn = storedApn || currentPayload?.lot?.parcelId || inputAddress.value.trim();
     const query = inputAddress.value.trim();
     const county = currentDetectedCounty || window.CountyDetector?.detect(query);
     const countyKey = county?.countyKey || "orange";
+    const cityLabel = county?.matchedCity ? `, ${county.matchedCity.toUpperCase()}` : "";
 
-    showToast(`Checking ${county?.name || "County"} Map Portal...`);
+    showToast(`Checking Parcels / Plat Map (${county?.name || "County"}${cityLabel})...`);
     
     chrome.runtime.sendMessage({
       action: "START_MAP_DOWNLOAD_PIPELINE",
@@ -467,7 +461,7 @@ document.addEventListener("DOMContentLoaded", () => {
         lastVpnFallbackUrl = response.fallbackUrl || response.portalUrl;
         if (vpnModal) vpnModal.classList.remove("hidden");
       } else if (response && response.success) {
-        showToast(`Connecting & Downloading Map PDF...`);
+        showToast(`Connecting Parcels / Plat Map Viewer...`);
       }
     });
   });

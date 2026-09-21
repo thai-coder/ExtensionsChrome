@@ -114,6 +114,14 @@
     static getAllSources() {
       return MAP_SOURCES;
     }
+
+    static getParcelPlatMapUrl(address, apn) {
+      if (typeof CountyDetector !== "undefined" && CountyDetector.getParcelPlatMapUrl) {
+        return CountyDetector.getParcelPlatMapUrl(address, apn);
+      }
+      const clean = (apn || "").replace(/[^0-9]/g, "");
+      return `https://webapps.ocgis.com/oclandinsights/map-viewer?id=2${clean ? `&apn=${clean}` : ""}`;
+    }
   }
 
   if (typeof window !== "undefined") {

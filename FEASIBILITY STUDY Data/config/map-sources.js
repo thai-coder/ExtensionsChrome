@@ -57,10 +57,15 @@
       countyKey: "losAngeles",
       countyName: "Los Angeles County (CA)",
       requiresVpn: false,
-      pingUrl: "https://portal.assessor.lacounty.gov/",
-      portalName: "LA County Assessor Portal",
+      pingUrl: "https://zimas.lacity.org/",
+      portalName: "ZIMAS / LA County Assessor Portal",
       formatApn: (raw) => (raw || "").replace(/[^0-9]/g, ""),
       getUrl: (apn) => {
+        // B1: Mặc định tra cứu ở ZIMAS
+        return `https://zimas.lacity.org/`;
+      },
+      getAssessorUrl: (apn) => {
+        // C1: Fallback nếu không có ở ZIMAS
         const clean = (apn || "").replace(/[^0-9]/g, "");
         return clean ? `https://portal.assessor.lacounty.gov/parceldetail/${clean}` : `https://portal.assessor.lacounty.gov/`;
       },

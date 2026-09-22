@@ -22,6 +22,7 @@
     "https://*.zillow.com/*",
     "https://portal.assessor.lacounty.gov/*",
     "https://maps.assessor.lacounty.gov/*",
+    "https://zimas.lacity.org/*",
     "https://webapps.ocgis.com/*",
     "https://tax.ocgov.com/*",
     "https://*.rivcoacr.org/*",
@@ -99,7 +100,20 @@
       "matches": [
         "https://portal.assessor.lacounty.gov/*"
       ],
-      "js": ["content/la-map-extractor.js"],
+      "js": [
+        "content/floating-ui.js",
+        "content/la-map-extractor.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://zimas.lacity.org/*"
+      ],
+      "js": [
+        "content/floating-ui.js",
+        "content/zimas-extractor.js"
+      ],
       "run_at": "document_idle"
     },
     {

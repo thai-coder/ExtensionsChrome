@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Quick Portal Launcher Badges
   const btnNavGoogle = document.getElementById("btn-nav-google");
   const btnNavPropZone = document.getElementById("btn-nav-propzone");
-  const btnNavAssessor = document.getElementById("btn-nav-assessor");
+
   const btnNavFema = document.getElementById("btn-nav-fema");
 
   // Tabs
@@ -342,21 +342,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updateMapLinksUI(linksData) {
     if (!linksData) return;
+
+    const isDirect = linksData.source === "zimas" || linksData.source === "la-assessor";
+    const parcelUrl = isDirect ? linksData.parcels : (linksData.tractMap || linksData.parcels);
+    const tractUrl = isDirect ? linksData.tractMap : (linksData.parcels || linksData.tractMap);
     
     if (linksData.parcels && btnLinkParcels) {
       btnLinkParcels.classList.remove("disabled");
       btnLinkParcels.classList.add("active");
       btnLinkParcels.disabled = false;
-      // SWAPPED: Gán Tract Map link cho nút Parcels để sửa lỗi ngược link
-      btnLinkParcels.onclick = () => chrome.tabs.create({ url: linksData.tractMap || linksData.parcels });
+      btnLinkParcels.onclick = () => chrome.tabs.create({ url: parcelUrl });
     }
     
     if (linksData.tractMap && btnLinkTract) {
       btnLinkTract.classList.remove("disabled");
       btnLinkTract.classList.add("active");
       btnLinkTract.disabled = false;
-      // SWAPPED: Gán Parcels link cho nút Tract Map để sửa lỗi ngược link
-      btnLinkTract.onclick = () => chrome.tabs.create({ url: linksData.parcels || linksData.tractMap });
+      btnLinkTract.onclick = () => chrome.tabs.create({ url: tractUrl });
     }
   }
 
@@ -449,10 +451,7 @@ document.addEventListener("DOMContentLoaded", () => {
         targetUrl = window.CountyDetector?.getPropZoneUrl(query, apn) || "https://propzone.gridics.com/";
         break;
 
-      case "assessor": {
-        targetUrl = window.CountyDetector?.getParcelPlatMapUrl(query, apn) || county?.assessorUrl || "https://webapps.ocgis.com/oclandinsights/map-viewer?id=2";
-        break;
-      }
+
 
       case "fema":
         targetUrl = "https://experience.arcgis.com/experience/9d22cdae8b7542b88e0d555a3eb92949/page/Main?org=hazards-FEMA";
@@ -472,7 +471,6 @@ document.addEventListener("DOMContentLoaded", () => {
   [
     { btn: btnNavGoogle, key: "google" },
     { btn: btnNavPropZone, key: "propzone" },
-    { btn: btnNavAssessor, key: "assessor" },
     { btn: btnNavFema, key: "fema" }
   ].forEach(item => {
     if (item.btn) item.btn.addEventListener("click", () => navigateToPortal(item.key));

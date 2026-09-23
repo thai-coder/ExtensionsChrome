@@ -395,6 +395,19 @@
       });
       console.log("[OCGIS Extractor] Đã lưu link vào storage cho Popup.");
     }
+
+    // Hiển thị thông báo Floating UI kèm 2 nút link Parcels & Tract Map
+    if (typeof FloatingUI !== 'undefined') {
+      FloatingUI.showSuccess(
+        "Trích xuất OCGIS Map thành công!",
+        `Parcels: ${linkParcels ? "Đã sẵn sàng" : "N/A"}\nTract Map: ${linkTractMap ? "Đã sẵn sàng" : "N/A"}`,
+        8000,
+        {
+          parcels: linkParcels,
+          tractMap: linkTractMap
+        }
+      );
+    }
   }
 
 

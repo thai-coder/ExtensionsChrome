@@ -1,0 +1,4349 @@
+[
+  {
+    "city": "Adelanto",
+    "citySlug": "adelanto",
+    "county": "San Bernardino",
+    "countySlug": "san-bernardino",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Adelanto"
+  },
+  {
+    "city": "Agoura Hills",
+    "citySlug": "agoura-hills",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Agoura Hills"
+  },
+  {
+    "city": "Alameda",
+    "citySlug": "alameda",
+    "county": "Alameda",
+    "countySlug": "alameda",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Alameda"
+  },
+  {
+    "city": "Albany",
+    "citySlug": "albany",
+    "county": "Alameda",
+    "countySlug": "alameda",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Albany"
+  },
+  {
+    "city": "Alhambra",
+    "citySlug": "alhambra",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Alhambra"
+  },
+  {
+    "city": "Aliso Viejo",
+    "citySlug": "aliso-viejo",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Aliso Viejo"
+  },
+  {
+    "city": "Alturas",
+    "citySlug": "alturas",
+    "county": "Modoc",
+    "countySlug": "modoc",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Alturas"
+  },
+  {
+    "city": "Amador",
+    "citySlug": "amador",
+    "county": "Amador",
+    "countySlug": "amador",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Amador"
+  },
+  {
+    "city": "American Canyon",
+    "citySlug": "american-canyon",
+    "county": "Napa",
+    "countySlug": "napa",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "American Canyon"
+  },
+  {
+    "city": "Anaheim",
+    "citySlug": "anaheim",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Anaheim"
+  },
+  {
+    "city": "Anderson",
+    "citySlug": "anderson",
+    "county": "Shasta",
+    "countySlug": "shasta",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Anderson"
+  },
+  {
+    "city": "Angels Camp",
+    "citySlug": "angels-camp",
+    "county": "Calaveras",
+    "countySlug": "calaveras",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Angels Camp"
+  },
+  {
+    "city": "Antioch",
+    "citySlug": "antioch",
+    "county": "Contra Costa",
+    "countySlug": "contra-costa",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Antioch"
+  },
+  {
+    "city": "Apple Valley",
+    "citySlug": "apple-valley",
+    "county": "San Bernardino",
+    "countySlug": "san-bernardino",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Apple Valley"
+  },
+  {
+    "city": "Arcadia",
+    "citySlug": "arcadia",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Arcadia"
+  },
+  {
+    "city": "Arcata",
+    "citySlug": "arcata",
+    "county": "Humboldt",
+    "countySlug": "humboldt",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Arcata"
+  },
+  {
+    "city": "Arroyo Grande",
+    "citySlug": "arroyo-grande",
+    "county": "San Luis Obispo",
+    "countySlug": "san-luis-obispo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Arroyo Grande"
+  },
+  {
+    "city": "Artesia",
+    "citySlug": "artesia",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Artesia"
+  },
+  {
+    "city": "Arvin",
+    "citySlug": "arvin",
+    "county": "Kern",
+    "countySlug": "kern",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Arvin"
+  },
+  {
+    "city": "Atascadero",
+    "citySlug": "atascadero",
+    "county": "San Luis Obispo",
+    "countySlug": "san-luis-obispo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Atascadero"
+  },
+  {
+    "city": "Atherton",
+    "citySlug": "atherton",
+    "county": "San Mateo",
+    "countySlug": "san-mateo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Atherton"
+  },
+  {
+    "city": "Atwater",
+    "citySlug": "atwater",
+    "county": "Merced",
+    "countySlug": "merced",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Atwater"
+  },
+  {
+    "city": "Auburn",
+    "citySlug": "auburn",
+    "county": "Placer",
+    "countySlug": "placer",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Auburn"
+  },
+  {
+    "city": "Avalon",
+    "citySlug": "avalon",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Avalon"
+  },
+  {
+    "city": "Avenal",
+    "citySlug": "avenal",
+    "county": "Kings",
+    "countySlug": "kings",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Avenal"
+  },
+  {
+    "city": "Azusa",
+    "citySlug": "azusa",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Azusa"
+  },
+  {
+    "city": "Bakersfield",
+    "citySlug": "bakersfield",
+    "county": "Kern",
+    "countySlug": "kern",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Bakersfield"
+  },
+  {
+    "city": "Baldwin Park",
+    "citySlug": "baldwin-park",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Baldwin Park"
+  },
+  {
+    "city": "Banning",
+    "citySlug": "banning",
+    "county": "Riverside",
+    "countySlug": "riverside",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Banning"
+  },
+  {
+    "city": "Barstow",
+    "citySlug": "barstow",
+    "county": "San Bernardino",
+    "countySlug": "san-bernardino",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Barstow"
+  },
+  {
+    "city": "Beaumont",
+    "citySlug": "beaumont",
+    "county": "Riverside",
+    "countySlug": "riverside",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Beaumont"
+  },
+  {
+    "city": "Bell",
+    "citySlug": "bell",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Bell"
+  },
+  {
+    "city": "Bell Gardens",
+    "citySlug": "bell-gardens",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Bell Gardens"
+  },
+  {
+    "city": "Bellflower",
+    "citySlug": "bellflower",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Bellflower"
+  },
+  {
+    "city": "Belmont",
+    "citySlug": "belmont",
+    "county": "San Mateo",
+    "countySlug": "san-mateo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Belmont"
+  },
+  {
+    "city": "Belvedere",
+    "citySlug": "belvedere",
+    "county": "Marin",
+    "countySlug": "marin",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Belvedere"
+  },
+  {
+    "city": "Benicia",
+    "citySlug": "benicia",
+    "county": "Solano",
+    "countySlug": "solano",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Benicia"
+  },
+  {
+    "city": "Berkeley",
+    "citySlug": "berkeley",
+    "county": "Alameda",
+    "countySlug": "alameda",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Berkeley"
+  },
+  {
+    "city": "Beverly Hills",
+    "citySlug": "beverly-hills",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Beverly Hills"
+  },
+  {
+    "city": "Big Bear Lake",
+    "citySlug": "big-bear-lake",
+    "county": "San Bernardino",
+    "countySlug": "san-bernardino",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Big Bear Lake"
+  },
+  {
+    "city": "Biggs",
+    "citySlug": "biggs",
+    "county": "Butte",
+    "countySlug": "butte",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Biggs"
+  },
+  {
+    "city": "Bishop",
+    "citySlug": "bishop",
+    "county": "Inyo",
+    "countySlug": "inyo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Bishop"
+  },
+  {
+    "city": "Blue Lake",
+    "citySlug": "blue-lake",
+    "county": "Humboldt",
+    "countySlug": "humboldt",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Blue Lake"
+  },
+  {
+    "city": "Blythe",
+    "citySlug": "blythe",
+    "county": "Riverside",
+    "countySlug": "riverside",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Blythe"
+  },
+  {
+    "city": "Bradbury",
+    "citySlug": "bradbury",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Bradbury"
+  },
+  {
+    "city": "Brawley",
+    "citySlug": "brawley",
+    "county": "Imperial",
+    "countySlug": "imperial",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Brawley"
+  },
+  {
+    "city": "Brea",
+    "citySlug": "brea",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Brea"
+  },
+  {
+    "city": "Brentwood",
+    "citySlug": "brentwood",
+    "county": "Contra Costa",
+    "countySlug": "contra-costa",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Brentwood"
+  },
+  {
+    "city": "Brisbane",
+    "citySlug": "brisbane",
+    "county": "San Mateo",
+    "countySlug": "san-mateo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Brisbane"
+  },
+  {
+    "city": "Buellton",
+    "citySlug": "buellton",
+    "county": "Santa Barbara",
+    "countySlug": "santa-barbara",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Buellton"
+  },
+  {
+    "city": "Buena Park",
+    "citySlug": "buena-park",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Buena Park"
+  },
+  {
+    "city": "Burbank",
+    "citySlug": "burbank",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Burbank"
+  },
+  {
+    "city": "Burlingame",
+    "citySlug": "burlingame",
+    "county": "San Mateo",
+    "countySlug": "san-mateo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Burlingame"
+  },
+  {
+    "city": "Calabasas",
+    "citySlug": "calabasas",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Calabasas"
+  },
+  {
+    "city": "Calexico",
+    "citySlug": "calexico",
+    "county": "Imperial",
+    "countySlug": "imperial",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Calexico"
+  },
+  {
+    "city": "California City",
+    "citySlug": "california-city",
+    "county": "Kern",
+    "countySlug": "kern",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "California City"
+  },
+  {
+    "city": "Calimesa",
+    "citySlug": "calimesa",
+    "county": "Riverside",
+    "countySlug": "riverside",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Calimesa"
+  },
+  {
+    "city": "Calipatria",
+    "citySlug": "calipatria",
+    "county": "Imperial",
+    "countySlug": "imperial",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Calipatria"
+  },
+  {
+    "city": "Calistoga",
+    "citySlug": "calistoga",
+    "county": "Napa",
+    "countySlug": "napa",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Calistoga"
+  },
+  {
+    "city": "Camarillo",
+    "citySlug": "camarillo",
+    "county": "Ventura",
+    "countySlug": "ventura",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Camarillo"
+  },
+  {
+    "city": "Campbell",
+    "citySlug": "campbell",
+    "county": "Santa Clara",
+    "countySlug": "santa-clara",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Campbell"
+  },
+  {
+    "city": "Canyon Lake",
+    "citySlug": "canyon-lake",
+    "county": "Riverside",
+    "countySlug": "riverside",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Canyon Lake"
+  },
+  {
+    "city": "Capitola",
+    "citySlug": "capitola",
+    "county": "Santa Cruz",
+    "countySlug": "santa-cruz",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Capitola"
+  },
+  {
+    "city": "Carlsbad",
+    "citySlug": "carlsbad",
+    "county": "San Diego",
+    "countySlug": "san-diego",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Carlsbad"
+  },
+  {
+    "city": "Carmel-by-the-Sea",
+    "citySlug": "carmel-by-the-sea",
+    "county": "Monterey",
+    "countySlug": "monterey",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Carmel-by-the-Sea"
+  },
+  {
+    "city": "Carpinteria",
+    "citySlug": "carpinteria",
+    "county": "Santa Barbara",
+    "countySlug": "santa-barbara",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Carpinteria"
+  },
+  {
+    "city": "Carson",
+    "citySlug": "carson",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Carson"
+  },
+  {
+    "city": "Cathedral City",
+    "citySlug": "cathedral-city",
+    "county": "Riverside",
+    "countySlug": "riverside",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Cathedral City"
+  },
+  {
+    "city": "Ceres",
+    "citySlug": "ceres",
+    "county": "Stanislaus",
+    "countySlug": "stanislaus",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Ceres"
+  },
+  {
+    "city": "Cerritos",
+    "citySlug": "cerritos",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Cerritos"
+  },
+  {
+    "city": "Chico",
+    "citySlug": "chico",
+    "county": "Butte",
+    "countySlug": "butte",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Chico"
+  },
+  {
+    "city": "Chino",
+    "citySlug": "chino",
+    "county": "San Bernardino",
+    "countySlug": "san-bernardino",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Chino"
+  },
+  {
+    "city": "Chino Hills",
+    "citySlug": "chino-hills",
+    "county": "San Bernardino",
+    "countySlug": "san-bernardino",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Chino Hills"
+  },
+  {
+    "city": "Chowchilla",
+    "citySlug": "chowchilla",
+    "county": "Madera",
+    "countySlug": "madera",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Chowchilla"
+  },
+  {
+    "city": "Chula Vista",
+    "citySlug": "chula-vista",
+    "county": "San Diego",
+    "countySlug": "san-diego",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Chula Vista"
+  },
+  {
+    "city": "Citrus Heights",
+    "citySlug": "citrus-heights",
+    "county": "Sacramento",
+    "countySlug": "sacramento",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Citrus Heights"
+  },
+  {
+    "city": "Claremont",
+    "citySlug": "claremont",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Claremont"
+  },
+  {
+    "city": "Clayton",
+    "citySlug": "clayton",
+    "county": "Contra Costa",
+    "countySlug": "contra-costa",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Clayton"
+  },
+  {
+    "city": "Clearlake",
+    "citySlug": "clearlake",
+    "county": "Lake",
+    "countySlug": "lake",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Clearlake"
+  },
+  {
+    "city": "Cloverdale",
+    "citySlug": "cloverdale",
+    "county": "Sonoma",
+    "countySlug": "sonoma",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Cloverdale"
+  },
+  {
+    "city": "Clovis",
+    "citySlug": "clovis",
+    "county": "Fresno",
+    "countySlug": "fresno",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Clovis"
+  },
+  {
+    "city": "Coachella",
+    "citySlug": "coachella",
+    "county": "Riverside",
+    "countySlug": "riverside",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Coachella"
+  },
+  {
+    "city": "Coalinga",
+    "citySlug": "coalinga",
+    "county": "Fresno",
+    "countySlug": "fresno",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Coalinga"
+  },
+  {
+    "city": "Colfax",
+    "citySlug": "colfax",
+    "county": "Placer",
+    "countySlug": "placer",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Colfax"
+  },
+  {
+    "city": "Colma",
+    "citySlug": "colma",
+    "county": "San Mateo",
+    "countySlug": "san-mateo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Colma"
+  },
+  {
+    "city": "Colton",
+    "citySlug": "colton",
+    "county": "San Bernardino",
+    "countySlug": "san-bernardino",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Colton"
+  },
+  {
+    "city": "Colusa",
+    "citySlug": "colusa",
+    "county": "Colusa",
+    "countySlug": "colusa",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Colusa"
+  },
+  {
+    "city": "Commerce",
+    "citySlug": "commerce",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Commerce"
+  },
+  {
+    "city": "Compton",
+    "citySlug": "compton",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Compton"
+  },
+  {
+    "city": "Concord",
+    "citySlug": "concord",
+    "county": "Contra Costa",
+    "countySlug": "contra-costa",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Concord"
+  },
+  {
+    "city": "Corcoran",
+    "citySlug": "corcoran",
+    "county": "Kings",
+    "countySlug": "kings",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Corcoran"
+  },
+  {
+    "city": "Corning",
+    "citySlug": "corning",
+    "county": "Tehama",
+    "countySlug": "tehama",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Corning"
+  },
+  {
+    "city": "Corona",
+    "citySlug": "corona",
+    "county": "Riverside",
+    "countySlug": "riverside",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Corona"
+  },
+  {
+    "city": "Coronado",
+    "citySlug": "coronado",
+    "county": "San Diego",
+    "countySlug": "san-diego",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Coronado"
+  },
+  {
+    "city": "Corte Madera",
+    "citySlug": "corte-madera",
+    "county": "Marin",
+    "countySlug": "marin",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Corte Madera"
+  },
+  {
+    "city": "Costa Mesa",
+    "citySlug": "costa-mesa",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Costa Mesa"
+  },
+  {
+    "city": "Cotati",
+    "citySlug": "cotati",
+    "county": "Sonoma",
+    "countySlug": "sonoma",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Cotati"
+  },
+  {
+    "city": "Covina",
+    "citySlug": "covina",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Covina"
+  },
+  {
+    "city": "Crescent City",
+    "citySlug": "crescent-city",
+    "county": "Del Norte",
+    "countySlug": "del-norte",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Crescent City"
+  },
+  {
+    "city": "Cudahy",
+    "citySlug": "cudahy",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Cudahy"
+  },
+  {
+    "city": "Culver City",
+    "citySlug": "culver-city",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Culver City"
+  },
+  {
+    "city": "Cupertino",
+    "citySlug": "cupertino",
+    "county": "Santa Clara",
+    "countySlug": "santa-clara",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Cupertino"
+  },
+  {
+    "city": "Cypress",
+    "citySlug": "cypress",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Cypress"
+  },
+  {
+    "city": "Daly City",
+    "citySlug": "daly-city",
+    "county": "San Mateo",
+    "countySlug": "san-mateo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Daly City"
+  },
+  {
+    "city": "Dana Point",
+    "citySlug": "dana-point",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Dana Point"
+  },
+  {
+    "city": "Danville",
+    "citySlug": "danville",
+    "county": "Contra Costa",
+    "countySlug": "contra-costa",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Danville"
+  },
+  {
+    "city": "Davis",
+    "citySlug": "davis",
+    "county": "Yolo",
+    "countySlug": "yolo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Davis"
+  },
+  {
+    "city": "Del Mar",
+    "citySlug": "del-mar",
+    "county": "San Diego",
+    "countySlug": "san-diego",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Del Mar"
+  },
+  {
+    "city": "Del Rey Oaks",
+    "citySlug": "del-rey-oaks",
+    "county": "Monterey",
+    "countySlug": "monterey",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Del Rey Oaks"
+  },
+  {
+    "city": "Delano",
+    "citySlug": "delano",
+    "county": "Kern",
+    "countySlug": "kern",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Delano"
+  },
+  {
+    "city": "Desert Hot Springs",
+    "citySlug": "desert-hot-springs",
+    "county": "Riverside",
+    "countySlug": "riverside",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Desert Hot Springs"
+  },
+  {
+    "city": "Diamond Bar",
+    "citySlug": "diamond-bar",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Diamond Bar"
+  },
+  {
+    "city": "Dinuba",
+    "citySlug": "dinuba",
+    "county": "Tulare",
+    "countySlug": "tulare",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Dinuba"
+  },
+  {
+    "city": "Dixon",
+    "citySlug": "dixon",
+    "county": "Solano",
+    "countySlug": "solano",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Dixon"
+  },
+  {
+    "city": "Dorris",
+    "citySlug": "dorris",
+    "county": "Siskiyou",
+    "countySlug": "siskiyou",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Dorris"
+  },
+  {
+    "city": "Dos Palos",
+    "citySlug": "dos-palos",
+    "county": "Merced",
+    "countySlug": "merced",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Dos Palos"
+  },
+  {
+    "city": "Downey",
+    "citySlug": "downey",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Downey"
+  },
+  {
+    "city": "Duarte",
+    "citySlug": "duarte",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Duarte"
+  },
+  {
+    "city": "Dublin",
+    "citySlug": "dublin",
+    "county": "Alameda",
+    "countySlug": "alameda",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Dublin"
+  },
+  {
+    "city": "Dunsmuir",
+    "citySlug": "dunsmuir",
+    "county": "Siskiyou",
+    "countySlug": "siskiyou",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Dunsmuir"
+  },
+  {
+    "city": "East Palo Alto",
+    "citySlug": "east-palo-alto",
+    "county": "San Mateo",
+    "countySlug": "san-mateo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "East Palo Alto"
+  },
+  {
+    "city": "Eastvale",
+    "citySlug": "eastvale",
+    "county": "Riverside",
+    "countySlug": "riverside",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Eastvale"
+  },
+  {
+    "city": "El Cajon",
+    "citySlug": "el-cajon",
+    "county": "San Diego",
+    "countySlug": "san-diego",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "El Cajon"
+  },
+  {
+    "city": "El Centro",
+    "citySlug": "el-centro",
+    "county": "Imperial",
+    "countySlug": "imperial",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "El Centro"
+  },
+  {
+    "city": "El Cerrito",
+    "citySlug": "el-cerrito",
+    "county": "Contra Costa",
+    "countySlug": "contra-costa",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "El Cerrito"
+  },
+  {
+    "city": "El Monte",
+    "citySlug": "el-monte",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "El Monte"
+  },
+  {
+    "city": "El Segundo",
+    "citySlug": "el-segundo",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "El Segundo"
+  },
+  {
+    "city": "Elk Grove",
+    "citySlug": "elk-grove",
+    "county": "Sacramento",
+    "countySlug": "sacramento",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Elk Grove"
+  },
+  {
+    "city": "Emeryville",
+    "citySlug": "emeryville",
+    "county": "Alameda",
+    "countySlug": "alameda",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Emeryville"
+  },
+  {
+    "city": "Encinitas",
+    "citySlug": "encinitas",
+    "county": "San Diego",
+    "countySlug": "san-diego",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Encinitas"
+  },
+  {
+    "city": "Escalon",
+    "citySlug": "escalon",
+    "county": "San Joaquin",
+    "countySlug": "san-joaquin",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Escalon"
+  },
+  {
+    "city": "Escondido",
+    "citySlug": "escondido",
+    "county": "San Diego",
+    "countySlug": "san-diego",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Escondido"
+  },
+  {
+    "city": "Etna",
+    "citySlug": "etna",
+    "county": "Siskiyou",
+    "countySlug": "siskiyou",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Etna"
+  },
+  {
+    "city": "Eureka",
+    "citySlug": "eureka",
+    "county": "Humboldt",
+    "countySlug": "humboldt",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Eureka"
+  },
+  {
+    "city": "Exeter",
+    "citySlug": "exeter",
+    "county": "Tulare",
+    "countySlug": "tulare",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Exeter"
+  },
+  {
+    "city": "Fairfax",
+    "citySlug": "fairfax",
+    "county": "Marin",
+    "countySlug": "marin",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Fairfax"
+  },
+  {
+    "city": "Fairfield",
+    "citySlug": "fairfield",
+    "county": "Solano",
+    "countySlug": "solano",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Fairfield"
+  },
+  {
+    "city": "Farmersville",
+    "citySlug": "farmersville",
+    "county": "Tulare",
+    "countySlug": "tulare",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Farmersville"
+  },
+  {
+    "city": "Ferndale",
+    "citySlug": "ferndale",
+    "county": "Humboldt",
+    "countySlug": "humboldt",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Ferndale"
+  },
+  {
+    "city": "Fillmore",
+    "citySlug": "fillmore",
+    "county": "Ventura",
+    "countySlug": "ventura",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Fillmore"
+  },
+  {
+    "city": "Firebaugh",
+    "citySlug": "firebaugh",
+    "county": "Fresno",
+    "countySlug": "fresno",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Firebaugh"
+  },
+  {
+    "city": "Folsom",
+    "citySlug": "folsom",
+    "county": "Sacramento",
+    "countySlug": "sacramento",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Folsom"
+  },
+  {
+    "city": "Fontana",
+    "citySlug": "fontana",
+    "county": "San Bernardino",
+    "countySlug": "san-bernardino",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Fontana"
+  },
+  {
+    "city": "Fort Bragg",
+    "citySlug": "fort-bragg",
+    "county": "Mendocino",
+    "countySlug": "mendocino",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Fort Bragg"
+  },
+  {
+    "city": "Fort Jones",
+    "citySlug": "fort-jones",
+    "county": "Siskiyou",
+    "countySlug": "siskiyou",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Fort Jones"
+  },
+  {
+    "city": "Fortuna",
+    "citySlug": "fortuna",
+    "county": "Humboldt",
+    "countySlug": "humboldt",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Fortuna"
+  },
+  {
+    "city": "Foster City",
+    "citySlug": "foster-city",
+    "county": "San Mateo",
+    "countySlug": "san-mateo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Foster City"
+  },
+  {
+    "city": "Fountain Valley",
+    "citySlug": "fountain-valley",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Fountain Valley"
+  },
+  {
+    "city": "Fowler",
+    "citySlug": "fowler",
+    "county": "Fresno",
+    "countySlug": "fresno",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Fowler"
+  },
+  {
+    "city": "Fremont",
+    "citySlug": "fremont",
+    "county": "Alameda",
+    "countySlug": "alameda",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Fremont"
+  },
+  {
+    "city": "Fresno",
+    "citySlug": "fresno",
+    "county": "Fresno",
+    "countySlug": "fresno",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Fresno"
+  },
+  {
+    "city": "Fullerton",
+    "citySlug": "fullerton",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Fullerton"
+  },
+  {
+    "city": "Galt",
+    "citySlug": "galt",
+    "county": "Sacramento",
+    "countySlug": "sacramento",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Galt"
+  },
+  {
+    "city": "Garden Grove",
+    "citySlug": "garden-grove",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Garden Grove"
+  },
+  {
+    "city": "Gardena",
+    "citySlug": "gardena",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Gardena"
+  },
+  {
+    "city": "Gilroy",
+    "citySlug": "gilroy",
+    "county": "Santa Clara",
+    "countySlug": "santa-clara",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Gilroy"
+  },
+  {
+    "city": "Glendale",
+    "citySlug": "glendale",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Glendale"
+  },
+  {
+    "city": "Glendora",
+    "citySlug": "glendora",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Glendora"
+  },
+  {
+    "city": "Goleta",
+    "citySlug": "goleta",
+    "county": "Santa Barbara",
+    "countySlug": "santa-barbara",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Goleta"
+  },
+  {
+    "city": "Gonzales",
+    "citySlug": "gonzales",
+    "county": "Monterey",
+    "countySlug": "monterey",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Gonzales"
+  },
+  {
+    "city": "Grand Terrace",
+    "citySlug": "grand-terrace",
+    "county": "San Bernardino",
+    "countySlug": "san-bernardino",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Grand Terrace"
+  },
+  {
+    "city": "Grass Valley",
+    "citySlug": "grass-valley",
+    "county": "Nevada",
+    "countySlug": "nevada",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Grass Valley"
+  },
+  {
+    "city": "Greenfield",
+    "citySlug": "greenfield",
+    "county": "Monterey",
+    "countySlug": "monterey",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Greenfield"
+  },
+  {
+    "city": "Gridley",
+    "citySlug": "gridley",
+    "county": "Butte",
+    "countySlug": "butte",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Gridley"
+  },
+  {
+    "city": "Grover Beach",
+    "citySlug": "grover-beach",
+    "county": "San Luis Obispo",
+    "countySlug": "san-luis-obispo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Grover Beach"
+  },
+  {
+    "city": "Guadalupe",
+    "citySlug": "guadalupe",
+    "county": "Santa Barbara",
+    "countySlug": "santa-barbara",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Guadalupe"
+  },
+  {
+    "city": "Gustine",
+    "citySlug": "gustine",
+    "county": "Merced",
+    "countySlug": "merced",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Gustine"
+  },
+  {
+    "city": "Half Moon Bay",
+    "citySlug": "half-moon-bay",
+    "county": "San Mateo",
+    "countySlug": "san-mateo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Half Moon Bay"
+  },
+  {
+    "city": "Hanford",
+    "citySlug": "hanford",
+    "county": "Kings",
+    "countySlug": "kings",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Hanford"
+  },
+  {
+    "city": "Hawaiian Gardens",
+    "citySlug": "hawaiian-gardens",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Hawaiian Gardens"
+  },
+  {
+    "city": "Hawthorne",
+    "citySlug": "hawthorne",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Hawthorne"
+  },
+  {
+    "city": "Hayward",
+    "citySlug": "hayward",
+    "county": "Alameda",
+    "countySlug": "alameda",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Hayward"
+  },
+  {
+    "city": "Healdsburg",
+    "citySlug": "healdsburg",
+    "county": "Sonoma",
+    "countySlug": "sonoma",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Healdsburg"
+  },
+  {
+    "city": "Hemet",
+    "citySlug": "hemet",
+    "county": "Riverside",
+    "countySlug": "riverside",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Hemet"
+  },
+  {
+    "city": "Hercules",
+    "citySlug": "hercules",
+    "county": "Contra Costa",
+    "countySlug": "contra-costa",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Hercules"
+  },
+  {
+    "city": "Hermosa Beach",
+    "citySlug": "hermosa-beach",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Hermosa Beach"
+  },
+  {
+    "city": "Hesperia",
+    "citySlug": "hesperia",
+    "county": "San Bernardino",
+    "countySlug": "san-bernardino",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Hesperia"
+  },
+  {
+    "city": "Hidden Hills",
+    "citySlug": "hidden-hills",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Hidden Hills"
+  },
+  {
+    "city": "Highland",
+    "citySlug": "highland",
+    "county": "San Bernardino",
+    "countySlug": "san-bernardino",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Highland"
+  },
+  {
+    "city": "Hillsborough",
+    "citySlug": "hillsborough",
+    "county": "San Mateo",
+    "countySlug": "san-mateo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Hillsborough"
+  },
+  {
+    "city": "Hollister",
+    "citySlug": "hollister",
+    "county": "San Benito",
+    "countySlug": "san-benito",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Hollister"
+  },
+  {
+    "city": "Holtville",
+    "citySlug": "holtville",
+    "county": "Imperial",
+    "countySlug": "imperial",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Holtville"
+  },
+  {
+    "city": "Hughson",
+    "citySlug": "hughson",
+    "county": "Stanislaus",
+    "countySlug": "stanislaus",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Hughson"
+  },
+  {
+    "city": "Huntington Beach",
+    "citySlug": "huntington-beach",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Huntington Beach"
+  },
+  {
+    "city": "Huntington Park",
+    "citySlug": "huntington-park",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Huntington Park"
+  },
+  {
+    "city": "Huron",
+    "citySlug": "huron",
+    "county": "Fresno",
+    "countySlug": "fresno",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Huron"
+  },
+  {
+    "city": "Imperial",
+    "citySlug": "imperial",
+    "county": "Imperial",
+    "countySlug": "imperial",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Imperial"
+  },
+  {
+    "city": "Imperial Beach",
+    "citySlug": "imperial-beach",
+    "county": "San Diego",
+    "countySlug": "san-diego",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Imperial Beach"
+  },
+  {
+    "city": "Indian Wells",
+    "citySlug": "indian-wells",
+    "county": "Riverside",
+    "countySlug": "riverside",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Indian Wells"
+  },
+  {
+    "city": "Indio",
+    "citySlug": "indio",
+    "county": "Riverside",
+    "countySlug": "riverside",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Indio"
+  },
+  {
+    "city": "Industry",
+    "citySlug": "industry",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Industry"
+  },
+  {
+    "city": "Inglewood",
+    "citySlug": "inglewood",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Inglewood"
+  },
+  {
+    "city": "Ione",
+    "citySlug": "ione",
+    "county": "Amador",
+    "countySlug": "amador",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Ione"
+  },
+  {
+    "city": "Irvine",
+    "citySlug": "irvine",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Irvine"
+  },
+  {
+    "city": "Irwindale",
+    "citySlug": "irwindale",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Irwindale"
+  },
+  {
+    "city": "Isleton",
+    "citySlug": "isleton",
+    "county": "Sacramento",
+    "countySlug": "sacramento",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Isleton"
+  },
+  {
+    "city": "Jackson",
+    "citySlug": "jackson",
+    "county": "Amador",
+    "countySlug": "amador",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Jackson"
+  },
+  {
+    "city": "Jurupa Valley",
+    "citySlug": "jurupa-valley",
+    "county": "Riverside",
+    "countySlug": "riverside",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Jurupa Valley"
+  },
+  {
+    "city": "Kerman",
+    "citySlug": "kerman",
+    "county": "Fresno",
+    "countySlug": "fresno",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Kerman"
+  },
+  {
+    "city": "King City",
+    "citySlug": "king-city",
+    "county": "Monterey",
+    "countySlug": "monterey",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "King City"
+  },
+  {
+    "city": "Kingsburg",
+    "citySlug": "kingsburg",
+    "county": "Fresno",
+    "countySlug": "fresno",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Kingsburg"
+  },
+  {
+    "city": "La Cañada Flintridge",
+    "citySlug": "la-canada-flintridge",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "La Cañada Flintridge"
+  },
+  {
+    "city": "La Habra",
+    "citySlug": "la-habra",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "La Habra"
+  },
+  {
+    "city": "La Habra Heights",
+    "citySlug": "la-habra-heights",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "La Habra Heights"
+  },
+  {
+    "city": "La Mesa",
+    "citySlug": "la-mesa",
+    "county": "San Diego",
+    "countySlug": "san-diego",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "La Mesa"
+  },
+  {
+    "city": "La Mirada",
+    "citySlug": "la-mirada",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "La Mirada"
+  },
+  {
+    "city": "La Palma",
+    "citySlug": "la-palma",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "La Palma"
+  },
+  {
+    "city": "La Puente",
+    "citySlug": "la-puente",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "La Puente"
+  },
+  {
+    "city": "La Quinta",
+    "citySlug": "la-quinta",
+    "county": "Riverside",
+    "countySlug": "riverside",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "La Quinta"
+  },
+  {
+    "city": "La Verne",
+    "citySlug": "la-verne",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "La Verne"
+  },
+  {
+    "city": "Lafayette",
+    "citySlug": "lafayette",
+    "county": "Contra Costa",
+    "countySlug": "contra-costa",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Lafayette"
+  },
+  {
+    "city": "Laguna Beach",
+    "citySlug": "laguna-beach",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Laguna Beach"
+  },
+  {
+    "city": "Laguna Hills",
+    "citySlug": "laguna-hills",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Laguna Hills"
+  },
+  {
+    "city": "Laguna Niguel",
+    "citySlug": "laguna-niguel",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Laguna Niguel"
+  },
+  {
+    "city": "Laguna Woods",
+    "citySlug": "laguna-woods",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Laguna Woods"
+  },
+  {
+    "city": "Lake Elsinore",
+    "citySlug": "lake-elsinore",
+    "county": "Riverside",
+    "countySlug": "riverside",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Lake Elsinore"
+  },
+  {
+    "city": "Lake Forest",
+    "citySlug": "lake-forest",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Lake Forest"
+  },
+  {
+    "city": "Lakeport",
+    "citySlug": "lakeport",
+    "county": "Lake",
+    "countySlug": "lake",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Lakeport"
+  },
+  {
+    "city": "Lakewood",
+    "citySlug": "lakewood",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Lakewood"
+  },
+  {
+    "city": "Lancaster",
+    "citySlug": "lancaster",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Lancaster"
+  },
+  {
+    "city": "Larkspur",
+    "citySlug": "larkspur",
+    "county": "Marin",
+    "countySlug": "marin",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Larkspur"
+  },
+  {
+    "city": "Lathrop",
+    "citySlug": "lathrop",
+    "county": "San Joaquin",
+    "countySlug": "san-joaquin",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Lathrop"
+  },
+  {
+    "city": "Lawndale",
+    "citySlug": "lawndale",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Lawndale"
+  },
+  {
+    "city": "Lemon Grove",
+    "citySlug": "lemon-grove",
+    "county": "San Diego",
+    "countySlug": "san-diego",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Lemon Grove"
+  },
+  {
+    "city": "Lemoore",
+    "citySlug": "lemoore",
+    "county": "Kings",
+    "countySlug": "kings",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Lemoore"
+  },
+  {
+    "city": "Lincoln",
+    "citySlug": "lincoln",
+    "county": "Placer",
+    "countySlug": "placer",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Lincoln"
+  },
+  {
+    "city": "Lindsay",
+    "citySlug": "lindsay",
+    "county": "Tulare",
+    "countySlug": "tulare",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Lindsay"
+  },
+  {
+    "city": "Live Oak",
+    "citySlug": "live-oak",
+    "county": "Sutter",
+    "countySlug": "sutter",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Live Oak"
+  },
+  {
+    "city": "Livermore",
+    "citySlug": "livermore",
+    "county": "Alameda",
+    "countySlug": "alameda",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Livermore"
+  },
+  {
+    "city": "Livingston",
+    "citySlug": "livingston",
+    "county": "Merced",
+    "countySlug": "merced",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Livingston"
+  },
+  {
+    "city": "Lodi",
+    "citySlug": "lodi",
+    "county": "San Joaquin",
+    "countySlug": "san-joaquin",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Lodi"
+  },
+  {
+    "city": "Loma Linda",
+    "citySlug": "loma-linda",
+    "county": "San Bernardino",
+    "countySlug": "san-bernardino",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Loma Linda"
+  },
+  {
+    "city": "Lomita",
+    "citySlug": "lomita",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Lomita"
+  },
+  {
+    "city": "Lompoc",
+    "citySlug": "lompoc",
+    "county": "Santa Barbara",
+    "countySlug": "santa-barbara",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Lompoc"
+  },
+  {
+    "city": "Long Beach",
+    "citySlug": "long-beach",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Long Beach"
+  },
+  {
+    "city": "Loomis",
+    "citySlug": "loomis",
+    "county": "Placer",
+    "countySlug": "placer",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Loomis"
+  },
+  {
+    "city": "Los Alamitos",
+    "citySlug": "los-alamitos",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Los Alamitos"
+  },
+  {
+    "city": "Los Altos",
+    "citySlug": "los-altos",
+    "county": "Santa Clara",
+    "countySlug": "santa-clara",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Los Altos"
+  },
+  {
+    "city": "Los Altos Hills",
+    "citySlug": "los-altos-hills",
+    "county": "Santa Clara",
+    "countySlug": "santa-clara",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Los Altos Hills"
+  },
+  {
+    "city": "Los Angeles",
+    "citySlug": "los-angeles",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Los Angeles"
+  },
+  {
+    "city": "Los Banos",
+    "citySlug": "los-banos",
+    "county": "Merced",
+    "countySlug": "merced",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Los Banos"
+  },
+  {
+    "city": "Los Gatos",
+    "citySlug": "los-gatos",
+    "county": "Santa Clara",
+    "countySlug": "santa-clara",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Los Gatos"
+  },
+  {
+    "city": "Loyalton",
+    "citySlug": "loyalton",
+    "county": "Sierra",
+    "countySlug": "sierra",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Loyalton"
+  },
+  {
+    "city": "Lynwood",
+    "citySlug": "lynwood",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Lynwood"
+  },
+  {
+    "city": "Madera",
+    "citySlug": "madera",
+    "county": "Madera",
+    "countySlug": "madera",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Madera"
+  },
+  {
+    "city": "Malibu",
+    "citySlug": "malibu",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Malibu"
+  },
+  {
+    "city": "Mammoth Lakes",
+    "citySlug": "mammoth-lakes",
+    "county": "Mono",
+    "countySlug": "mono",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Mammoth Lakes"
+  },
+  {
+    "city": "Manhattan Beach",
+    "citySlug": "manhattan-beach",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Manhattan Beach"
+  },
+  {
+    "city": "Manteca",
+    "citySlug": "manteca",
+    "county": "San Joaquin",
+    "countySlug": "san-joaquin",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Manteca"
+  },
+  {
+    "city": "Maricopa",
+    "citySlug": "maricopa",
+    "county": "Kern",
+    "countySlug": "kern",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Maricopa"
+  },
+  {
+    "city": "Marina",
+    "citySlug": "marina",
+    "county": "Monterey",
+    "countySlug": "monterey",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Marina"
+  },
+  {
+    "city": "Martinez",
+    "citySlug": "martinez",
+    "county": "Contra Costa",
+    "countySlug": "contra-costa",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Martinez"
+  },
+  {
+    "city": "Marysville",
+    "citySlug": "marysville",
+    "county": "Yuba",
+    "countySlug": "yuba",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Marysville"
+  },
+  {
+    "city": "Maywood",
+    "citySlug": "maywood",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Maywood"
+  },
+  {
+    "city": "McFarland",
+    "citySlug": "mcfarland",
+    "county": "Kern",
+    "countySlug": "kern",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "McFarland"
+  },
+  {
+    "city": "Mendota",
+    "citySlug": "mendota",
+    "county": "Fresno",
+    "countySlug": "fresno",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Mendota"
+  },
+  {
+    "city": "Menifee",
+    "citySlug": "menifee",
+    "county": "Riverside",
+    "countySlug": "riverside",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Menifee"
+  },
+  {
+    "city": "Menlo Park",
+    "citySlug": "menlo-park",
+    "county": "San Mateo",
+    "countySlug": "san-mateo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Menlo Park"
+  },
+  {
+    "city": "Merced",
+    "citySlug": "merced",
+    "county": "Merced",
+    "countySlug": "merced",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Merced"
+  },
+  {
+    "city": "Mill Valley",
+    "citySlug": "mill-valley",
+    "county": "Marin",
+    "countySlug": "marin",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Mill Valley"
+  },
+  {
+    "city": "Millbrae",
+    "citySlug": "millbrae",
+    "county": "San Mateo",
+    "countySlug": "san-mateo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Millbrae"
+  },
+  {
+    "city": "Milpitas",
+    "citySlug": "milpitas",
+    "county": "Santa Clara",
+    "countySlug": "santa-clara",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Milpitas"
+  },
+  {
+    "city": "Mission Viejo",
+    "citySlug": "mission-viejo",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Mission Viejo"
+  },
+  {
+    "city": "Modesto",
+    "citySlug": "modesto",
+    "county": "Stanislaus",
+    "countySlug": "stanislaus",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Modesto"
+  },
+  {
+    "city": "Monrovia",
+    "citySlug": "monrovia",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Monrovia"
+  },
+  {
+    "city": "Montague",
+    "citySlug": "montague",
+    "county": "Siskiyou",
+    "countySlug": "siskiyou",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Montague"
+  },
+  {
+    "city": "Montclair",
+    "citySlug": "montclair",
+    "county": "San Bernardino",
+    "countySlug": "san-bernardino",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Montclair"
+  },
+  {
+    "city": "Monte Sereno",
+    "citySlug": "monte-sereno",
+    "county": "Santa Clara",
+    "countySlug": "santa-clara",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Monte Sereno"
+  },
+  {
+    "city": "Montebello",
+    "citySlug": "montebello",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Montebello"
+  },
+  {
+    "city": "Monterey",
+    "citySlug": "monterey",
+    "county": "Monterey",
+    "countySlug": "monterey",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Monterey"
+  },
+  {
+    "city": "Monterey Park",
+    "citySlug": "monterey-park",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Monterey Park"
+  },
+  {
+    "city": "Moorpark",
+    "citySlug": "moorpark",
+    "county": "Ventura",
+    "countySlug": "ventura",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Moorpark"
+  },
+  {
+    "city": "Moraga",
+    "citySlug": "moraga",
+    "county": "Contra Costa",
+    "countySlug": "contra-costa",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Moraga"
+  },
+  {
+    "city": "Moreno Valley",
+    "citySlug": "moreno-valley",
+    "county": "Riverside",
+    "countySlug": "riverside",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Moreno Valley"
+  },
+  {
+    "city": "Morgan Hill",
+    "citySlug": "morgan-hill",
+    "county": "Santa Clara",
+    "countySlug": "santa-clara",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Morgan Hill"
+  },
+  {
+    "city": "Morro Bay",
+    "citySlug": "morro-bay",
+    "county": "San Luis Obispo",
+    "countySlug": "san-luis-obispo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Morro Bay"
+  },
+  {
+    "city": "Mount Shasta",
+    "citySlug": "mount-shasta",
+    "county": "Siskiyou",
+    "countySlug": "siskiyou",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Mount Shasta"
+  },
+  {
+    "city": "Mountain House",
+    "citySlug": "mountain-house",
+    "county": "San Joaquin",
+    "countySlug": "san-joaquin",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Mountain House"
+  },
+  {
+    "city": "Mountain View",
+    "citySlug": "mountain-view",
+    "county": "Santa Clara",
+    "countySlug": "santa-clara",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Mountain View"
+  },
+  {
+    "city": "Murrieta",
+    "citySlug": "murrieta",
+    "county": "Riverside",
+    "countySlug": "riverside",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Murrieta"
+  },
+  {
+    "city": "Napa",
+    "citySlug": "napa",
+    "county": "Napa",
+    "countySlug": "napa",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Napa"
+  },
+  {
+    "city": "National City",
+    "citySlug": "national-city",
+    "county": "San Diego",
+    "countySlug": "san-diego",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "National City"
+  },
+  {
+    "city": "Needles",
+    "citySlug": "needles",
+    "county": "San Bernardino",
+    "countySlug": "san-bernardino",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Needles"
+  },
+  {
+    "city": "Nevada City",
+    "citySlug": "nevada-city",
+    "county": "Nevada",
+    "countySlug": "nevada",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Nevada City"
+  },
+  {
+    "city": "Newark",
+    "citySlug": "newark",
+    "county": "Alameda",
+    "countySlug": "alameda",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Newark"
+  },
+  {
+    "city": "Newman",
+    "citySlug": "newman",
+    "county": "Stanislaus",
+    "countySlug": "stanislaus",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Newman"
+  },
+  {
+    "city": "Newport Beach",
+    "citySlug": "newport-beach",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Newport Beach"
+  },
+  {
+    "city": "Norco",
+    "citySlug": "norco",
+    "county": "Riverside",
+    "countySlug": "riverside",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Norco"
+  },
+  {
+    "city": "Norwalk",
+    "citySlug": "norwalk",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Norwalk"
+  },
+  {
+    "city": "Novato",
+    "citySlug": "novato",
+    "county": "Marin",
+    "countySlug": "marin",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Novato"
+  },
+  {
+    "city": "Oakdale",
+    "citySlug": "oakdale",
+    "county": "Stanislaus",
+    "countySlug": "stanislaus",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Oakdale"
+  },
+  {
+    "city": "Oakland",
+    "citySlug": "oakland",
+    "county": "Alameda",
+    "countySlug": "alameda",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Oakland"
+  },
+  {
+    "city": "Oakley",
+    "citySlug": "oakley",
+    "county": "Contra Costa",
+    "countySlug": "contra-costa",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Oakley"
+  },
+  {
+    "city": "Oceanside",
+    "citySlug": "oceanside",
+    "county": "San Diego",
+    "countySlug": "san-diego",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Oceanside"
+  },
+  {
+    "city": "Ojai",
+    "citySlug": "ojai",
+    "county": "Ventura",
+    "countySlug": "ventura",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Ojai"
+  },
+  {
+    "city": "Ontario",
+    "citySlug": "ontario",
+    "county": "San Bernardino",
+    "countySlug": "san-bernardino",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Ontario"
+  },
+  {
+    "city": "Orange",
+    "citySlug": "orange",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Orange"
+  },
+  {
+    "city": "Orange Cove",
+    "citySlug": "orange-cove",
+    "county": "Fresno",
+    "countySlug": "fresno",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Orange Cove"
+  },
+  {
+    "city": "Orinda",
+    "citySlug": "orinda",
+    "county": "Contra Costa",
+    "countySlug": "contra-costa",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Orinda"
+  },
+  {
+    "city": "Orland",
+    "citySlug": "orland",
+    "county": "Glenn",
+    "countySlug": "glenn",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Orland"
+  },
+  {
+    "city": "Oroville",
+    "citySlug": "oroville",
+    "county": "Butte",
+    "countySlug": "butte",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Oroville"
+  },
+  {
+    "city": "Oxnard",
+    "citySlug": "oxnard",
+    "county": "Ventura",
+    "countySlug": "ventura",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Oxnard"
+  },
+  {
+    "city": "Pacific Grove",
+    "citySlug": "pacific-grove",
+    "county": "Monterey",
+    "countySlug": "monterey",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Pacific Grove"
+  },
+  {
+    "city": "Pacifica",
+    "citySlug": "pacifica",
+    "county": "San Mateo",
+    "countySlug": "san-mateo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Pacifica"
+  },
+  {
+    "city": "Palm Desert",
+    "citySlug": "palm-desert",
+    "county": "Riverside",
+    "countySlug": "riverside",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Palm Desert"
+  },
+  {
+    "city": "Palm Springs",
+    "citySlug": "palm-springs",
+    "county": "Riverside",
+    "countySlug": "riverside",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Palm Springs"
+  },
+  {
+    "city": "Palmdale",
+    "citySlug": "palmdale",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Palmdale"
+  },
+  {
+    "city": "Palo Alto",
+    "citySlug": "palo-alto",
+    "county": "Santa Clara",
+    "countySlug": "santa-clara",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Palo Alto"
+  },
+  {
+    "city": "Palos Verdes Estates",
+    "citySlug": "palos-verdes-estates",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Palos Verdes Estates"
+  },
+  {
+    "city": "Paradise",
+    "citySlug": "paradise",
+    "county": "Butte",
+    "countySlug": "butte",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Paradise"
+  },
+  {
+    "city": "Paramount",
+    "citySlug": "paramount",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Paramount"
+  },
+  {
+    "city": "Parlier",
+    "citySlug": "parlier",
+    "county": "Fresno",
+    "countySlug": "fresno",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Parlier"
+  },
+  {
+    "city": "Pasadena",
+    "citySlug": "pasadena",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Pasadena"
+  },
+  {
+    "city": "Paso Robles",
+    "citySlug": "paso-robles",
+    "county": "San Luis Obispo",
+    "countySlug": "san-luis-obispo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Paso Robles"
+  },
+  {
+    "city": "Patterson",
+    "citySlug": "patterson",
+    "county": "Stanislaus",
+    "countySlug": "stanislaus",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Patterson"
+  },
+  {
+    "city": "Perris",
+    "citySlug": "perris",
+    "county": "Riverside",
+    "countySlug": "riverside",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Perris"
+  },
+  {
+    "city": "Petaluma",
+    "citySlug": "petaluma",
+    "county": "Sonoma",
+    "countySlug": "sonoma",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Petaluma"
+  },
+  {
+    "city": "Pico Rivera",
+    "citySlug": "pico-rivera",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Pico Rivera"
+  },
+  {
+    "city": "Piedmont",
+    "citySlug": "piedmont",
+    "county": "Alameda",
+    "countySlug": "alameda",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Piedmont"
+  },
+  {
+    "city": "Pinole",
+    "citySlug": "pinole",
+    "county": "Contra Costa",
+    "countySlug": "contra-costa",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Pinole"
+  },
+  {
+    "city": "Pismo Beach",
+    "citySlug": "pismo-beach",
+    "county": "San Luis Obispo",
+    "countySlug": "san-luis-obispo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Pismo Beach"
+  },
+  {
+    "city": "Pittsburg",
+    "citySlug": "pittsburg",
+    "county": "Contra Costa",
+    "countySlug": "contra-costa",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Pittsburg"
+  },
+  {
+    "city": "Placentia",
+    "citySlug": "placentia",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Placentia"
+  },
+  {
+    "city": "Placerville",
+    "citySlug": "placerville",
+    "county": "El Dorado",
+    "countySlug": "el-dorado",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Placerville"
+  },
+  {
+    "city": "Pleasant Hill",
+    "citySlug": "pleasant-hill",
+    "county": "Contra Costa",
+    "countySlug": "contra-costa",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Pleasant Hill"
+  },
+  {
+    "city": "Pleasanton",
+    "citySlug": "pleasanton",
+    "county": "Alameda",
+    "countySlug": "alameda",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Pleasanton"
+  },
+  {
+    "city": "Plymouth",
+    "citySlug": "plymouth",
+    "county": "Amador",
+    "countySlug": "amador",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Plymouth"
+  },
+  {
+    "city": "Point Arena",
+    "citySlug": "point-arena",
+    "county": "Mendocino",
+    "countySlug": "mendocino",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Point Arena"
+  },
+  {
+    "city": "Pomona",
+    "citySlug": "pomona",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Pomona"
+  },
+  {
+    "city": "Port Hueneme",
+    "citySlug": "port-hueneme",
+    "county": "Ventura",
+    "countySlug": "ventura",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Port Hueneme"
+  },
+  {
+    "city": "Porterville",
+    "citySlug": "porterville",
+    "county": "Tulare",
+    "countySlug": "tulare",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Porterville"
+  },
+  {
+    "city": "Portola",
+    "citySlug": "portola",
+    "county": "Plumas",
+    "countySlug": "plumas",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Portola"
+  },
+  {
+    "city": "Portola Valley",
+    "citySlug": "portola-valley",
+    "county": "San Mateo",
+    "countySlug": "san-mateo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Portola Valley"
+  },
+  {
+    "city": "Poway",
+    "citySlug": "poway",
+    "county": "San Diego",
+    "countySlug": "san-diego",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Poway"
+  },
+  {
+    "city": "Rancho Cordova",
+    "citySlug": "rancho-cordova",
+    "county": "Sacramento",
+    "countySlug": "sacramento",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Rancho Cordova"
+  },
+  {
+    "city": "Rancho Cucamonga",
+    "citySlug": "rancho-cucamonga",
+    "county": "San Bernardino",
+    "countySlug": "san-bernardino",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Rancho Cucamonga"
+  },
+  {
+    "city": "Rancho Mirage",
+    "citySlug": "rancho-mirage",
+    "county": "Riverside",
+    "countySlug": "riverside",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Rancho Mirage"
+  },
+  {
+    "city": "Rancho Palos Verdes",
+    "citySlug": "rancho-palos-verdes",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Rancho Palos Verdes"
+  },
+  {
+    "city": "Rancho Santa Margarita",
+    "citySlug": "rancho-santa-margarita",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Rancho Santa Margarita"
+  },
+  {
+    "city": "Red Bluff",
+    "citySlug": "red-bluff",
+    "county": "Tehama",
+    "countySlug": "tehama",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Red Bluff"
+  },
+  {
+    "city": "Redding",
+    "citySlug": "redding",
+    "county": "Shasta",
+    "countySlug": "shasta",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Redding"
+  },
+  {
+    "city": "Redlands",
+    "citySlug": "redlands",
+    "county": "San Bernardino",
+    "countySlug": "san-bernardino",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Redlands"
+  },
+  {
+    "city": "Redondo Beach",
+    "citySlug": "redondo-beach",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Redondo Beach"
+  },
+  {
+    "city": "Redwood City",
+    "citySlug": "redwood-city",
+    "county": "San Mateo",
+    "countySlug": "san-mateo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Redwood City"
+  },
+  {
+    "city": "Reedley",
+    "citySlug": "reedley",
+    "county": "Fresno",
+    "countySlug": "fresno",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Reedley"
+  },
+  {
+    "city": "Rialto",
+    "citySlug": "rialto",
+    "county": "San Bernardino",
+    "countySlug": "san-bernardino",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Rialto"
+  },
+  {
+    "city": "Richmond",
+    "citySlug": "richmond",
+    "county": "Contra Costa",
+    "countySlug": "contra-costa",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Richmond"
+  },
+  {
+    "city": "Ridgecrest",
+    "citySlug": "ridgecrest",
+    "county": "Kern",
+    "countySlug": "kern",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Ridgecrest"
+  },
+  {
+    "city": "Rio Dell",
+    "citySlug": "rio-dell",
+    "county": "Humboldt",
+    "countySlug": "humboldt",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Rio Dell"
+  },
+  {
+    "city": "Rio Vista",
+    "citySlug": "rio-vista",
+    "county": "Solano",
+    "countySlug": "solano",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Rio Vista"
+  },
+  {
+    "city": "Ripon",
+    "citySlug": "ripon",
+    "county": "San Joaquin",
+    "countySlug": "san-joaquin",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Ripon"
+  },
+  {
+    "city": "Riverbank",
+    "citySlug": "riverbank",
+    "county": "Stanislaus",
+    "countySlug": "stanislaus",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Riverbank"
+  },
+  {
+    "city": "Riverside",
+    "citySlug": "riverside",
+    "county": "Riverside",
+    "countySlug": "riverside",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Riverside"
+  },
+  {
+    "city": "Rocklin",
+    "citySlug": "rocklin",
+    "county": "Placer",
+    "countySlug": "placer",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Rocklin"
+  },
+  {
+    "city": "Rohnert Park",
+    "citySlug": "rohnert-park",
+    "county": "Sonoma",
+    "countySlug": "sonoma",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Rohnert Park"
+  },
+  {
+    "city": "Rolling Hills",
+    "citySlug": "rolling-hills",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Rolling Hills"
+  },
+  {
+    "city": "Rolling Hills Estates",
+    "citySlug": "rolling-hills-estates",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Rolling Hills Estates"
+  },
+  {
+    "city": "Rosemead",
+    "citySlug": "rosemead",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Rosemead"
+  },
+  {
+    "city": "Roseville",
+    "citySlug": "roseville",
+    "county": "Placer",
+    "countySlug": "placer",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Roseville"
+  },
+  {
+    "city": "Ross",
+    "citySlug": "ross",
+    "county": "Marin",
+    "countySlug": "marin",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Ross"
+  },
+  {
+    "city": "Sacramento",
+    "citySlug": "sacramento",
+    "county": "Sacramento",
+    "countySlug": "sacramento",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Sacramento"
+  },
+  {
+    "city": "Salinas",
+    "citySlug": "salinas",
+    "county": "Monterey",
+    "countySlug": "monterey",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Salinas"
+  },
+  {
+    "city": "San Anselmo",
+    "citySlug": "san-anselmo",
+    "county": "Marin",
+    "countySlug": "marin",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "San Anselmo"
+  },
+  {
+    "city": "San Bernardino",
+    "citySlug": "san-bernardino",
+    "county": "San Bernardino",
+    "countySlug": "san-bernardino",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "San Bernardino"
+  },
+  {
+    "city": "San Bruno",
+    "citySlug": "san-bruno",
+    "county": "San Mateo",
+    "countySlug": "san-mateo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "San Bruno"
+  },
+  {
+    "city": "San Carlos",
+    "citySlug": "san-carlos",
+    "county": "San Mateo",
+    "countySlug": "san-mateo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "San Carlos"
+  },
+  {
+    "city": "San Clemente",
+    "citySlug": "san-clemente",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "San Clemente"
+  },
+  {
+    "city": "San Diego",
+    "citySlug": "san-diego",
+    "county": "San Diego",
+    "countySlug": "san-diego",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "San Diego"
+  },
+  {
+    "city": "San Dimas",
+    "citySlug": "san-dimas",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "San Dimas"
+  },
+  {
+    "city": "San Fernando",
+    "citySlug": "san-fernando",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "San Fernando"
+  },
+  {
+    "city": "San Francisco",
+    "citySlug": "san-francisco",
+    "county": "San Francisco",
+    "countySlug": "san-francisco",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "San Francisco"
+  },
+  {
+    "city": "San Gabriel",
+    "citySlug": "san-gabriel",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "San Gabriel"
+  },
+  {
+    "city": "San Jacinto",
+    "citySlug": "san-jacinto",
+    "county": "Riverside",
+    "countySlug": "riverside",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "San Jacinto"
+  },
+  {
+    "city": "San Joaquin",
+    "citySlug": "san-joaquin",
+    "county": "Fresno",
+    "countySlug": "fresno",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "San Joaquin"
+  },
+  {
+    "city": "San Jose",
+    "citySlug": "san-jose",
+    "county": "Santa Clara",
+    "countySlug": "santa-clara",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "San Jose"
+  },
+  {
+    "city": "San Juan Bautista",
+    "citySlug": "san-juan-bautista",
+    "county": "San Benito",
+    "countySlug": "san-benito",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "San Juan Bautista"
+  },
+  {
+    "city": "San Juan Capistrano",
+    "citySlug": "san-juan-capistrano",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "San Juan Capistrano"
+  },
+  {
+    "city": "San Leandro",
+    "citySlug": "san-leandro",
+    "county": "Alameda",
+    "countySlug": "alameda",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "San Leandro"
+  },
+  {
+    "city": "San Luis Obispo",
+    "citySlug": "san-luis-obispo",
+    "county": "San Luis Obispo",
+    "countySlug": "san-luis-obispo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "San Luis Obispo"
+  },
+  {
+    "city": "San Marcos",
+    "citySlug": "san-marcos",
+    "county": "San Diego",
+    "countySlug": "san-diego",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "San Marcos"
+  },
+  {
+    "city": "San Marino",
+    "citySlug": "san-marino",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "San Marino"
+  },
+  {
+    "city": "San Mateo",
+    "citySlug": "san-mateo",
+    "county": "San Mateo",
+    "countySlug": "san-mateo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "San Mateo"
+  },
+  {
+    "city": "San Pablo",
+    "citySlug": "san-pablo",
+    "county": "Contra Costa",
+    "countySlug": "contra-costa",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "San Pablo"
+  },
+  {
+    "city": "San Rafael",
+    "citySlug": "san-rafael",
+    "county": "Marin",
+    "countySlug": "marin",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "San Rafael"
+  },
+  {
+    "city": "San Ramon",
+    "citySlug": "san-ramon",
+    "county": "Contra Costa",
+    "countySlug": "contra-costa",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "San Ramon"
+  },
+  {
+    "city": "Sand City",
+    "citySlug": "sand-city",
+    "county": "Monterey",
+    "countySlug": "monterey",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Sand City"
+  },
+  {
+    "city": "Sanger",
+    "citySlug": "sanger",
+    "county": "Fresno",
+    "countySlug": "fresno",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Sanger"
+  },
+  {
+    "city": "Santa Ana",
+    "citySlug": "santa-ana",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Santa Ana"
+  },
+  {
+    "city": "Santa Barbara",
+    "citySlug": "santa-barbara",
+    "county": "Santa Barbara",
+    "countySlug": "santa-barbara",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Santa Barbara"
+  },
+  {
+    "city": "Santa Clara",
+    "citySlug": "santa-clara",
+    "county": "Santa Clara",
+    "countySlug": "santa-clara",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Santa Clara"
+  },
+  {
+    "city": "Santa Clarita",
+    "citySlug": "santa-clarita",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Santa Clarita"
+  },
+  {
+    "city": "Santa Cruz",
+    "citySlug": "santa-cruz",
+    "county": "Santa Cruz",
+    "countySlug": "santa-cruz",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Santa Cruz"
+  },
+  {
+    "city": "Santa Fe Springs",
+    "citySlug": "santa-fe-springs",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Santa Fe Springs"
+  },
+  {
+    "city": "Santa Maria",
+    "citySlug": "santa-maria",
+    "county": "Santa Barbara",
+    "countySlug": "santa-barbara",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Santa Maria"
+  },
+  {
+    "city": "Santa Monica",
+    "citySlug": "santa-monica",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Santa Monica"
+  },
+  {
+    "city": "Santa Paula",
+    "citySlug": "santa-paula",
+    "county": "Ventura",
+    "countySlug": "ventura",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Santa Paula"
+  },
+  {
+    "city": "Santa Rosa",
+    "citySlug": "santa-rosa",
+    "county": "Sonoma",
+    "countySlug": "sonoma",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Santa Rosa"
+  },
+  {
+    "city": "Santee",
+    "citySlug": "santee",
+    "county": "San Diego",
+    "countySlug": "san-diego",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Santee"
+  },
+  {
+    "city": "Saratoga",
+    "citySlug": "saratoga",
+    "county": "Santa Clara",
+    "countySlug": "santa-clara",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Saratoga"
+  },
+  {
+    "city": "Sausalito",
+    "citySlug": "sausalito",
+    "county": "Marin",
+    "countySlug": "marin",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Sausalito"
+  },
+  {
+    "city": "Scotts Valley",
+    "citySlug": "scotts-valley",
+    "county": "Santa Cruz",
+    "countySlug": "santa-cruz",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Scotts Valley"
+  },
+  {
+    "city": "Seal Beach",
+    "citySlug": "seal-beach",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Seal Beach"
+  },
+  {
+    "city": "Seaside",
+    "citySlug": "seaside",
+    "county": "Monterey",
+    "countySlug": "monterey",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Seaside"
+  },
+  {
+    "city": "Sebastopol",
+    "citySlug": "sebastopol",
+    "county": "Sonoma",
+    "countySlug": "sonoma",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Sebastopol"
+  },
+  {
+    "city": "Selma",
+    "citySlug": "selma",
+    "county": "Fresno",
+    "countySlug": "fresno",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Selma"
+  },
+  {
+    "city": "Shafter",
+    "citySlug": "shafter",
+    "county": "Kern",
+    "countySlug": "kern",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Shafter"
+  },
+  {
+    "city": "Shasta Lake",
+    "citySlug": "shasta-lake",
+    "county": "Shasta",
+    "countySlug": "shasta",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Shasta Lake"
+  },
+  {
+    "city": "Sierra Madre",
+    "citySlug": "sierra-madre",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Sierra Madre"
+  },
+  {
+    "city": "Signal Hill",
+    "citySlug": "signal-hill",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Signal Hill"
+  },
+  {
+    "city": "Simi Valley",
+    "citySlug": "simi-valley",
+    "county": "Ventura",
+    "countySlug": "ventura",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Simi Valley"
+  },
+  {
+    "city": "Solana Beach",
+    "citySlug": "solana-beach",
+    "county": "San Diego",
+    "countySlug": "san-diego",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Solana Beach"
+  },
+  {
+    "city": "Soledad",
+    "citySlug": "soledad",
+    "county": "Monterey",
+    "countySlug": "monterey",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Soledad"
+  },
+  {
+    "city": "Solvang",
+    "citySlug": "solvang",
+    "county": "Santa Barbara",
+    "countySlug": "santa-barbara",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Solvang"
+  },
+  {
+    "city": "Sonoma",
+    "citySlug": "sonoma",
+    "county": "Sonoma",
+    "countySlug": "sonoma",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Sonoma"
+  },
+  {
+    "city": "Sonora",
+    "citySlug": "sonora",
+    "county": "Tuolumne",
+    "countySlug": "tuolumne",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Sonora"
+  },
+  {
+    "city": "South El Monte",
+    "citySlug": "south-el-monte",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "South El Monte"
+  },
+  {
+    "city": "South Gate",
+    "citySlug": "south-gate",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "South Gate"
+  },
+  {
+    "city": "South Lake Tahoe",
+    "citySlug": "south-lake-tahoe",
+    "county": "El Dorado",
+    "countySlug": "el-dorado",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "South Lake Tahoe"
+  },
+  {
+    "city": "South Pasadena",
+    "citySlug": "south-pasadena",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "South Pasadena"
+  },
+  {
+    "city": "South San Francisco",
+    "citySlug": "south-san-francisco",
+    "county": "San Mateo",
+    "countySlug": "san-mateo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "South San Francisco"
+  },
+  {
+    "city": "St. Helena",
+    "citySlug": "st-helena",
+    "county": "Napa",
+    "countySlug": "napa",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "St. Helena"
+  },
+  {
+    "city": "Stanton",
+    "citySlug": "stanton",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Stanton"
+  },
+  {
+    "city": "Stockton",
+    "citySlug": "stockton",
+    "county": "San Joaquin",
+    "countySlug": "san-joaquin",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Stockton"
+  },
+  {
+    "city": "Suisun City",
+    "citySlug": "suisun-city",
+    "county": "Solano",
+    "countySlug": "solano",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Suisun City"
+  },
+  {
+    "city": "Sunnyvale",
+    "citySlug": "sunnyvale",
+    "county": "Santa Clara",
+    "countySlug": "santa-clara",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Sunnyvale"
+  },
+  {
+    "city": "Susanville",
+    "citySlug": "susanville",
+    "county": "Lassen",
+    "countySlug": "lassen",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Susanville"
+  },
+  {
+    "city": "Sutter Creek",
+    "citySlug": "sutter-creek",
+    "county": "Amador",
+    "countySlug": "amador",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Sutter Creek"
+  },
+  {
+    "city": "Taft",
+    "citySlug": "taft",
+    "county": "Kern",
+    "countySlug": "kern",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Taft"
+  },
+  {
+    "city": "Tehachapi",
+    "citySlug": "tehachapi",
+    "county": "Kern",
+    "countySlug": "kern",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Tehachapi"
+  },
+  {
+    "city": "Tehama",
+    "citySlug": "tehama",
+    "county": "Tehama",
+    "countySlug": "tehama",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Tehama"
+  },
+  {
+    "city": "Temecula",
+    "citySlug": "temecula",
+    "county": "Riverside",
+    "countySlug": "riverside",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Temecula"
+  },
+  {
+    "city": "Temple City",
+    "citySlug": "temple-city",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Temple City"
+  },
+  {
+    "city": "Thousand Oaks",
+    "citySlug": "thousand-oaks",
+    "county": "Ventura",
+    "countySlug": "ventura",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Thousand Oaks"
+  },
+  {
+    "city": "Tiburon",
+    "citySlug": "tiburon",
+    "county": "Marin",
+    "countySlug": "marin",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Tiburon"
+  },
+  {
+    "city": "Torrance",
+    "citySlug": "torrance",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Torrance"
+  },
+  {
+    "city": "Tracy",
+    "citySlug": "tracy",
+    "county": "San Joaquin",
+    "countySlug": "san-joaquin",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Tracy"
+  },
+  {
+    "city": "Trinidad",
+    "citySlug": "trinidad",
+    "county": "Humboldt",
+    "countySlug": "humboldt",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Trinidad"
+  },
+  {
+    "city": "Truckee",
+    "citySlug": "truckee",
+    "county": "Nevada",
+    "countySlug": "nevada",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Truckee"
+  },
+  {
+    "city": "Tulare",
+    "citySlug": "tulare",
+    "county": "Tulare",
+    "countySlug": "tulare",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Tulare"
+  },
+  {
+    "city": "Tulelake",
+    "citySlug": "tulelake",
+    "county": "Siskiyou",
+    "countySlug": "siskiyou",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Tulelake"
+  },
+  {
+    "city": "Turlock",
+    "citySlug": "turlock",
+    "county": "Stanislaus",
+    "countySlug": "stanislaus",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Turlock"
+  },
+  {
+    "city": "Tustin",
+    "citySlug": "tustin",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Tustin"
+  },
+  {
+    "city": "Twentynine Palms",
+    "citySlug": "twentynine-palms",
+    "county": "San Bernardino",
+    "countySlug": "san-bernardino",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Twentynine Palms"
+  },
+  {
+    "city": "Ukiah",
+    "citySlug": "ukiah",
+    "county": "Mendocino",
+    "countySlug": "mendocino",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Ukiah"
+  },
+  {
+    "city": "Union City",
+    "citySlug": "union-city",
+    "county": "Alameda",
+    "countySlug": "alameda",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Union City"
+  },
+  {
+    "city": "Upland",
+    "citySlug": "upland",
+    "county": "San Bernardino",
+    "countySlug": "san-bernardino",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Upland"
+  },
+  {
+    "city": "Vacaville",
+    "citySlug": "vacaville",
+    "county": "Solano",
+    "countySlug": "solano",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Vacaville"
+  },
+  {
+    "city": "Vallejo",
+    "citySlug": "vallejo",
+    "county": "Solano",
+    "countySlug": "solano",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Vallejo"
+  },
+  {
+    "city": "Ventura",
+    "citySlug": "ventura",
+    "county": "Ventura",
+    "countySlug": "ventura",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Ventura"
+  },
+  {
+    "city": "Vernon",
+    "citySlug": "vernon",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Vernon"
+  },
+  {
+    "city": "Victorville",
+    "citySlug": "victorville",
+    "county": "San Bernardino",
+    "countySlug": "san-bernardino",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Victorville"
+  },
+  {
+    "city": "Villa Park",
+    "citySlug": "villa-park",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Villa Park"
+  },
+  {
+    "city": "Visalia",
+    "citySlug": "visalia",
+    "county": "Tulare",
+    "countySlug": "tulare",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Visalia"
+  },
+  {
+    "city": "Vista",
+    "citySlug": "vista",
+    "county": "San Diego",
+    "countySlug": "san-diego",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Vista"
+  },
+  {
+    "city": "Walnut",
+    "citySlug": "walnut",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Walnut"
+  },
+  {
+    "city": "Walnut Creek",
+    "citySlug": "walnut-creek",
+    "county": "Contra Costa",
+    "countySlug": "contra-costa",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Walnut Creek"
+  },
+  {
+    "city": "Wasco",
+    "citySlug": "wasco",
+    "county": "Kern",
+    "countySlug": "kern",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Wasco"
+  },
+  {
+    "city": "Waterford",
+    "citySlug": "waterford",
+    "county": "Stanislaus",
+    "countySlug": "stanislaus",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Waterford"
+  },
+  {
+    "city": "Watsonville",
+    "citySlug": "watsonville",
+    "county": "Santa Cruz",
+    "countySlug": "santa-cruz",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Watsonville"
+  },
+  {
+    "city": "Weed",
+    "citySlug": "weed",
+    "county": "Siskiyou",
+    "countySlug": "siskiyou",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Weed"
+  },
+  {
+    "city": "West Covina",
+    "citySlug": "west-covina",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "West Covina"
+  },
+  {
+    "city": "West Hollywood",
+    "citySlug": "west-hollywood",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "West Hollywood"
+  },
+  {
+    "city": "West Sacramento",
+    "citySlug": "west-sacramento",
+    "county": "Yolo",
+    "countySlug": "yolo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "West Sacramento"
+  },
+  {
+    "city": "Westlake Village",
+    "citySlug": "westlake-village",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Westlake Village"
+  },
+  {
+    "city": "Westminster",
+    "citySlug": "westminster",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Westminster"
+  },
+  {
+    "city": "Westmorland",
+    "citySlug": "westmorland",
+    "county": "Imperial",
+    "countySlug": "imperial",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Westmorland"
+  },
+  {
+    "city": "Wheatland",
+    "citySlug": "wheatland",
+    "county": "Yuba",
+    "countySlug": "yuba",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Wheatland"
+  },
+  {
+    "city": "Whittier",
+    "citySlug": "whittier",
+    "county": "Los Angeles",
+    "countySlug": "los-angeles",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Whittier"
+  },
+  {
+    "city": "Wildomar",
+    "citySlug": "wildomar",
+    "county": "Riverside",
+    "countySlug": "riverside",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Wildomar"
+  },
+  {
+    "city": "Williams",
+    "citySlug": "williams",
+    "county": "Colusa",
+    "countySlug": "colusa",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Williams"
+  },
+  {
+    "city": "Willits",
+    "citySlug": "willits",
+    "county": "Mendocino",
+    "countySlug": "mendocino",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Willits"
+  },
+  {
+    "city": "Willows",
+    "citySlug": "willows",
+    "county": "Glenn",
+    "countySlug": "glenn",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Willows"
+  },
+  {
+    "city": "Windsor",
+    "citySlug": "windsor",
+    "county": "Sonoma",
+    "countySlug": "sonoma",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Windsor"
+  },
+  {
+    "city": "Winters",
+    "citySlug": "winters",
+    "county": "Yolo",
+    "countySlug": "yolo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Winters"
+  },
+  {
+    "city": "Woodlake",
+    "citySlug": "woodlake",
+    "county": "Tulare",
+    "countySlug": "tulare",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Woodlake"
+  },
+  {
+    "city": "Woodland",
+    "citySlug": "woodland",
+    "county": "Yolo",
+    "countySlug": "yolo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Woodland"
+  },
+  {
+    "city": "Woodside",
+    "citySlug": "woodside",
+    "county": "San Mateo",
+    "countySlug": "san-mateo",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Woodside"
+  },
+  {
+    "city": "Yorba Linda",
+    "citySlug": "yorba-linda",
+    "county": "Orange",
+    "countySlug": "orange",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Yorba Linda"
+  },
+  {
+    "city": "Yountville",
+    "citySlug": "yountville",
+    "county": "Napa",
+    "countySlug": "napa",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Yountville"
+  },
+  {
+    "city": "Yreka",
+    "citySlug": "yreka",
+    "county": "Siskiyou",
+    "countySlug": "siskiyou",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Yreka"
+  },
+  {
+    "city": "Yuba City",
+    "citySlug": "yuba-city",
+    "county": "Sutter",
+    "countySlug": "sutter",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Yuba City"
+  },
+  {
+    "city": "Yucaipa",
+    "citySlug": "yucaipa",
+    "county": "San Bernardino",
+    "countySlug": "san-bernardino",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Yucaipa"
+  },
+  {
+    "city": "Yucca Valley",
+    "citySlug": "yucca-valley",
+    "county": "San Bernardino",
+    "countySlug": "san-bernardino",
+    "state": "California",
+    "stateCode": "CA",
+    "jurisdiction": "Yucca Valley"
+  }
+]

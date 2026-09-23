@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FEASIBILITY STUDY Data</title>
   <link rel="stylesheet" href="popup.css">
 </head>
+
 <body>
   <div class="app-container">
     <!-- Top Header -->
@@ -13,7 +15,8 @@
       <div class="brand">
         <img src="../icons/icon48.png" alt="Logo" class="brand-icon">
         <div class="brand-text">
-          <h1 class="brand-title">FEASIBILITY STUDY Data <span id="brand-version" class="brand-version" title="Phiên bản đang sử dụng">v1.6.5</span></h1>
+          <h1 class="brand-title">FEASIBILITY STUDY Data <span id="brand-version" class="brand-version"
+              title="Phiên bản đang sử dụng">v1.6.5</span></h1>
           <div id="status-pill" class="status-pill pending">
             <span class="status-dot"></span>
             <span id="status-label">Checking...</span>
@@ -23,7 +26,7 @@
       <div class="header-actions">
         <button id="btn-reload-ext" class="icon-action-btn" title="Tải lại Extension ngay (Reload)">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
           </svg>
         </button>
         <button id="btn-clean" class="icon-action-btn" title="Clean / Reset Session Data">
@@ -35,7 +38,8 @@
           </svg>
         </button>
         <button id="btn-refresh" class="icon-action-btn" title="Refresh & Rescan Page Data">
-          <svg id="refresh-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <svg id="refresh-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.2">
             <polyline points="23 4 23 10 17 10"></polyline>
             <polyline points="1 20 1 14 7 14"></polyline>
             <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
@@ -51,8 +55,10 @@
         <span id="fs-update-text">Đã có phiên bản mới!</span>
       </div>
       <div class="fs-update-actions">
-        <button id="fs-btn-copy-installer" class="fs-btn-copy-installer" title="Bấm để kích hoạt bộ cài FS.exe">⚡ Cập nhật</button>
-        <button id="fs-btn-reload-now" class="fs-btn-reload-now" title="Bấm để tải lại Extension ngay">🔄 Tải lại ngay</button>
+        <button id="fs-btn-copy-installer" class="fs-btn-copy-installer" title="Bấm để kích hoạt bộ cài FS.exe">⚡ Cập
+          nhật</button>
+        <button id="fs-btn-reload-now" class="fs-btn-reload-now" title="Bấm để tải lại Extension ngay">🔄 Tải lại
+          ngay</button>
       </div>
     </div>
 
@@ -61,11 +67,13 @@
       <!-- Row 1: Property Address Search -->
       <div class="search-input-row">
         <div class="search-input-wrapper">
-          <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2">
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
             <circle cx="12" cy="10" r="3"></circle>
           </svg>
-          <input type="text" id="input-address" class="search-input" placeholder="Address: 5302 CLARK CIR, Westminster, CA 92683" spellcheck="false">
+          <input type="text" id="input-address" class="search-input"
+            placeholder="Address: 5302 CLARK CIR, Westminster, CA 92683" spellcheck="false">
           <button id="btn-clear-address" class="btn-clear hidden" title="Clear Address">&times;</button>
         </div>
         <button id="btn-auto-pipeline" class="btn-auto-pipeline" title="Search APN on Google & Route PropZone">
@@ -78,17 +86,25 @@
 
       <!-- Quick Launch Portal Badges -->
       <div class="portal-badges">
-        <button id="btn-nav-google" class="portal-badge google" title="Search APN directly on Google"><span>Google Search APN</span></button>
-        <button id="btn-nav-propzone" class="portal-badge propzone" title="Gridics PropZone Zoning Map"><span>Gridics PropZone</span></button>
-        <button id="btn-nav-fema" class="portal-badge fema" title="FEMA Flood ArcGIS Map (US IP/VPN required)"><span>FEMA Flood Map*</span></button>
+        <button id="btn-nav-google" class="portal-badge google" title="Search APN directly on Google"><span>Google
+            Search APN</span></button>
+        <button id="btn-nav-propzone" class="portal-badge propzone" title="Gridics PropZone Zoning Map"><span>Gridics
+            PropZone</span></button>
+        <button id="btn-nav-fema" class="portal-badge fema"
+          title="FEMA Flood ArcGIS Map (US IP/VPN required)"><span>FEMA Flood Map*</span></button>
 
       </div>
 
       <!-- Detected County & Auto-Fetch Toggle Banner -->
       <div id="county-badge-row" class="county-badge-row">
         <div class="county-badge-left">
-          <span class="c-lbl">DETECTED COUNTY:</span>
+          <span class="c-lbl">COUNTY:</span>
           <span id="v-detected-county" class="c-val">Orange County (CA)</span>
+          <button id="btn-recheck-county" class="btn-icon-county" title="Kiểm tra lại Quận từ địa chỉ (Offline 483 CA Cities)">
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+            </svg>
+          </button>
         </div>
         <div class="propzone-toggle-wrap">
           <span class="toggle-text">PropZone Auto:</span>
@@ -172,24 +188,42 @@
         <div id="view-lot" class="tab-view hidden">
           <div class="card-section">
             <div class="data-table">
-              <div class="data-row"><span class="d-key">Project Address:</span><span id="v-lot-address" class="d-val text-cyan">-</span></div>
-              <div class="data-row"><span class="d-key">Existing Building Area:</span><span id="v-lot-bldgArea" class="d-val">-</span></div>
-              <div class="data-row"><span class="d-key">Existing Building Use:</span><span id="v-lot-bldgUse" class="d-val">-</span></div>
-              <div class="data-row"><span class="d-key">Stories:</span><span id="v-lot-stories" class="d-val">-</span></div>
-              <div class="data-row"><span class="d-key">Parking / Garage:</span><span id="v-lot-parking" class="d-val highlight">-</span></div>
-              <div class="data-row"><span class="d-key">Garage Area (Est.):</span><span id="v-lot-garageArea" class="d-val text-amber">-</span></div>
-              <div class="data-row"><span class="d-key">Existing Living Units:</span><span id="v-lot-units" class="d-val">-</span></div>
-              <div class="data-row"><span class="d-key">Year Built:</span><span id="v-lot-yearBuilt" class="d-val">-</span></div>
-              <div class="data-row"><span class="d-key">Neighborhood:</span><span id="v-lot-neighborhood" class="d-val">-</span></div>
-              <div class="data-row"><span class="d-key">Parcel ID (APN):</span><span id="v-lot-parcelId" class="d-val highlight">-</span></div>
-              <div class="data-row"><span class="d-key">Group ID:</span><span id="v-lot-groupId" class="d-val text-dim">-</span></div>
-              <div class="data-row"><span class="d-key">Lot Area - Tax Record:</span><span id="v-lot-taxRecord" class="d-val">-</span></div>
-              <div class="data-row"><span class="d-key">Lot Area - Parcel Shape:</span><span id="v-lot-parcelShape" class="d-val">-</span></div>
-              <div class="data-row"><span class="d-key">Lot Area - Acres:</span><span id="v-lot-acres" class="d-val">-</span></div>
-              <div class="data-row"><span class="d-key">Lot Type:</span><span id="v-lot-type" class="d-val">-</span></div>
-              <div class="data-row"><span class="d-key">Frontage Length:</span><span id="v-lot-frontage" class="d-val">-</span></div>
-              <div class="data-row"><span class="d-key">Vacant:</span><span id="v-lot-vacant" class="d-val">-</span></div>
-              <div class="data-row col-wrap"><span class="d-key">Legal Description:</span><span id="v-lot-legal" class="d-val-full">-</span></div>
+              <div class="data-row"><span class="d-key">Project Address:</span><span id="v-lot-address"
+                  class="d-val text-cyan">-</span></div>
+              <div class="data-row"><span class="d-key">Existing Building Area:</span><span id="v-lot-bldgArea"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Existing Building Use:</span><span id="v-lot-bldgUse"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Stories:</span><span id="v-lot-stories" class="d-val">-</span>
+              </div>
+              <div class="data-row"><span class="d-key">Parking / Garage:</span><span id="v-lot-parking"
+                  class="d-val highlight">-</span></div>
+              <div class="data-row"><span class="d-key">Garage Area (Est.):</span><span id="v-lot-garageArea"
+                  class="d-val text-amber">-</span></div>
+              <div class="data-row"><span class="d-key">Existing Living Units:</span><span id="v-lot-units"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Year Built:</span><span id="v-lot-yearBuilt"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Neighborhood:</span><span id="v-lot-neighborhood"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Parcel ID (APN):</span><span id="v-lot-parcelId"
+                  class="d-val highlight">-</span></div>
+              <div class="data-row"><span class="d-key">Group ID:</span><span id="v-lot-groupId"
+                  class="d-val text-dim">-</span></div>
+              <div class="data-row"><span class="d-key">Lot Area - Tax Record:</span><span id="v-lot-taxRecord"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Lot Area - Parcel Shape:</span><span id="v-lot-parcelShape"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Lot Area - Acres:</span><span id="v-lot-acres"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Lot Type:</span><span id="v-lot-type" class="d-val">-</span>
+              </div>
+              <div class="data-row"><span class="d-key">Frontage Length:</span><span id="v-lot-frontage"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Vacant:</span><span id="v-lot-vacant" class="d-val">-</span>
+              </div>
+              <div class="data-row col-wrap"><span class="d-key">Legal Description:</span><span id="v-lot-legal"
+                  class="d-val-full">-</span></div>
             </div>
           </div>
         </div>
@@ -198,12 +232,18 @@
         <div id="view-zoning" class="tab-view hidden">
           <div class="card-section">
             <div class="data-table">
-              <div class="data-row"><span class="d-key">Existing Land Use:</span><span id="v-zn-landUse" class="d-val">-</span></div>
-              <div class="data-row"><span class="d-key">Zoning Code:</span><span id="v-zn-code" class="d-val text-cyan">-</span></div>
-              <div class="data-row"><span class="d-key">Zoning District(s):</span><span id="v-zn-district" class="d-val highlight">-</span></div>
-              <div class="data-row col-wrap"><span class="d-key">Zone Description:</span><span id="v-zn-desc" class="d-val-full">-</span></div>
-              <div class="data-row col-wrap"><span class="d-key">Allowed Use(s):</span><span id="v-zn-allowed" class="d-val-full text-dim">-</span></div>
-              <div class="data-row"><span class="d-key">FEMA Flood Zone:</span><span id="v-zn-flood" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Existing Land Use:</span><span id="v-zn-landUse"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Zoning Code:</span><span id="v-zn-code"
+                  class="d-val text-cyan">-</span></div>
+              <div class="data-row"><span class="d-key">Zoning District(s):</span><span id="v-zn-district"
+                  class="d-val highlight">-</span></div>
+              <div class="data-row col-wrap"><span class="d-key">Zone Description:</span><span id="v-zn-desc"
+                  class="d-val-full">-</span></div>
+              <div class="data-row col-wrap"><span class="d-key">Allowed Use(s):</span><span id="v-zn-allowed"
+                  class="d-val-full text-dim">-</span></div>
+              <div class="data-row"><span class="d-key">FEMA Flood Zone:</span><span id="v-zn-flood"
+                  class="d-val">-</span></div>
             </div>
           </div>
         </div>
@@ -212,11 +252,16 @@
         <div id="view-setbacks" class="tab-view hidden">
           <div class="card-section">
             <div class="data-table">
-              <div class="data-row"><span class="d-key">Minimum Primary Frontage:</span><span id="v-sb-primary" class="d-val">-</span></div>
-              <div class="data-row"><span class="d-key">Minimum Secondary Frontage:</span><span id="v-sb-secondary" class="d-val">-</span></div>
-              <div class="data-row"><span class="d-key">Minimum Side Setback:</span><span id="v-sb-side" class="d-val">-</span></div>
-              <div class="data-row"><span class="d-key">Minimum Rear Setback:</span><span id="v-sb-rear" class="d-val">-</span></div>
-              <div class="data-row"><span class="d-key">Minimum Water Setback:</span><span id="v-sb-water" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Minimum Primary Frontage:</span><span id="v-sb-primary"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Minimum Secondary Frontage:</span><span id="v-sb-secondary"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Minimum Side Setback:</span><span id="v-sb-side"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Minimum Rear Setback:</span><span id="v-sb-rear"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Minimum Water Setback:</span><span id="v-sb-water"
+                  class="d-val">-</span></div>
             </div>
           </div>
         </div>
@@ -225,20 +270,34 @@
         <div id="view-capacity" class="tab-view hidden">
           <div class="card-section">
             <div class="data-table">
-              <div class="data-row"><span class="d-key">Maximum Building Area:</span><span id="v-cp-bldgArea" class="d-val text-cyan">-</span></div>
-              <div class="data-row"><span class="d-key">Maximum Height - Stories:</span><span id="v-cp-stories" class="d-val">-</span></div>
-              <div class="data-row"><span class="d-key">Maximum Building Height:</span><span id="v-cp-height" class="d-val">-</span></div>
-              <div class="data-row"><span class="d-key">Floor Area Ratio (FAR):</span><span id="v-cp-far" class="d-val">-</span></div>
-              <div class="data-row"><span class="d-key">Maximum Lot Coverage:</span><span id="v-cp-lotCov" class="d-val">-</span></div>
-              <div class="data-row"><span class="d-key">Maximum Building Footprint:</span><span id="v-cp-footprint" class="d-val">-</span></div>
-              <div class="data-row"><span class="d-key">Minimum Open Space:</span><span id="v-cp-openSpace" class="d-val">-</span></div>
-              <div class="data-row"><span class="d-key">Residential Density:</span><span id="v-cp-resDensity" class="d-val">-</span></div>
-              <div class="data-row"><span class="d-key">Max Residential Area Allowed:</span><span id="v-cp-resArea" class="d-val">-</span></div>
-              <div class="data-row"><span class="d-key">Max Residential Units Allowed:</span><span id="v-cp-resUnits" class="d-val text-green">-</span></div>
-              <div class="data-row"><span class="d-key">Lodging Density:</span><span id="v-cp-lodgingDensity" class="d-val">-</span></div>
-              <div class="data-row"><span class="d-key">Max Lodging Area Allowed:</span><span id="v-cp-lodgingArea" class="d-val">-</span></div>
-              <div class="data-row"><span class="d-key">Max Office Area Allowed:</span><span id="v-cp-officeArea" class="d-val">-</span></div>
-              <div class="data-row"><span class="d-key">Max Commercial Area Allowed:</span><span id="v-cp-commArea" class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Maximum Building Area:</span><span id="v-cp-bldgArea"
+                  class="d-val text-cyan">-</span></div>
+              <div class="data-row"><span class="d-key">Maximum Height - Stories:</span><span id="v-cp-stories"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Maximum Building Height:</span><span id="v-cp-height"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Floor Area Ratio (FAR):</span><span id="v-cp-far"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Maximum Lot Coverage:</span><span id="v-cp-lotCov"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Maximum Building Footprint:</span><span id="v-cp-footprint"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Minimum Open Space:</span><span id="v-cp-openSpace"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Residential Density:</span><span id="v-cp-resDensity"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Max Residential Area Allowed:</span><span id="v-cp-resArea"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Max Residential Units Allowed:</span><span id="v-cp-resUnits"
+                  class="d-val text-green">-</span></div>
+              <div class="data-row"><span class="d-key">Lodging Density:</span><span id="v-cp-lodgingDensity"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Max Lodging Area Allowed:</span><span id="v-cp-lodgingArea"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Max Office Area Allowed:</span><span id="v-cp-officeArea"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Max Commercial Area Allowed:</span><span id="v-cp-commArea"
+                  class="d-val">-</span></div>
             </div>
           </div>
         </div>
@@ -273,7 +332,8 @@
           </svg>
           <span>Copy JSON</span>
         </button>
-        <button id="btn-download-map" class="action-btn btn-secondary-download" title="Open official Parcels / Plat Map Viewer">
+        <button id="btn-download-map" class="action-btn btn-secondary-download"
+          title="Open official Parcels / Plat Map Viewer">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
             <polyline points="7 10 12 15 17 10"></polyline>
@@ -295,7 +355,8 @@
           <h3 class="modal-title">Orange County (OCGIS) Yêu Cầu VPN</h3>
         </div>
         <p class="modal-desc">
-          Hệ thống OCGIS chặn kết nối ngoài Hoa Kỳ. Vui lòng bật VPN máy chủ US (Mỹ) để tải bản đồ PDF gốc, hoặc chọn tải bản đồ quy hoạch dự phòng.
+          Hệ thống OCGIS chặn kết nối ngoài Hoa Kỳ. Vui lòng bật VPN máy chủ US (Mỹ) để tải bản đồ PDF gốc, hoặc chọn
+          tải bản đồ quy hoạch dự phòng.
         </p>
         <div class="modal-actions">
           <button id="btn-vpn-retry" class="modal-btn btn-vpn-primary">⚡ Đã Bật VPN US (Thử Lại)</button>
@@ -306,9 +367,11 @@
     </div>
   </div>
 
+  <script src="../config/ca-cities-data.js"></script>
   <script src="../config/county-detector.js"></script>
   <script src="../config/map-sources.js"></script>
   <script src="../config/rules.js"></script>
   <script src="popup.js"></script>
 </body>
+
 </html>

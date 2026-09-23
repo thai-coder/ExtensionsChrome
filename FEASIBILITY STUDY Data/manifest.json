@@ -59,14 +59,26 @@
   "content_scripts": [
     {
       "matches": [
-        "https://propzone.gridics.com/*",
+        "https://propzone.gridics.com/*"
+      ],
+      "js": [
+        "content/floating-ui.js",
+        "config/ca-cities-data.js",
+        "config/county-detector.js",
+        "config/rules.js",
+        "content/propzone-map-extractor.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
         "https://portal.assessor.lacounty.gov/*",
         "https://webapps.ocgis.com/*",
         "https://experience.arcgis.com/*",
         "https://*.redfin.com/*",
         "https://*.zillow.com/*"
       ],
-      "js": ["config/county-detector.js", "config/rules.js", "content/extractor.js"],
+      "js": ["content/floating-ui.js", "config/ca-cities-data.js", "config/county-detector.js", "config/rules.js", "content/extractor.js"],
       "run_at": "document_idle"
     },
     {
@@ -77,14 +89,17 @@
         "https://*.google.co.uk/search*",
         "https://*.google.com.au/search*"
       ],
-      "js": ["config/county-detector.js", "content/google-extractor.js"],
+      "js": ["config/ca-cities-data.js", "config/county-detector.js", "content/google-extractor.js"],
       "run_at": "document_idle"
     },
     {
       "matches": [
         "https://webapps.ocgis.com/*"
       ],
-      "js": ["content/ocgis-map-extractor.js"],
+      "js": [
+        "content/floating-ui.js",
+        "content/ocgis-map-extractor.js"
+      ],
       "run_at": "document_idle"
     },
     {

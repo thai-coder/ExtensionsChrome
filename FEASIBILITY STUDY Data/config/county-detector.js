@@ -77,6 +77,110 @@
     }
   };
 
+  const CA_CITY_ALIASES = {
+    "angels": "Angels Camp",
+    "angelscamp": "Angels Camp",
+    "cityofindustry": "Industry",
+    "industrycity": "Industry",
+    "mtshasta": "Mount Shasta",
+    "mountshasta": "Mount Shasta",
+    "sanbuenaventura": "Ventura",
+    "hollywood": "Los Angeles",
+    "westhollywood": "West Hollywood",
+    "northhollywood": "Los Angeles",
+    "studiocity": "Los Angeles",
+    "shermanoaks": "Los Angeles",
+    "encino": "Los Angeles",
+    "vannuys": "Los Angeles",
+    "venice": "Los Angeles",
+    "tarzana": "Los Angeles",
+    "woodlandhills": "Los Angeles",
+    "reseda": "Los Angeles",
+    "chatsworth": "Los Angeles",
+    "northridge": "Los Angeles",
+    "sanpedro": "Los Angeles",
+    "marinadelrey": "Los Angeles",
+    "eastlosangeles": "Los Angeles",
+    "altadena": "Los Angeles",
+    "rowlandheights": "Los Angeles",
+    "haciendaheights": "Los Angeles",
+    "castaic": "Los Angeles",
+    "valencia": "Santa Clarita",
+    "stevensonranch": "Los Angeles",
+    "canyoncountry": "Santa Clarita",
+    "centurycity": "Los Angeles",
+    "belair": "Los Angeles",
+    "brentwoodla": "Los Angeles",
+    "pacificpalisades": "Los Angeles",
+    "playadelrey": "Los Angeles",
+    "playavista": "Los Angeles"
+  };
+
+  function normalizeGeoKey(value) {
+    if (!value) return "";
+    return String(value)
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "");
+  }
+
+  function getCitiesList() {
+    if (typeof window !== "undefined" && Array.isArray(window.CA_CITY_COUNTY)) {
+      return window.CA_CITY_COUNTY;
+    }
+    if (typeof globalThis !== "undefined" && Array.isArray(globalThis.CA_CITY_COUNTY)) {
+      return globalThis.CA_CITY_COUNTY;
+    }
+    return [];
+  }
+
+  function lookupCityOffline(cityInput) {
+    if (!cityInput) return null;
+    const clean = String(cityInput).trim();
+    const key = normalizeGeoKey(clean);
+    if (!key) return null;
+
+    const cities = getCitiesList();
+
+    // 1. Kiểm tra alias trước
+    const aliasTarget = CA_CITY_ALIASES[key];
+    if (aliasTarget) {
+      const aliasKey = normalizeGeoKey(aliasTarget);
+      const hit = cities.find(x => normalizeGeoKey(x.city) === aliasKey);
+      if (hit) return hit;
+    }
+
+    // 2. Tra cứu trực tiếp theo normalized key
+    const directHit = cities.find(x => normalizeGeoKey(x.city) === key);
+    if (directHit) return directHit;
+
+    // 3. Tra cứu bỏ tiền tố "city of" / "town of"
+    const stripped = key.replace(/^(cityof|townof)/, "");
+    if (stripped && stripped !== key) {
+      const strippedHit = cities.find(x => normalizeGeoKey(x.city) === stripped);
+      if (strippedHit) return strippedHit;
+    }
+
+    return null;
+  }
+
+  function getCountyKeyFromCountyName(countyName) {
+    if (!countyName) return "orange";
+    const lower = countyName.toLowerCase();
+    if (lower.includes("orange")) return "orange";
+    if (lower.includes("los angeles")) return "losAngeles";
+    if (lower.includes("riverside")) return "riverside";
+    if (lower.includes("san bernardino")) return "sanBernardino";
+
+    return lower
+      .replace(/[^a-z0-9\s]/g, "")
+      .trim()
+      .split(/\s+/)
+      .map((w, i) => (i === 0 ? w : w.charAt(0).toUpperCase() + w.slice(1)))
+      .join("");
+  }
+
   const CITY_SPECIFIC_PROFILES = {
     ontario: {
       cityName: "Ontario",
@@ -94,14 +198,23 @@
 
   class CountyDetector {
     /**
+     * Tra cứu offline thành phố từ từ điển 483 thành phố CA
+     */
+    static lookupCity(cityName) {
+      return lookupCityOffline(cityName);
+    }
+
+    /**
      * Phân tích địa chỉ và trả về thông tin Quận & Thành phố tương ứng
+     * Hỗ trợ địa chỉ đầy đủ hoặc rút gọn: [Số nhà tên đường], [Thành phố]
      * @param {string} address 
      * @returns {Object}
      */
     static detect(address) {
       if (!address) return { countyKey: "orange", ...CA_COUNTY_DATABASE.orange, confidence: "default" };
 
-      const lower = address.toLowerCase();
+      const trimmedAddress = String(address).trim();
+      const lower = trimmedAddress.toLowerCase();
 
       // 0. Kiểm tra trực tiếp City Profiles đặc biệt (như City of Ontario)
       for (const [cityKey, profile] of Object.entries(CITY_SPECIFIC_PROFILES)) {
@@ -118,50 +231,138 @@
         }
       }
 
-      // 1. Kiểm tra trực tiếp tên Quận trong chuỗi
-      if (lower.includes("orange county") || lower.includes("orange, ca")) {
-        return { countyKey: "orange", ...CA_COUNTY_DATABASE.orange, confidence: "high" };
-      }
-      if (lower.includes("los angeles county") || lower.includes("la county")) {
-        return { countyKey: "losAngeles", ...CA_COUNTY_DATABASE.losAngeles, confidence: "high" };
-      }
-      if (lower.includes("riverside county")) {
-        return { countyKey: "riverside", ...CA_COUNTY_DATABASE.riverside, confidence: "high" };
-      }
-      if (lower.includes("san bernardino county")) {
-        return { countyKey: "sanBernardino", ...CA_COUNTY_DATABASE.sanBernardino, confidence: "high" };
-      }
+      // 1. PHÂN TÍCH ĐỊA CHỈ CÓ DẤU PHẨY [Street], [City] hoặc [Street], [City], [State Zip]
+      if (trimmedAddress.includes(",")) {
+        const parts = trimmedAddress.split(",").map(p => p.trim()).filter(Boolean);
+        if (parts.length >= 2) {
+          // Lấy đoạn thứ 2 (chứa City)
+          let cityCandidate = parts[1]
+            .replace(/\b(ca|california|usa)\b/gi, "")
+            .replace(/\b\d{5}(-\d{4})?\b/g, "")
+            .trim();
 
-      // 2. Kiểm tra theo tên Thành Phố
-      for (const [key, county] of Object.entries(CA_COUNTY_DATABASE)) {
-        for (const city of county.cities) {
-          const regex = new RegExp(`\\b${city}\\b`, "i");
-          if (regex.test(lower)) {
-            const cityProf = (county.cityProfiles && county.cityProfiles[city]) || null;
-            return {
-              countyKey: key,
-              ...county,
-              ...(cityProf || {}),
-              matchedCity: city,
-              confidence: "city_match"
+          const cityHit = lookupCityOffline(cityCandidate);
+          if (cityHit) {
+            const countyKey = getCountyKeyFromCountyName(cityHit.county);
+            const countyBase = CA_COUNTY_DATABASE[countyKey] || {
+              name: `${cityHit.county} County`,
+              state: "CA",
+              countySlug: `${cityHit.countySlug}-county`,
+              assessorUrl: `https://www.google.com/search?q=${encodeURIComponent(cityHit.county + " County Assessor")}`
             };
+
+            return {
+              countyKey: countyKey,
+              ...countyBase,
+              countyName: `${cityHit.county} County`,
+              matchedCity: cityHit.city.toLowerCase(),
+              citySlug: cityHit.citySlug,
+              jurisdiction: cityHit.jurisdiction,
+              confidence: "offline_comma_city"
+            };
+          }
+
+          // Thử thêm đoạn thứ 3 nếu có
+          if (parts.length >= 3) {
+            let cityCandidate3 = parts[2]
+              .replace(/\b(ca|california|usa)\b/gi, "")
+              .replace(/\b\d{5}(-\d{4})?\b/g, "")
+              .trim();
+            const cityHit3 = lookupCityOffline(cityCandidate3);
+            if (cityHit3) {
+              const countyKey = getCountyKeyFromCountyName(cityHit3.county);
+              const countyBase = CA_COUNTY_DATABASE[countyKey] || {
+                name: `${cityHit3.county} County`,
+                state: "CA",
+                countySlug: `${cityHit3.countySlug}-county`
+              };
+              return {
+                countyKey: countyKey,
+                ...countyBase,
+                countyName: `${cityHit3.county} County`,
+                matchedCity: cityHit3.city.toLowerCase(),
+                citySlug: cityHit3.citySlug,
+                jurisdiction: cityHit3.jurisdiction,
+                confidence: "offline_comma_city_p3"
+              };
+            }
           }
         }
       }
 
-      // 3. Kiểm tra theo Zipcode 5 số
-      const zipMatch = address.match(/\b(9\d{4})\b/);
+      // 2. Kiểm tra trực tiếp tên Quận trong chuỗi
+      if (lower.includes("orange county") || lower.includes("orange, ca")) {
+        return { countyKey: "orange", ...CA_COUNTY_DATABASE.orange, confidence: "high_county_text" };
+      }
+      if (lower.includes("los angeles county") || lower.includes("la county")) {
+        return { countyKey: "losAngeles", ...CA_COUNTY_DATABASE.losAngeles, confidence: "high_county_text" };
+      }
+      if (lower.includes("riverside county")) {
+        return { countyKey: "riverside", ...CA_COUNTY_DATABASE.riverside, confidence: "high_county_text" };
+      }
+      if (lower.includes("san bernardino county")) {
+        return { countyKey: "sanBernardino", ...CA_COUNTY_DATABASE.sanBernardino, confidence: "high_county_text" };
+      }
+
+      // 3. Quét qua từ điển 483 thành phố (Offline match)
+      const cities = getCitiesList();
+      for (const item of cities) {
+        const regex = new RegExp(`\\b${item.city.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, "i");
+        if (regex.test(trimmedAddress)) {
+          const countyKey = getCountyKeyFromCountyName(item.county);
+          const countyBase = CA_COUNTY_DATABASE[countyKey] || {
+            name: `${item.county} County`,
+            state: "CA",
+            countySlug: `${item.countySlug}-county`,
+            assessorUrl: `https://www.google.com/search?q=${encodeURIComponent(item.county + " County Assessor")}`
+          };
+
+          return {
+            countyKey: countyKey,
+            ...countyBase,
+            countyName: `${item.county} County`,
+            matchedCity: item.city.toLowerCase(),
+            citySlug: item.citySlug,
+            jurisdiction: item.jurisdiction,
+            confidence: "offline_city_match"
+          };
+        }
+      }
+
+      // 4. Kiểm tra theo Zipcode 5 số
+      const zipMatch = trimmedAddress.match(/\b(9\d{4})\b/);
       if (zipMatch) {
         const zip = zipMatch[1];
         for (const [key, county] of Object.entries(CA_COUNTY_DATABASE)) {
-          if (county.zipPrefixes.some(p => zip.startsWith(p))) {
+          if (county.zipPrefixes && county.zipPrefixes.some(p => zip.startsWith(p))) {
             return { countyKey: key, ...county, matchedZip: zip, confidence: "zip_match" };
           }
         }
       }
 
-      // Default fallback là Orange County
-      return { countyKey: "orange", ...CA_COUNTY_DATABASE.orange, confidence: "fallback" };
+      // 5. Kiểm tra nếu chỉ có số nhà + tên đường (thiếu Thành phố / Zip)
+      const isStreetOnly = /^\d+\s+[a-z0-9\s.#\/-]+$/i.test(trimmedAddress) && !trimmedAddress.includes(",");
+      if (isStreetOnly) {
+        return { 
+          countyKey: "unknown", 
+          name: "Không Xác Định", 
+          state: "CA",
+          countySlug: "unknown",
+          confidence: "missing_city_warning", 
+          isStreetOnly: true,
+          isUnknown: true 
+        };
+      }
+
+      // Default fallback: Không tìm thấy thông tin phù hợp
+      return { 
+        countyKey: "unknown", 
+        name: "Không Xác Định", 
+        state: "CA",
+        countySlug: "unknown",
+        confidence: "unknown", 
+        isUnknown: true 
+      };
     }
 
     /**

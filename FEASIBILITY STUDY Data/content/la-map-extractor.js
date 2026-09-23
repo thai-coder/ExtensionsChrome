@@ -108,11 +108,16 @@
       console.log("[LA Map Extractor] [Bước 2] Đã lưu 2 link Parcels và Tract Map vào storage cho Popup.");
     }
 
-    // Hiển thị thông báo Floating UI
+    // Hiển thị thông báo Floating UI kèm 2 nút link Parcels & Tract Map
     if (typeof FloatingUI !== 'undefined') {
       FloatingUI.showSuccess(
         "Trích xuất LA Assessor thành công!",
-        `Parcels: ${parcelMapUrl ? "Đã sẵn sàng" : "N/A"}\nTract Map: ${mapIndexUrl ? "Đã sẵn sàng" : "N/A"}`
+        `Parcels: ${parcelMapUrl ? "Đã sẵn sàng" : "N/A"}\nTract Map: ${mapIndexUrl ? "Đã sẵn sàng" : "N/A"}`,
+        8000,
+        {
+          parcels: parcelMapUrl,
+          tractMap: mapIndexUrl
+        }
       );
     }
 

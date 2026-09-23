@@ -109,97 +109,7 @@
     return fallbackShortAddress || null;
   }
 
-  // Kiểm tra sự xuất hiện của khối thẻ .tables và các bảng phân loại trên PropZone Gridics
-  function hasGridicsTablesDOM() {
-    const tablesEl = document.querySelector('.tables') || document.querySelector('.tab.capacity .tables');
-    if (tablesEl && (tablesEl.children.length > 0 || tablesEl.innerText.trim().length > 10)) return true;
-    const hasTableIds = document.querySelector('#Zoning.table, #Lot.table, #Setbacks.table, #Capacity.table, #Zoning, #Lot, #Setbacks, #Capacity');
-    return !!hasTableIds;
-  }
-
-  // 1. Trích xuất Gridics PropZone Data trực tiếp từ container .tables & các #ID (Zoning, Setbacks, Capacity, Lot)
-  function extractGridicsData() {
-    const results = { lot: {}, zoning: {}, setbacks: {}, capacity: {} };
-
-    const SECTION_MAPPINGS = [
-      { id: 'Lot', key: 'lot' },
-      { id: 'Zoning', key: 'zoning' },
-      { id: 'Setbacks', key: 'setbacks' },
-      { id: 'Capacity', key: 'capacity' }
-    ];
-
-    SECTION_MAPPINGS.forEach(({ id, key }) => {
-      // Tìm container chính xác theo ID bảng (#Lot, #Zoning, #Setbacks, #Capacity) hoặc class
-      const secContainer = document.querySelector(`#${id}`) 
-                        || document.querySelector(`[id="${id}" i]`) 
-                        || document.querySelector(`.tables #${id}`)
-                        || document.querySelector(`.${id.toLowerCase()}`)
-                        || Array.from(document.querySelectorAll('.table, .card, [class*="section"]')).find(el => {
-                             const h = el.querySelector('h1, h2, h3, h4, h5, header, [class*="title"], [class*="header"]');
-                             return h && (h.innerText || '').trim().toUpperCase() === id.toUpperCase();
-                           });
-
-      if (!secContainer) return;
-
-      const rows = secContainer.querySelectorAll('tr, li, div[class*="row"], div[class*="item"], div[class*="spec"], div[style*="flex"], div');
-      rows.forEach(row => {
-        if (row.children.length > 4) return;
-        const text = (row.innerText || '').trim();
-        if (!text || text.toUpperCase() === id.toUpperCase()) return;
-
-        let rowKey = '';
-        let rowVal = '';
-
-        if (text.includes(':')) {
-          const firstColon = text.indexOf(':');
-          rowKey = text.slice(0, firstColon).trim();
-          rowVal = text.slice(firstColon + 1).trim();
-        } else if (row.children.length === 2) {
-          rowKey = (row.children[0].innerText || '').trim();
-          rowVal = (row.children[1].innerText || '').trim();
-        } else {
-          const lbl = row.querySelector('[class*="label"], [class*="name"], span:first-child');
-          const v = row.querySelector('[class*="value"], [class*="content"], span:last-child');
-          if (lbl && v && lbl !== v) {
-            rowKey = lbl.innerText.trim();
-            rowVal = v.innerText.trim();
-          }
-        }
-
-        const linkEl = row.querySelector('a[href]');
-        const rowHref = linkEl ? linkEl.href : null;
-
-        if (rowKey && rowVal && rowKey.length < 60 && rowKey !== rowVal) {
-          const camelKey = toCamelCase(rowKey);
-          if (camelKey) {
-            results[key][camelKey] = parseVal(camelKey, rowVal);
-            if (rowHref) {
-              results[key][camelKey + 'Url'] = rowHref;
-              if (camelKey === 'zoningCode' || /zone\s*code/i.test(rowKey)) {
-                results.zoning.zoningCodeUrl = rowHref;
-              }
-            }
-          }
-        }
-      });
-    });
-
-    if (!results.zoning.zoningCodeUrl) {
-      const zoningLinkEl = document.querySelector('a[href*="municode" i], a[href*="codepublishing" i], a[href*="qcode" i], a[href*="amlegal" i], a[href*="zoning" i]');
-      if (zoningLinkEl && zoningLinkEl.href) {
-        results.zoning.zoningCodeUrl = zoningLinkEl.href;
-      }
-    }
-
-    const pageAddr = extractPageAddress();
-    if (pageAddr && !results.lot.projectAddress) {
-      results.lot.projectAddress = pageAddr;
-    }
-
-    return results;
-  }
-
-  // 2. Trích xuất Đa Năng Cho Mọi Trang GIS (OCGIS, LA Assessor, Redfin, Zillow)
+  // 1. Trích xuất Đa Năng Cho Mọi Trang GIS (OCGIS, LA Assessor, Redfin, Zillow)
   function extractUniversalDOMData() {
     const fullText = document.body ? (document.body.innerText || '') : '';
     const lot = {};
@@ -322,33 +232,18 @@
     return { lot, zoning, setbacks, capacity };
   }
 
-  // 3. Tổng Hợp Dữ Liệu
+  // 2. Tổng Hợp Dữ Liệu Universal
   function extractAllData() {
-    const isGridics = window.location.hostname.includes('propzone') || window.location.hostname.includes('gridics');
-    
+    const uData = extractUniversalDOMData();
     let base = {
       scrapedAt: new Date().toISOString(),
       domain: window.location.hostname,
       url: window.location.href,
-      lot: {},
-      zoning: {},
-      setbacks: {},
-      capacity: {}
+      lot: uData.lot || {},
+      zoning: uData.zoning || {},
+      setbacks: uData.setbacks || {},
+      capacity: uData.capacity || {}
     };
-
-    if (isGridics) {
-      const gData = extractGridicsData();
-      base.lot = { ...base.lot, ...gData.lot };
-      base.zoning = { ...base.zoning, ...gData.zoning };
-      base.setbacks = { ...base.setbacks, ...gData.setbacks };
-      base.capacity = { ...base.capacity, ...gData.capacity };
-    }
-
-    const uData = extractUniversalDOMData();
-    base.lot = { ...uData.lot, ...base.lot };
-    base.zoning = { ...uData.zoning, ...base.zoning };
-    base.setbacks = { ...uData.setbacks, ...base.setbacks };
-    base.capacity = { ...uData.capacity, ...base.capacity };
 
     base.apn = base.lot.parcelId || base.lot.parcelNumber || base.lot.apn || null;
     base.address = base.lot.projectAddress || base.lot.address || base.lot.situsAddress || extractPageAddress() || null;
@@ -359,264 +254,146 @@
     return base;
   }
 
-  // Mở rộng các accordion ZONING, SETBACKS, CAPACITY nếu đang bị đóng (Idempotent Safe Click)
-  function ensureGridicsAccordionsExpanded() {
-    try {
-      const headers = Array.from(document.querySelectorAll('.tables .table, .tables [id], button, [role="button"], [class*="header"], [class*="title"], [class*="accordion"], summary'));
-      for (const el of headers) {
-        if (el.dataset.propzoneExpanded === "true") continue;
 
-        const id = el.id || '';
-        const text = (el.innerText || el.textContent || '').trim().toUpperCase();
-        if (id === 'Zoning' || id === 'Setbacks' || id === 'Capacity' || id === 'Lot' ||
-            text.includes('ZONING') || text.includes('SETBACK') || text.includes('CAPACITY') || text.includes('LOT') || text.includes('OVERVIEW')) {
-          const isCollapsed = el.getAttribute('aria-expanded') === 'false' 
-                           || el.classList.contains('collapsed')
-                           || el.classList.contains('close');
-          if (isCollapsed) {
-            el.click();
-            el.dataset.propzoneExpanded = "true";
-          } else if (el.getAttribute('aria-expanded') === 'true') {
-            el.dataset.propzoneExpanded = "true";
-          }
-        }
-      }
-    } catch (e) {}
+
+  // 3. QUY TRÌNH BÓC TÁCH KHI CÓ LỆNH ĐIỀU HƯỚNG TỪ EXTENSION
+
+  // 3. NHẬN DIỆN TÊN CỔNG TRA CỨU
+  function getPortalDisplayName() {
+    const host = window.location.hostname.toLowerCase();
+    if (host.includes('zillow')) return 'Zillow';
+    if (host.includes('redfin')) return 'Redfin';
+    if (host.includes('assessor.lacounty.gov')) return 'LA Assessor';
+    if (host.includes('ocgis')) return 'OCGIS Map';
+    if (host.includes('arcgis')) return 'FEMA / ArcGIS';
+    return host;
   }
 
-  // Kiểm tra nhanh thông báo không tìm thấy lô đất trên PropZone
-  function checkPropZoneNotFound() {
-    const text = document.body ? (document.body.innerText || '') : '';
-    return /no property found|property not found|no parcel found|invalid folio|no data available/i.test(text);
-  }
+  // 4. HIỂN THỊ THÔNG BÁO NỔI (FLOATING UI) KÈM NÚT MAP KHI TRÍCH XUẤT THÀNH CÔNG
+  function showExtractionSuccessNotification(data, sourceTitle) {
+    if (typeof FloatingUI === 'undefined') return;
 
-  // Kiểm tra xem dữ liệu PropZone đã được tải đầy đủ các khối hay chưa
-  function isPropZoneDataFullyLoaded(data, elapsedSec = 0) {
-    if (!data) return { ready: false, count: 0, reason: "NO_DATA" };
+    const lot = data?.lot || {};
+    const zoning = data?.zoning || {};
+    const capacity = data?.capacity || {};
 
-    const isGridics = window.location.hostname.includes('propzone') || window.location.hostname.includes('gridics');
+    const address = lot.projectAddress || data?.address || window.location.hostname;
+    const apn = lot.parcelId || data?.apn || "N/A";
+    const zone = zoning.zoningCode || zoning.zoningDistrict || "N/A";
 
-    // BẮT BUỘC TRÊN PROPZONE: Phải xuất hiện thẻ container .tables hoặc các bảng #Zoning, #Lot, #Setbacks
-    if (isGridics) {
-      const hasTables = hasGridicsTablesDOM();
-      if (!hasTables) {
-        return { ready: false, count: 0, reason: "WAITING_FOR_TABLES_DOM" };
-      }
+    const lines = [];
+    if (address && address !== window.location.hostname) {
+      lines.push(`📍 ${address}`);
+    }
+    lines.push(`🏷️ APN: ${apn}  |  🏛️ Zone: ${zone}`);
+
+    const details = [];
+    const lotArea = lot.lotAreaTaxRecord || lot.lotAreaParcelShape || lot.lotAreaAcres;
+    if (lotArea) {
+      details.push(`Lot: ${typeof lotArea === 'number' ? lotArea.toLocaleString() : lotArea} sqft`);
+    }
+    if (capacity.maximumBuildingHeight) {
+      details.push(`Max Height: ${capacity.maximumBuildingHeight}`);
+    }
+    if (details.length > 0) {
+      lines.push(details.join('  •  '));
     }
 
-    const lot = data.lot || {};
-    const zoning = data.zoning || {};
-    const capacity = data.capacity || {};
-    const setbacks = data.setbacks || {};
+    const title = `Trích xuất ${sourceTitle || 'dữ liệu'} thành công!`;
+    const message = lines.join('\n');
 
-    const hasLot = !!(lot.lotAreaTaxRecord || lot.existingBuildingArea || lot.yearBuilt || lot.lotAreaAcres || lot.existingLivingUnits || Object.keys(lot).length >= 1);
-    const hasZoning = !!(zoning.zoningDistrict || zoning.zoningCode || zoning.existingLandUse || zoning.zoningCodeUrl || Object.keys(zoning).length >= 1);
-    const hasSetbacks = !!(setbacks.minimumPrimaryFrontageSetback || setbacks.minimumRearSetback || setbacks.minimumSideSetback || Object.keys(setbacks).length >= 1);
-    const hasCapacity = !!(capacity.maximumBuildingHeight || capacity.maximumBuildingArea || capacity.maximumHeightStories || capacity.maximumResidentialUnits || Object.keys(capacity).length >= 1);
-
-    let realFieldCount = 0;
-    [lot, zoning, capacity, setbacks].forEach(sec => {
-      Object.keys(sec).forEach(k => {
-        if (k !== 'parcelId' && k !== 'projectAddress' && k !== 'address' && sec[k] !== null && sec[k] !== undefined && sec[k] !== '' && sec[k] !== '-') {
-          realFieldCount++;
-        }
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.get(['ocgisMapLinks'], (res) => {
+        const mapLinks = res?.ocgisMapLinks || null;
+        FloatingUI.showSuccess(title, message, 8000, mapLinks);
       });
-    });
-
-    // 1. Điều kiện lý tưởng: Đã có .tables trong DOM VÀ có đầy đủ cả Lot, Zoning, Setbacks hoặc Capacity (hoặc >= 6 trường)
-    const isIdealComplete = (hasLot && hasZoning && (hasSetbacks || hasCapacity)) || realFieldCount >= 6;
-    if (isIdealComplete) {
-      return { ready: true, count: realFieldCount, reason: "IDEAL_COMPLETE_WITH_TABLES" };
-    }
-
-    // 2. Đã có .tables trong DOM và đã có ít nhất Lot hoặc Zoning (realFieldCount >= 3) sau 3.5s
-    if (elapsedSec >= 3.5 && ((hasLot && hasZoning) || realFieldCount >= 3)) {
-      return { ready: true, count: realFieldCount, reason: "TABLES_READY_STABLE" };
-    }
-
-    return { ready: false, count: realFieldCount, reason: "WAITING_TABLES_CONTENT" };
-  }
-
-  /**
-   * Tự động tìm khung search #map-search trên PropZone, nhập địa chỉ và kích hoạt nút Search
-   */
-  function performPropZoneMapSearch(targetAddress) {
-    if (!targetAddress || !targetAddress.trim()) return false;
-    const cleanAddress = targetAddress.trim();
-
-    const searchInput = document.querySelector('#map-search input[name="search"]') || 
-                        document.querySelector('#map-search input') ||
-                        document.querySelector('.map-search input[name="search"]') ||
-                        document.querySelector('.search-box.map input') ||
-                        document.querySelector('input[placeholder="Place or Address"]');
-
-    if (!searchInput) return false;
-
-    try {
-      const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
-      if (nativeSetter) {
-        nativeSetter.call(searchInput, cleanAddress);
-      } else {
-        searchInput.value = cleanAddress;
-      }
-
-      searchInput.dispatchEvent(new Event('input', { bubbles: true }));
-      searchInput.dispatchEvent(new Event('change', { bubbles: true }));
-
-      const submitBtn = document.querySelector('#map-search button.form-submit') || 
-                        document.querySelector('#map-search button[aria-label="Search"]') ||
-                        document.querySelector('.map-search button.form-submit') ||
-                        document.querySelector('button.form-submit.extra');
-
-      if (submitBtn) {
-        submitBtn.click();
-      } else {
-        const form = searchInput.closest('form');
-        if (form) {
-          form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-        } else {
-          searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13, bubbles: true }));
-        }
-      }
-      return true;
-    } catch (e) {
-      console.warn("[PropZone] Fallback map search failed:", e);
-      return false;
+    } else {
+      FloatingUI.showSuccess(title, message, 8000);
     }
   }
 
-  // 4. QUY TRÌNH PIPELINE TRÊN PROPZONE (CHẾ ĐỘ EAGER EXTRACTION TỨC THÌ)
-  async function startPropZonePipeline() {
-    try {
-      const isGridics = window.location.hostname.includes('propzone') || window.location.hostname.includes('gridics');
-      const urlParams = new URLSearchParams(window.location.search);
-      const hasTargetFolio = urlParams.has('folio') || urlParams.has('apn') || urlParams.has('parcelId') || urlParams.has('leftOverlay');
+  // 5. BÓC TÁCH KHI CÓ LỆNH ĐIỀU HƯỚNG TỪ EXTENSION (KHÔNG CHẠY KHI F5/RELOAD THÔNG THƯỜNG)
+  function initCommandedExtractor() {
+    if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.local) return;
 
-      if (!isGridics || !hasTargetFolio) return;
+    chrome.storage.local.get(['pendingExtractorCommand'], (res) => {
+      const cmd = res?.pendingExtractorCommand;
+      if (!cmd) return;
 
-      chrome.runtime.sendMessage({ action: "GET_PROPZONE_PIPELINE_ROLE" }, (pzRoleRes) => {
-        if (chrome.runtime.lastError || !pzRoleRes || pzRoleRes.role !== "AUTO_PIPELINE") {
-          return; // Mở thủ công: tuyệt đối không can thiệp hay thay đổi bất cứ điều gì trên trang web
-        }
+      const now = Date.now();
+      const isFresh = cmd.timestamp && (now - cmd.timestamp < 60000);
+      const isMatching = cmd.url && (
+        window.location.href.includes(cmd.url) ||
+        cmd.url.includes(window.location.hostname) ||
+        (cmd.portalKey === 'fema' && window.location.hostname.includes('arcgis'))
+      );
 
-      const targetAddress = pzRoleRes.address || pzRoleRes.apn || "";
-      let hasAttemptedMapSearch = false;
-      let isCompleted = false;
-      let checkCount = 0;
-      let lastFieldCount = 0;
-      let stableConsecutiveCycles = 0;
+      if (!isFresh || !isMatching) return;
+
+      // XÓA NGAY LẬP TỨC ĐỂ RELOAD (F5) SAU ĐÓ KHÔNG BỊ COI LÀ LỆNH
+      chrome.storage.local.remove('pendingExtractorCommand');
+
+      let isDone = false;
       let startTime = Date.now();
 
       const tryExtract = () => {
-        if (isCompleted) return;
-        checkCount++;
+        if (isDone) return;
         const elapsedSec = (Date.now() - startTime) / 1000;
 
-        try {
-          ensureGridicsAccordionsExpanded();
+        const data = extractAllData();
+        const lot = data.lot || {};
+        const zoning = data.zoning || {};
+        const hasKeyData = !!(lot.parcelId || zoning.zoningCode || zoning.zoningDistrict || lot.projectAddress || data.address);
 
-          const data = extractAllData();
-          const status = isPropZoneDataFullyLoaded(data, elapsedSec);
+        if (hasKeyData || elapsedSec >= 4) {
+          isDone = true;
+          cleanup();
 
-          if (status.count > 0 && status.count === lastFieldCount) {
-            stableConsecutiveCycles++;
-          } else {
-            stableConsecutiveCycles = 0;
-            lastFieldCount = status.count;
-          }
+          chrome.runtime.sendMessage({
+            action: "AUTO_SAVE_FULL_EXTRACTED_DATA",
+            data: data
+          });
 
-          // Kiểm tra hoàn tất:
-          // (a) Đủ Lot + Zoning + Setbacks/Capacity VÀ ổn định qua ít nhất 2 chu kỳ (~800ms)
-          // (b) Hoặc đã quét qua 4 giây và có ít nhất Lot + Zoning (>= 3 trường)
-          const isDone = (status.ready && stableConsecutiveCycles >= 2) || (elapsedSec >= 4 && status.count >= 3);
-
-          if (isDone) {
-            isCompleted = true;
-            cleanup();
-
-            // Đợi 600ms an toàn rồi gửi lệnh lưu dữ liệu vào storage
-            setTimeout(() => {
-              chrome.runtime.sendMessage({
-                action: "AUTO_SAVE_AND_CLOSE_TAB",
-                data: data
-              });
-            }, 600);
-            return;
-          }
-
-          // NẾU KHÔNG TÌM THẤY LÔ ĐẤT HOẶC QUÁ 2.5S CHƯA TẢI ĐƯỢC .TABLES: TỰ ĐỘNG THỬ TÌM KIẾM TRỰC TIẾP TRÊN #MAP-SEARCH
-          const isNotFound = checkPropZoneNotFound();
-          const isDomMissing = elapsedSec >= 2.5 && !hasGridicsTablesDOM();
-
-          if ((isNotFound || isDomMissing) && !hasAttemptedMapSearch && targetAddress) {
-            hasAttemptedMapSearch = true;
-            const searchSuccess = performPropZoneMapSearch(targetAddress);
-            if (searchSuccess) {
-              startTime = Date.now(); // Reset lại timer để đợi kết quả từ ô search
-              return;
-            }
-          }
-
-          // Kiểm tra nếu trang thông báo không tìm thấy lô đất sau khi đã thử tìm kiếm
-          if (elapsedSec >= 5 && checkPropZoneNotFound() && hasAttemptedMapSearch) {
-            isCompleted = true;
-            cleanup();
-            chrome.runtime.sendMessage({
-              action: "AUTO_SAVE_AND_CLOSE_TAB",
-              data: data
-            });
-            return;
-          }
-        } catch (e) {}
+          showExtractionSuccessNotification(data, getPortalDisplayName());
+        }
       };
 
-      // 1. Quét ngay tức thì
-      tryExtract();
-
-      // 2. Fast Polling mỗi 400ms
-      const pollTimer = setInterval(tryExtract, 400);
-
-      // 3. MutationObserver theo dõi DOM thay đổi
+      const pollTimer = setInterval(tryExtract, 500);
       let observer = null;
       try {
         observer = new MutationObserver(() => {
-          if (!isCompleted) tryExtract();
+          if (!isDone) tryExtract();
         });
         if (document.body) {
-          observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+          observer.observe(document.body, { childList: true, subtree: true });
         }
       } catch (e) {}
 
       const cleanup = () => {
         if (pollTimer) clearInterval(pollTimer);
         if (observer) observer.disconnect();
-        if (maxWaitTimer) clearTimeout(maxWaitTimer);
       };
 
-      // 4. Timeout quét dự phòng 45s (đảm bảo trang SPA tải xong hoàn toàn dữ liệu)
-      const maxWaitTimer = setTimeout(() => {
-        if (isCompleted) return;
-        isCompleted = true;
-        cleanup();
-
-        const currentData = extractAllData();
-        chrome.runtime.sendMessage({
-          action: "AUTO_SAVE_AND_CLOSE_TAB",
-          data: currentData
-        });
-      }, 45000);
+      setTimeout(() => {
+        if (!isDone) {
+          isDone = true;
+          cleanup();
+          const data = extractAllData();
+          showExtractionSuccessNotification(data, getPortalDisplayName());
+        }
+      }, 15000);
     });
-    } catch (e) {}
   }
 
-  // Khởi động bất đồng bộ
-  startPropZonePipeline();
+  // Khởi động các luồng có lệnh
+  initCommandedExtractor();
 
-  // 5. LẮNG NGHE LỆNH TỪ POPUP (THỦ CÔNG)
+  // 6. LẮNG NGHE LỆNH TỪ POPUP (THỦ CÔNG)
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'EXTRACT_DATA' || request.action === 'FORCE_FRESH_EXTRACT') {
       try {
         const data = extractAllData();
+        showExtractionSuccessNotification(data, getPortalDisplayName());
         sendResponse({
           success: true,
           domain: window.location.hostname,
@@ -629,12 +406,6 @@
           message: 'Error: ' + err.message
         });
       }
-      return true;
-    }
-
-    if (request.action === 'PERFORM_PROPZONE_MAP_SEARCH') {
-      const ok = performPropZoneMapSearch(request.address);
-      sendResponse({ success: ok });
       return true;
     }
   });

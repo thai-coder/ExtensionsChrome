@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnClearAddress = document.getElementById("btn-clear-address");
   const btnAutoPipeline = document.getElementById("btn-auto-pipeline");
   const vDetectedCounty = document.getElementById("v-detected-county");
+  const btnRecheckCounty = document.getElementById("btn-recheck-county");
   const togglePropZoneExtract = document.getElementById("toggle-propzone-extract");
 
   // Quick Portal Launcher Badges
@@ -73,13 +74,13 @@ document.addEventListener("DOMContentLoaded", () => {
     showToast("🔄 Đang tải lại Extension...");
     try {
       chrome.runtime.sendMessage({ action: "RELOAD_EXTENSION" });
-    } catch (e) {}
+    } catch (e) { }
     setTimeout(() => {
       try {
         if (chrome.runtime && chrome.runtime.reload) {
           chrome.runtime.reload();
         }
-      } catch (e) {}
+      } catch (e) { }
     }, 150);
   }
 
@@ -102,14 +103,14 @@ document.addEventListener("DOMContentLoaded", () => {
           btnCopyInstaller.onclick = () => {
             const path = info.installerPath || "\\\\192.168.11.250\\Sharing\\THAILE\\Tools\\Extensions\\FS.exe";
             // 1. Copy đường dẫn vào Clipboard làm phương án dự phòng
-            navigator.clipboard.writeText(path).catch(() => {});
+            navigator.clipboard.writeText(path).catch(() => { });
 
             // 2. Cập nhật giao diện nút bấm để người dùng thấy rõ tiến trình
             btnCopyInstaller.disabled = true;
             btnCopyInstaller.textContent = "⏳ Đang chạy...";
 
             // 3. Gửi lệnh xuống Background Service Worker để chạy cài đặt ngầm và tự động Reload
-            chrome.runtime.sendMessage({ 
+            chrome.runtime.sendMessage({
               action: "TRIGGER_SILENT_UPDATE_AND_RELOAD",
               targetVersion: info.serverVersion || ""
             });
@@ -150,7 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function mergeDeep(target, source) {
     if (!source) return target;
     if (!target) return JSON.parse(JSON.stringify(source));
-    
+
     const output = Object.assign({}, target);
     Object.keys(source).forEach(key => {
       const srcVal = source[key];
@@ -252,12 +253,74 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 2. Real-time County Detection on Address Input
   function updateCountyBadge(addr) {
+    if (!addr) {
+      if (vDetectedCounty) {
+        vDetectedCounty.textContent = "Orange County (CA)";
+        vDetectedCounty.classList.remove("county-warn");
+        vDetectedCounty.title = "Mặc định (chưa nhập địa chỉ)";
+      }
+      return;
+    }
+
     if (window.CountyDetector) {
       currentDetectedCounty = window.CountyDetector.detect(addr);
       if (vDetectedCounty) {
-        vDetectedCounty.textContent = `${currentDetectedCounty.name} (CA)`;
+        if (currentDetectedCounty.isStreetOnly) {
+          vDetectedCounty.textContent = "KHÔNG XÁC ĐỊNH (⚠️ Thiếu City/Zip)";
+          vDetectedCounty.title = "Địa chỉ chỉ có tên đường, thiếu Thành phố / Zipcode! Thêm ví dụ: ', Santa Ana' hoặc '92701'";
+          vDetectedCounty.classList.add("county-warn");
+        } else if (currentDetectedCounty.isUnknown) {
+          vDetectedCounty.textContent = "KHÔNG XÁC ĐỊNH (CA)";
+          vDetectedCounty.title = "Không tìm thấy Quận/Thành phố trong cơ sở dữ liệu 483 thành phố CA";
+          vDetectedCounty.classList.add("county-warn");
+        } else {
+          vDetectedCounty.textContent = `${currentDetectedCounty.name} (CA)`;
+          vDetectedCounty.title = currentDetectedCounty.matchedCity ? `Thành phố: ${currentDetectedCounty.matchedCity.toUpperCase()}` : "";
+          vDetectedCounty.classList.remove("county-warn");
+        }
       }
     }
+  }
+
+  if (btnRecheckCounty) {
+    btnRecheckCounty.addEventListener("click", async () => {
+      btnRecheckCounty.classList.add("spinning");
+      let query = inputAddress ? inputAddress.value.trim() : "";
+
+      if (!query || (window.CountyDetector && window.CountyDetector.detect(query).isStreetOnly)) {
+        try {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          if (tab && tab.title) {
+            const rawTitle = tab.title.split("|")[0].split("-")[0].trim();
+            if (rawTitle && rawTitle.length > 3 && rawTitle.includes(",")) {
+              query = rawTitle;
+              if (inputAddress) {
+                inputAddress.value = query;
+                if (btnClearAddress) btnClearAddress.classList.remove("hidden");
+              }
+            }
+          }
+        } catch (e) {
+          console.warn("Could not inspect active tab title", e);
+        }
+      }
+
+      updateCountyBadge(query);
+
+      setTimeout(() => {
+        btnRecheckCounty.classList.remove("spinning");
+        if (currentDetectedCounty?.isStreetOnly) {
+          showToast("⚠️ KHÔNG XÁC ĐỊNH: Thiếu City/Zip! Thêm ví dụ: ', Santa Ana'");
+        } else if (currentDetectedCounty?.isUnknown) {
+          showToast("⚠️ KHÔNG XÁC ĐỊNH: Không tìm thấy Quận trong 483 thành phố CA");
+        } else {
+          const cityInfo = currentDetectedCounty?.matchedCity 
+            ? ` [${currentDetectedCounty.matchedCity.toUpperCase()}]` 
+            : "";
+          showToast(`📍 County: ${currentDetectedCounty?.name || "Orange County"}${cityInfo}`);
+        }
+      }, 350);
+    });
   }
 
   // Load Stored Address & Pipeline Result
@@ -291,7 +354,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!p) return;
     currentPayload = mergeDeep(currentPayload || {}, p);
     storedApn = p.apn || (p.lot && p.lot.parcelId) || (currentPayload.lot && currentPayload.lot.parcelId) || storedApn || null;
-    
+
     if (storedApn) {
       setText("v-ov-apn", storedApn);
       setText("v-lot-parcelId", storedApn);
@@ -354,14 +417,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const isDirect = linksData.source === "zimas" || linksData.source === "la-assessor";
     const parcelUrl = isDirect ? linksData.parcels : (linksData.tractMap || linksData.parcels);
     const tractUrl = isDirect ? linksData.tractMap : (linksData.parcels || linksData.tractMap);
-    
+
     if (linksData.parcels && btnLinkParcels) {
       btnLinkParcels.classList.remove("disabled");
       btnLinkParcels.classList.add("active");
       btnLinkParcels.disabled = false;
       btnLinkParcels.onclick = () => chrome.tabs.create({ url: parcelUrl });
     }
-    
+
     if (linksData.tractMap && btnLinkTract) {
       btnLinkTract.classList.remove("disabled");
       btnLinkTract.classList.add("active");
@@ -424,14 +487,27 @@ document.addEventListener("DOMContentLoaded", () => {
       statusLabel.textContent = `APN: ${cleanApn}`;
       statusPill.className = "status-pill active";
       showToast(`Opening PropZone for APN: ${cleanApn}`);
-      
-      const propZoneUrl = window.CountyDetector?.getPropZoneUrl(address, cleanApn, true) || `https://propzone.gridics.com/`;
+
+      const propZoneUrl = "https://propzone.gridics.com/";
+      chrome.storage.local.set({
+        pendingExtractorCommand: {
+          url: propZoneUrl,
+          portalKey: "propzone",
+          address: address,
+          apn: cleanApn,
+          timestamp: Date.now()
+        }
+      });
       chrome.tabs.create({ url: propZoneUrl });
       return;
     }
 
     // GỬI LỆNH ĐẾN BACKGROUND SERVICE WORKER KHỞI CHẠY QUY TRÌNH 3 BƯỚC CHUẨN XÁC
-    showToast("Starting 3-Step Pipeline: APN → Property Overview → PropZone...");
+    if (county?.isStreetOnly) {
+      showToast("⚠️ Đang tìm với địa chỉ thiếu City/Zip! Khuyên dùng: thêm ', City'");
+    } else {
+      showToast("Starting 3-Step Pipeline: APN → Property Overview → PropZone...");
+    }
     statusLabel.textContent = "Step 1: Finding APN...";
     statusPill.className = "status-pill active";
 
@@ -450,13 +526,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     switch (portalKey) {
       case "google":
-        targetUrl = query 
+        targetUrl = query
           ? `https://www.google.com/search?q=${encodeURIComponent(query + " The Assessor's Parcel Number (APN)")}`
           : "https://www.google.com/";
         break;
 
       case "propzone":
-        targetUrl = window.CountyDetector?.getPropZoneUrl(query, apn) || "https://propzone.gridics.com/";
+        targetUrl = "https://propzone.gridics.com/";
         break;
 
 
@@ -471,6 +547,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (targetUrl) {
+      chrome.storage.local.set({
+        pendingExtractorCommand: {
+          url: targetUrl,
+          portalKey: portalKey,
+          timestamp: Date.now()
+        }
+      });
       chrome.tabs.create({ url: targetUrl });
     }
   }
@@ -493,7 +576,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const cityLabel = county?.matchedCity ? `, ${county.matchedCity.toUpperCase()}` : "";
 
     showToast(`Checking Parcels / Plat Map (${county?.name || "County"}${cityLabel})...`);
-    
+
     chrome.runtime.sendMessage({
       action: "START_MAP_DOWNLOAD_PIPELINE",
       apn: apn,
@@ -604,9 +687,13 @@ document.addEventListener("DOMContentLoaded", () => {
       chrome.tabs.sendMessage(activeTab.id, { action: "FORCE_FRESH_EXTRACT" }, async (response) => {
         if (chrome.runtime.lastError || !response) {
           try {
+            const isPropZone = activeTab.url && activeTab.url.includes("propzone.gridics.com");
+            const scriptFiles = ["content/floating-ui.js", "config/county-detector.js", "config/rules.js"];
+            scriptFiles.push(isPropZone ? "content/propzone-map-extractor.js" : "content/extractor.js");
+
             await chrome.scripting.executeScript({
               target: { tabId: activeTab.id },
-              files: ["config/county-detector.js", "config/rules.js", "content/extractor.js"]
+              files: scriptFiles
             });
             chrome.tabs.sendMessage(activeTab.id, { action: "FORCE_FRESH_EXTRACT" }, (res2) => {
               if (refreshIcon) refreshIcon.classList.remove("spinning");
@@ -670,17 +757,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const capacity = data.capacity || {};
 
     // 1. Overview Tab
-    const currentApn = lot.parcelId 
+    const currentApn = lot.parcelId
       || lot.parcelIdApn
-      || lot.parcelNumber 
+      || lot.parcelNumber
       || lot.parcelNumberApn
-      || lot.apn 
+      || lot.apn
       || lot.apnNumber
-      || lot.soApn 
-      || lot.folio 
+      || lot.soApn
+      || lot.folio
       || lot.folioNumber
       || data.apn
-      || storedApn 
+      || storedApn
       || "-";
 
     if (currentApn !== "-" && !storedApn) {
@@ -705,7 +792,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setText("v-ov-maxUnits", capacity.maximumResidentialUnitsAllowed ?? "-");
     setText("v-ov-zoning", finalZoningDistrict);
     setText("v-ov-yearBuilt", lot.yearBuilt);
-    
+
     const lotTypeStr = `${lot.lotType ?? "-"} / ${lot.lotAreaAcres ? lot.lotAreaAcres + " ac" : "-"}`;
     setText("v-ov-typeAcres", lotTypeStr);
 
@@ -752,7 +839,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 3. Zoning Tab
     setText("v-zn-landUse", zoning.existingLandUse ?? zoning.landUse);
-    
+
     const zCode = finalZoningCode;
     const zUrl = finalZoningUrl;
     const znCodeEl = document.getElementById("v-zn-code");
@@ -835,9 +922,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const isCarport = /carport/i.test(str);
 
     const garageMatch = str.match(/(\d+)\s*[-\s]?car\s*(?:attached|detached)?\s*(?:garage|covered)?/i)
-                     || str.match(/(\d+)\s*(?:garage|covered)\s*spaces?/i)
-                     || str.match(/garage(?:\s*spaces?)?[\s:\-–—]{1,5}(\d+)/i)
-                     || str.match(/garage[^\d]{0,15}(\d+)\s*chỗ/i);
+      || str.match(/(\d+)\s*(?:garage|covered)\s*spaces?/i)
+      || str.match(/garage(?:\s*spaces?)?[\s:\-–—]{1,5}(\d+)/i)
+      || str.match(/garage[^\d]{0,15}(\d+)\s*chỗ/i);
     if (garageMatch && garageMatch[1]) {
       garageSpaces = parseInt(garageMatch[1], 10);
     } else if (/garage/i.test(str)) {
@@ -845,7 +932,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const driveMatch = str.match(/(\d+)\s*[-\s]?car\s*driveway/i)
-                    || str.match(/(\d+)\s*driveway\s*spaces?/i);
+      || str.match(/(\d+)\s*driveway\s*spaces?/i);
     if (driveMatch && driveMatch[1]) {
       drivewaySpaces = parseInt(driveMatch[1], 10);
     }

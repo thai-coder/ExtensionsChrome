@@ -308,13 +308,18 @@
       console.log("[ZIMAS Extractor] [Bước 3] Đã lưu 2 link Parcels và Tract Map vào storage cho Popup.");
     }
 
-    // Button gắn value xong call floating-ui.js để thông báo
+    // Button gắn value xong call floating-ui.js để thông báo kèm link Parcels & Tract Map
     if (typeof FloatingUI !== 'undefined') {
       const parcelsVal = apnItem ? apnItem.value : "N/A";
       const tractVal = mapSheetItem ? mapSheetItem.value : "N/A";
       FloatingUI.showSuccess(
         "Trích xuất ZIMAS thành công!",
-        `Parcels: ${parcelsVal}\nTract Map: ${tractVal}`
+        `Parcels: ${parcelsVal}\nTract Map: ${tractVal}`,
+        8000,
+        {
+          parcels: parcelsLink,
+          tractMap: tractMapLink
+        }
       );
     }
 

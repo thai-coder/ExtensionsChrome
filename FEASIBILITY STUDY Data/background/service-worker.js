@@ -300,7 +300,7 @@ async function handleStep2PropertyOverviewFound(details, tabId) {
   pipelineSession.propertyOverviewTabId = null;
 
   // Mở Bước 3: Bản đồ PropZone Gridics
-  const targetPropZoneUrl = CountyDetector.getPropZoneUrl(address, cleanApn);
+  const targetPropZoneUrl = "https://propzone.gridics.com/";
   if (targetPropZoneUrl) {
     lastOpenedPropZoneUrl = targetPropZoneUrl;
     lastOpenedTime = Date.now();
@@ -338,6 +338,9 @@ async function handleStep3SaveAndClose(data, tabId) {
   });
 
   if (tabId) {
+    if (tabId === pipelineSession.propZoneTabId) {
+      pipelineSession.propZoneTabId = null;
+    }
     setTimeout(() => {
       chrome.tabs.remove(tabId).catch(() => {});
     }, PROPZONE_TAB_LIFETIME_MS);
@@ -368,7 +371,7 @@ async function runDirectSearchPipeline(query) {
   let cleanApn = isDirectApn ? cleanQuery.replace(/[^0-9]/g, "") : (leadApn ? leadApn.replace(/[^0-9]/g, "") : "");
 
   if (isDirectApn) {
-    const targetPropZoneUrl = CountyDetector.getPropZoneUrl(cleanQuery, cleanApn);
+    const targetPropZoneUrl = "https://propzone.gridics.com/";
     const countyInfo = CountyDetector.detect(cleanQuery);
 
     const payload = {

@@ -1,25 +1,21 @@
 /**
- * FEASIBILITY STUDY Data - Los Angeles County Map Extractor (Isolated Content Script)
- * Dành riêng cho trang: portal.assessor.lacounty.gov
- * Chuyên bóc tách link Assessor Map Book (PDF) theo số APN / AIN 10 số của LA County.
+ * FEASIBILITY STUDY Data - LA Assessor Portal Map Extractor
+ * Tự động nhận địa chỉ từ ZIMAS fallback (qua chrome.storage.local) và điền vào ô tìm kiếm
  */
 
 (function () {
   if (window.__LA_MAP_EXTRACTOR_LOADED__) return;
   window.__LA_MAP_EXTRACTOR_LOADED__ = true;
 
-  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
+  // Hàm đợi Element xuất hiện
   const waitForElement = (selector, timeout = 10000) => {
     return new Promise((resolve) => {
-      const el = document.querySelector(selector);
-      if (el) return resolve(el);
+      if (document.querySelector(selector)) return resolve(document.querySelector(selector));
 
       const observer = new MutationObserver(() => {
-        const found = document.querySelector(selector);
-        if (found) {
+        if (document.querySelector(selector)) {
           observer.disconnect();
-          resolve(found);
+          resolve(document.querySelector(selector));
         }
       });
       observer.observe(document.body, { childList: true, subtree: true });
@@ -30,213 +26,265 @@
     });
   };
 
-  function setNativeValue(element, value) {
-    const valueSetter = Object.getOwnPropertyDescriptor(element, "value")?.set;
-    const proto = Object.getPrototypeOf(element);
-    const protoSetter = Object.getOwnPropertyDescriptor(proto, "value")?.set;
-    if (protoSetter && valueSetter !== protoSetter) {
-      protoSetter.call(element, value);
-    } else if (valueSetter) {
-      valueSetter.call(element, value);
-    } else {
-      element.value = value;
-    }
-    element.dispatchEvent(new Event("input", { bubbles: true }));
-    element.dispatchEvent(new Event("change", { bubbles: true }));
-  }
+  // Hàm tạm dừng
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-  function findAinInDom() {
-    const urlMatch = window.location.pathname.match(/\/parceldetail\/(\d{7,10})/);
-    if (urlMatch) return urlMatch[1];
-
-    const text = document.body.innerText || "";
-    const ainMatch = text.match(/(?:AIN|APN|Parcel(?:\s+Number)?)\s*[:#]?\s*(\d{4}[-\s]?\d{3}[-\s]?\d{3})/i);
-    if (ainMatch) return ainMatch[1].replace(/[^0-9]/g, "");
-
-    const genericMatch = text.match(/\b\d{4}-\d{3}-\d{3}\b/);
-    if (genericMatch) return genericMatch[0].replace(/[^0-9]/g, "");
-
-    return null;
-  }
-
-  // Khởi động
-  chrome.runtime.sendMessage({ action: "GET_MAP_DOWNLOAD_TAB_ROLE" }, (response) => {
-    chrome.storage.local.get(["laPortalPendingSearch"], (data) => {
-      const pending = data?.laPortalPendingSearch;
-      const isRecent = pending && (Date.now() - pending.timestamp < 300000);
-      const isMapRole = response && response.role === "MAP_DOWNLOAD";
-
-      if (!isMapRole && !isRecent) {
-        console.log("[LA Map Extractor] Không có vai trò MAP_DOWNLOAD. Bỏ qua.");
-        return;
-      }
-
-      const apn = response?.apn || "";
-      const address = response?.address || (isRecent ? pending.address : "");
-
-      if (pending) {
-        chrome.storage.local.remove(["laPortalPendingSearch"]);
-      }
-
-      step1_initAssessorPortal({ apn, address });
-    });
-  });
+  // Chuẩn hóa chuỗi (Fuzzy Match)
+  const normalizeString = (str) => {
+    return (str || '')
+      .toUpperCase()
+      .replace(/[,.]/g, ' ')
+      .replace(/-/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
 
   /**
-   * BƯỚC 1: Chiếm quyền hoạt động khi chuyển từ ZIMAS sang LA Assessor Portal
+   * BƯỚC 2: Chờ và trích xuất link Parcel Map / Map Index và gắn vào 2 button
    */
-  async function step1_initAssessorPortal(sessionData) {
-    const { apn, address } = sessionData;
-    console.log("[LA Map Extractor] === [Bước 1] Chiếm quyền hoạt động trên portal.assessor.lacounty.gov ===");
-    console.log(`[LA Map Extractor] Đã nhận thông tin: Address="${address || ''}", APN="${apn || ''}"`);
+  async function executeStep2_ExtractMapLinks(ain) {
+    console.log("=== Bắt đầu Bước 2: Chờ và trích xuất link Parcel Map / Map Index ===");
 
-    const existingAin = findAinInDom();
-    if (existingAin) {
-      return finishExtraction(existingAin);
+    // Hàm đợi cho đến khi ít nhất một trong hai thẻ link xuất hiện
+    const waitForTargetLinks = async (timeout = 15000) => {
+      const startTime = Date.now();
+      while (Date.now() - startTime < timeout) {
+        const allLinks = document.querySelectorAll('a');
+        for (let a of allLinks) {
+          const text = a.textContent.trim();
+          if (text === 'Parcel Map' || text === 'Map Index') {
+            return true;
+          }
+        }
+        await sleep(500);
+      }
+      return false;
+    };
+
+    console.log("[LA Map Extractor] [Bước 2] Đang chờ giao diện render các thẻ link...");
+    const linksAppeared = await waitForTargetLinks(15000);
+
+    if (!linksAppeared) {
+      console.error("[LA Map Extractor] [Bước 2 - Lỗi] Hết thời gian chờ (15s). Không tìm thấy thẻ chứa 'Parcel Map' hoặc 'Map Index'.");
+      return null;
     }
 
-    if (apn) {
-      startLAExtraction(apn);
-    } else if (address) {
-      await step2_searchAddressOnPortal(address);
-    }
-  }
-
-  async function step2_searchAddressOnPortal(address) {
-    const streetAddr = (address || "").split(",")[0].trim();
-    if (!streetAddr) return;
-
-    console.log(`[LA Map Extractor] === [Bước 2] Tìm kiếm địa chỉ trên LA Assessor Portal: "${streetAddr}" ===`);
-
-    const existingAin = findAinInDom();
-    if (existingAin) {
-      console.log(`[LA Map Extractor] [Bước 2] Đã tìm thấy AIN ngay trên trang: ${existingAin}`);
-      return finishExtraction(existingAin);
-    }
-
-    const searchInput = await waitForElement(
-      'input.MuiInputBase-input, input[placeholder*="Search" i], input[placeholder*="AIN" i], input[placeholder*="Address" i], input[type="search"], input[type="text"]',
-      12000
-    );
-
-    if (!searchInput) {
-      console.warn("[LA Map Extractor] [Bước 2] Không tìm thấy ô tìm kiếm trên portal.assessor.lacounty.gov.");
-      return;
-    }
-
-    searchInput.focus();
-    setNativeValue(searchInput, streetAddr);
     await sleep(500);
 
-    searchInput.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", code: "Enter", keyCode: 13, which: 13, bubbles: true }));
-    searchInput.dispatchEvent(new KeyboardEvent("keyup", { key: "Enter", code: "Enter", keyCode: 13, which: 13, bubbles: true }));
+    const allLinks = document.querySelectorAll('a');
+    let parcelMapUrl = null;
+    let mapIndexUrl = null;
 
-    const searchBtn = document.querySelector('button[type="submit"], button[aria-label*="search" i], .search-btn, button svg[data-testid="SearchIcon"]')?.closest("button");
-    if (searchBtn) searchBtn.click();
-
-    await sleep(1500);
-    const suggestion = document.querySelector('.MuiAutocomplete-popper li, [role="listbox"] [role="option"], .search-result-item, .search-result');
-    if (suggestion) {
-      console.log("[LA Map Extractor] [Bước 2] Click chọn gợi ý:", suggestion.textContent.trim());
-      suggestion.click();
-    }
-
-    let pollCount = 0;
-    const maxPoll = 15;
-    const pollInterval = setInterval(() => {
-      pollCount++;
-      const ain = findAinInDom();
-      if (ain) {
-        clearInterval(pollInterval);
-        console.log(`[LA Map Extractor] [Bước 2] 🎉 Đã tìm thấy AIN sau tìm kiếm: ${ain}`);
-        finishExtraction(ain);
-      } else if (pollCount >= maxPoll) {
-        clearInterval(pollInterval);
-        console.warn("[LA Map Extractor] [Bước 2] Hết thời gian chờ kết quả tìm kiếm trên LA Assessor.");
-        if (typeof FloatingUI !== "undefined") {
-          FloatingUI.showWarning("LA Assessor", `Không tìm thấy thông tin cho địa chỉ: ${streetAddr}`);
-        }
+    for (let a of allLinks) {
+      const text = a.textContent.trim();
+      if (text === 'Parcel Map') {
+        parcelMapUrl = a.href;
+      } else if (text === 'Map Index') {
+        mapIndexUrl = a.href;
       }
-    }, 1000);
-  }
-
-  function startLAExtraction(targetApn) {
-    let attempts = 0;
-    const maxAttempts = 10;
-    const interval = setInterval(() => {
-      attempts++;
-      const pdfUrl = scanLADomForMap(targetApn);
-      if (pdfUrl) {
-        clearInterval(interval);
-        finishExtraction(targetApn, pdfUrl);
-      } else if (attempts >= maxAttempts) {
-        clearInterval(interval);
-        finishExtraction(targetApn, null);
-      }
-    }, 1000);
-  }
-
-  function scanLADomForMap(targetApn) {
-    const allLinks = Array.from(document.querySelectorAll("a[href], button"));
-    for (const el of allLinks) {
-      const href = el.getAttribute("href") || "";
-      const text = (el.innerText || "").toLowerCase();
-      if (
-        (href.includes(".pdf") && (href.includes("assessor") || href.includes("map"))) ||
-        text.includes("assessor map") ||
-        text.includes("map index") ||
-        text.includes("map book")
-      ) {
-        if (href.startsWith("http")) return href;
-        if (href.startsWith("/")) return window.location.origin + href;
+      if (parcelMapUrl && mapIndexUrl) {
+        break;
       }
     }
-    const mapTab = document.querySelector("#map-tab, .map-container a");
-    if (mapTab && mapTab.href && mapTab.href.includes(".pdf")) return mapTab.href;
-    return null;
-  }
 
-  async function finishExtraction(targetApn, foundPdfUrl) {
-    const cleanApn = (targetApn || "").replace(/[^0-9]/g, "");
-    if (!cleanApn || cleanApn.length < 7) {
-      console.warn("[LA Map Extractor] Không có APN hợp lệ:", targetApn);
-      return;
-    }
+    console.log(`[LA Map Extractor] [Bước 2] 🎉 Đã trích xuất thành công:`);
+    console.log(`- Link Parcel Map: ${parcelMapUrl || 'Không tìm thấy'}`);
+    console.log(`- Link Map Index:  ${mapIndexUrl || 'Không tìm thấy'}`);
 
-    const mapBook = cleanApn.substring(0, 4);
-    const page = cleanApn.substring(4, 7);
-    const directPdf = `https://maps.assessor.lacounty.gov/mapping/maps/${mapBook}/${mapBook}-${page}.pdf`;
-    const finalPdfUrl = foundPdfUrl || directPdf;
-    const parcelUrl = `https://portal.assessor.lacounty.gov/parceldetail/${cleanApn}`;
-
-    console.log(`[LA Map Extractor] 🎉 Hoàn tất! APN=${cleanApn}, PDF=${finalPdfUrl}`);
-
-    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
-      await chrome.storage.local.set({
+    // Gắn giá trị vào 2 button (Parcels & Tract Map) thông qua storage cho Popup
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      const payload = {
         ocgisMapLinks: {
           source: "la-assessor",
-          parcels: parcelUrl,
-          tractMap: finalPdfUrl,
+          parcels: parcelMapUrl,
+          tractMap: mapIndexUrl,
           updatedAt: Date.now()
         }
-      });
-      console.log("[LA Map Extractor] Đã lưu link Parcels & Tract Map vào storage cho Popup.");
+      };
+      if (ain) {
+        payload.lastApn = ain;
+      }
+      await chrome.storage.local.set(payload);
+      console.log("[LA Map Extractor] [Bước 2] Đã lưu 2 link Parcels và Tract Map vào storage cho Popup.");
     }
 
-    if (typeof FloatingUI !== "undefined") {
+    // Hiển thị thông báo Floating UI
+    if (typeof FloatingUI !== 'undefined') {
       FloatingUI.showSuccess(
         "Trích xuất LA Assessor thành công!",
-        `AIN: ${cleanApn}\nMap Book: ${mapBook}-${page}`
+        `Parcels: ${parcelMapUrl ? "Đã sẵn sàng" : "N/A"}\nTract Map: ${mapIndexUrl ? "Đã sẵn sàng" : "N/A"}`
       );
     }
 
-    chrome.runtime.sendMessage({
-      action: "MAP_PDF_FOUND_AND_DOWNLOAD",
-      countyKey: "losAngeles",
-      countyName: "Los Angeles County",
-      apn: cleanApn,
-      pdfUrl: finalPdfUrl,
-      isDirectLink: Boolean(finalPdfUrl)
+    return {
+      parcelMap: parcelMapUrl,
+      mapIndex: mapIndexUrl
+    };
+  }
+
+  /**
+   * BƯỚC 1.1: Chờ bảng xuất hiện và chọn hàng tương đồng nhất
+   */
+  async function executeStep1_1_FindAndSelectSimilarRow(inputAddress) {
+    console.log("=== Bắt đầu Bước 1.1: Tìm kiếm dòng dữ liệu tương đối ===");
+
+    const targetAddress = normalizeString(inputAddress);
+    console.log(`[LA Map Extractor] [Bước 1.1] Chuỗi tìm kiếm đã chuẩn hóa: "${targetAddress}"`);
+
+    // Đợi bảng kết quả render
+    const tableRow = await waitForElement('.MuiTableBody-root .MuiTableRow-root', 15000);
+    if (!tableRow) {
+      console.error("[LA Map Extractor] [Bước 1.1 - Lỗi] Không tìm thấy dữ liệu bảng. Bảng chưa load hoặc sai Selector.");
+      return null;
+    }
+
+    // Chờ thêm một chút để React render đầy đủ các hàng
+    await sleep(1000);
+
+    const rows = document.querySelectorAll('.MuiTableBody-root .MuiTableRow-root');
+    console.log(`[LA Map Extractor] [Bước 1.1] Tìm thấy ${rows.length} kết quả trên bảng. Đang đối chiếu...`);
+
+    let isFound = false;
+    let matchedData = null;
+
+    for (let row of rows) {
+      const cells = row.querySelectorAll('td');
+      if (cells.length < 2) continue;
+
+      const rowAIN = cells[0].textContent.trim();
+      const rawRowAddress = cells[1].textContent.trim();
+      const normalizedRowAddress = normalizeString(rawRowAddress);
+
+      // So sánh tương đối
+      if (normalizedRowAddress.includes(targetAddress) || targetAddress.includes(normalizedRowAddress)) {
+        console.log(`[LA Map Extractor] [Bước 1.1] 🎉 ĐÃ TÌM THẤY DÒNG TƯƠNG ĐỐI GIỐNG!`);
+        console.log(`- Địa chỉ trên web: ${rawRowAddress}`);
+        console.log(`- Mã AIN tương ứng: ${rowAIN}`);
+
+        row.click();
+        isFound = true;
+        matchedData = { ain: rowAIN, address: rawRowAddress, element: row };
+        break;
+      }
+    }
+
+    // Fallback: Nếu so sánh đầy đủ không khớp, so khớp phần số nhà + tên đường
+    if (!isFound) {
+      const streetPart = targetAddress.split(/\s+/).slice(0, 3).join(' ');
+      if (streetPart) {
+        for (let row of rows) {
+          const cells = row.querySelectorAll('td');
+          if (cells.length < 2) continue;
+
+          const rowAIN = cells[0].textContent.trim();
+          const rawRowAddress = cells[1].textContent.trim();
+          const normalizedRowAddress = normalizeString(rawRowAddress);
+
+          if (normalizedRowAddress.includes(streetPart)) {
+            console.log(`[LA Map Extractor] [Bước 1.1] 🎉 Khớp theo số nhà/tên đường (${streetPart}): ${rawRowAddress}`);
+            row.click();
+            isFound = true;
+            matchedData = { ain: rowAIN, address: rawRowAddress, element: row };
+            break;
+          }
+        }
+      }
+    }
+
+    if (!isFound) {
+      console.warn(`[LA Map Extractor] [Bước 1.1 - Thất bại] Không tìm thấy dòng nào khớp với nội dung: "${inputAddress}"`);
+    }
+
+    return matchedData;
+  }
+
+  /**
+   * BƯỚC 1: Nhập địa chỉ vào ô input MUI (#outlined-basic) và nhấn Tìm kiếm
+   */
+  async function executeStep1_InputMUI(addressToInput) {
+    if (!addressToInput) return;
+    console.log(`[LA Map Extractor] [Bước 1] Bắt đầu nhập địa chỉ: ${addressToInput}`);
+
+    const inputField = await waitForElement('#outlined-basic', 10000);
+
+    if (inputField) {
+      // Bộ setter gốc của HTMLInputElement để kích hoạt React state
+      const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+      nativeInputValueSetter.call(inputField, addressToInput);
+
+      // Bắn sự kiện input/change để React nhận diện
+      inputField.dispatchEvent(new Event('input', { bubbles: true }));
+      inputField.dispatchEvent(new Event('change', { bubbles: true }));
+
+      console.log(`[LA Map Extractor] [Bước 1] Đã điền thành công: ${addressToInput}`);
+
+      // Chờ React cập nhật state trước khi search
+      await sleep(500);
+
+      // Tìm và click nút Search (title="search-button") hoặc nhấn phím Enter
+      const searchButton = document.querySelector('button[title="search-button"]');
+      if (searchButton) {
+        searchButton.click();
+        console.log("[LA Map Extractor] [Bước 1] Đã click nút tìm kiếm (Search Button). Đang đợi kết quả...");
+      } else {
+        // Fallback: bắn phím Enter vào ô input
+        inputField.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13, which: 13, bubbles: true }));
+        inputField.dispatchEvent(new KeyboardEvent('keypress', { key: 'Enter', keyCode: 13, which: 13, bubbles: true }));
+        inputField.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', keyCode: 13, which: 13, bubbles: true }));
+        console.log("[LA Map Extractor] [Bước 1] Không thấy nút Search, đã kích hoạt phím Enter.");
+      }
+
+      // Nối tiếp sang Bước 1.1: Chờ bảng và chọn dòng khớp
+      const matched = await executeStep1_1_FindAndSelectSimilarRow(addressToInput);
+
+      if (!matched) {
+        console.warn("[LA Map Extractor] [Bước 1.1 - Thất bại] Không tìm thấy kết quả khớp trong bảng. Dừng quy trình, không chạy Bước 2.");
+        return;
+      }
+
+      console.log("[LA Map Extractor] [Bước 1.1 -> Bước 2] Đã chọn dòng thành công. Đang đợi render trang chi tiết để trích xuất link...");
+      await sleep(1500);
+
+      // Nối tiếp sang Bước 2: Chờ và trích xuất link bản đồ
+      await executeStep2_ExtractMapLinks(matched.ain);
+    } else {
+      console.error("[LA Map Extractor] [Bước 1 - Lỗi] Không tìm thấy ô nhập địa chỉ (#outlined-basic).");
+    }
+  }
+
+  // Khởi động: Kiểm tra dữ liệu chuyển tiếp từ ZIMAS
+  function initLaExtractor() {
+    if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.local) {
+      return;
+    }
+
+    chrome.storage.local.get(['laPortalPendingSearch'], async (res) => {
+      const pending = res?.laPortalPendingSearch;
+      if (!pending) {
+        // Nếu người dùng mở trực tiếp trang chi tiết parceldetail thì tự quét link
+        if (window.location.href.includes('/parceldetail/')) {
+          await executeStep2_ExtractMapLinks();
+        }
+        return;
+      }
+
+      // Kiểm tra timeout (trong vòng 5 phút)
+      const isFresh = pending.timestamp && (Date.now() - pending.timestamp < 5 * 60 * 1000);
+      if (isFresh) {
+        const address = pending.address || pending.addressToSearch;
+        // Xóa cờ pending để tránh tự động điền lại khi người dùng F5
+        chrome.storage.local.remove('laPortalPendingSearch');
+        if (address) {
+          await executeStep1_InputMUI(address);
+        }
+      }
     });
   }
+
+  window.executeStep1_InputMUI = executeStep1_InputMUI;
+  window.executeStep1_1_FindAndSelectSimilarRow = executeStep1_1_FindAndSelectSimilarRow;
+  window.executeStep2_ExtractMapLinks = executeStep2_ExtractMapLinks;
+
+  initLaExtractor();
 })();
+

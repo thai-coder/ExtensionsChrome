@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnClearAddress = document.getElementById("btn-clear-address");
   const btnAutoPipeline = document.getElementById("btn-auto-pipeline");
   const vDetectedCounty = document.getElementById("v-detected-county");
+  const togglePropZoneExtract = document.getElementById("toggle-propzone-extract");
 
   // Quick Portal Launcher Badges
   const btnNavGoogle = document.getElementById("btn-nav-google");
@@ -261,7 +262,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Load Stored Address & Pipeline Result
   function loadStoredData() {
-    chrome.storage.local.get(["lastSearchQuery", "lastPipelineResult", "lastApn", "ocgisMapLinks"], (res) => {
+    chrome.storage.local.get(["lastSearchQuery", "lastPipelineResult", "lastApn", "ocgisMapLinks", "allowPropZoneExtract"], (res) => {
+      if (togglePropZoneExtract) {
+        togglePropZoneExtract.checked = (res.allowPropZoneExtract !== false);
+      }
       if (res.lastSearchQuery && !inputAddress.value) {
         inputAddress.value = res.lastSearchQuery;
         btnClearAddress.classList.remove("hidden");
@@ -296,7 +300,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const extractedAddress = p.address || (p.lot && (p.lot.projectAddress || p.lot.address || p.lot.situsAddress)) || (currentPayload && currentPayload.address) || (currentPayload && currentPayload.lot && currentPayload.lot.projectAddress);
-    if (extractedAddress && (!inputAddress.value || inputAddress.value !== extractedAddress)) {
+    // Chỉ cập nhật ô input nếu ô input hiện tại đang trống (không tự động ghi đè khi người dùng đang nhập)
+    if (extractedAddress && !inputAddress.value.trim()) {
       inputAddress.value = extractedAddress;
       btnClearAddress.classList.remove("hidden");
       updateCountyBadge(extractedAddress);
@@ -308,9 +313,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // Lắng nghe Storage thay đổi theo thời gian thực (Real-Time Auto Update)
   chrome.storage.onChanged.addListener((changes, areaName) => {
     if (areaName === "local") {
+      if (changes.allowPropZoneExtract && togglePropZoneExtract) {
+        togglePropZoneExtract.checked = (changes.allowPropZoneExtract.newValue !== false);
+      }
       if (changes.lastSearchQuery && changes.lastSearchQuery.newValue) {
         const addrVal = changes.lastSearchQuery.newValue;
-        if (!inputAddress.value || inputAddress.value !== addrVal) {
+        if (!inputAddress.value.trim()) {
           inputAddress.value = addrVal;
           btnClearAddress.classList.remove("hidden");
           updateCountyBadge(addrVal);
@@ -536,6 +544,14 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  if (togglePropZoneExtract) {
+    togglePropZoneExtract.addEventListener("change", (e) => {
+      const isChecked = e.target.checked;
+      chrome.storage.local.set({ allowPropZoneExtract: isChecked });
+      showToast(isChecked ? "PropZone Auto: ON" : "PropZone Auto: OFF");
+    });
+  }
+
   function showToast(msg) {
     if (toastTimer) clearTimeout(toastTimer);
     toast.textContent = msg;
@@ -546,7 +562,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /**
    * Fresh Console Execution On Demand (Always keeps Overview Dashboard visible)
    */
-  async function triggerFreshConsoleExecution() {
+  async function triggerFreshConsoleExecution(isManual = false) {
     if (refreshIcon) refreshIcon.classList.add("spinning");
 
     try {
@@ -555,6 +571,24 @@ document.addEventListener("DOMContentLoaded", () => {
         if (refreshIcon) refreshIcon.classList.remove("spinning");
         statusLabel.textContent = "Ready";
         return;
+      }
+
+      const isPropZone = activeTab.url.includes("propzone.gridics.com");
+
+      // Tự động quét khi mở popup: CHỈ CHO PHÉP TRÊN TRANG PROPZONE VÀ KHI TOGGLE ĐANG BẬT
+      if (!isManual) {
+        if (!isPropZone) {
+          if (refreshIcon) refreshIcon.classList.remove("spinning");
+          statusLabel.textContent = "Ready";
+          return;
+        }
+
+        const res = await chrome.storage.local.get("allowPropZoneExtract");
+        if (res.allowPropZoneExtract === false) {
+          if (refreshIcon) refreshIcon.classList.remove("spinning");
+          statusLabel.textContent = "PropZone: Manual";
+          return;
+        }
       }
 
       const isAllowed = window.PropZoneRules?.RuleMatcher.isAllowedSite(activeTab.url);
@@ -854,7 +888,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  btnRefresh.addEventListener("click", triggerFreshConsoleExecution);
+  btnRefresh.addEventListener("click", () => triggerFreshConsoleExecution(true));
 
-  triggerFreshConsoleExecution();
+  triggerFreshConsoleExecution(false);
 });

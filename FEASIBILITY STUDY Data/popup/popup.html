@@ -84,10 +84,19 @@
 
       </div>
 
-      <!-- Detected County Banner -->
+      <!-- Detected County & Auto-Fetch Toggle Banner -->
       <div id="county-badge-row" class="county-badge-row">
-        <span class="c-lbl">DETECTED COUNTY:</span>
-        <span id="v-detected-county" class="c-val">Orange County (CA)</span>
+        <div class="county-badge-left">
+          <span class="c-lbl">DETECTED COUNTY:</span>
+          <span id="v-detected-county" class="c-val">Orange County (CA)</span>
+        </div>
+        <div class="propzone-toggle-wrap">
+          <span class="toggle-text">PropZone Auto:</span>
+          <label class="toggle-switch" title="Cho phép / Tắt tự động lấy dữ liệu từ Gridics PropZone">
+            <input type="checkbox" id="toggle-propzone-extract" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
       </div>
     </section>
 

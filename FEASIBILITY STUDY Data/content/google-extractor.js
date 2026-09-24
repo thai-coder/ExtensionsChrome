@@ -1,12 +1,12 @@
 /**
- * FEASIBILITY STUDY Data - Google Search Multi-Role Scanner
- * Chạy bất đồng bộ, kiên nhẫn chờ trang load xong hoàn toàn (window load & document complete)
- * Không tranh load với trình duyệt, không gây gián đoạn kết nối.
+ * FEASIBILITY STUDY Data - Google Property Overview Scanner (Luồng chính Bước 1)
+ * Bóc tách Property Type, Stories, Parking, Year Built, Living Area, Lot Size, Zoning
+ * Chạy bất đồng bộ, chỉ kích hoạt khi tab mang quyền PROPERTY_OVERVIEW_SEARCH.
  */
 
 (function initGoogleExtractor() {
-  if (window.__GOOGLE_APN_EXTRACTOR_LOADED__) return;
-  window.__GOOGLE_APN_EXTRACTOR_LOADED__ = true;
+  if (window.__GOOGLE_EXTRACTOR_LOADED__) return;
+  window.__GOOGLE_EXTRACTOR_LOADED__ = true;
 
   // Hàm bất đồng bộ: Chờ đợi trang web tải xong hoàn tất (Sự kiện window load & readyState complete)
   // Cấm tranh load với trình duyệt, chỉ chạy sau khi trình duyệt đã hoàn tất tải tài nguyên
@@ -185,45 +185,7 @@
     const pageText = document.body ? document.body.innerText : "";
     if (!pageText || pageText.length < 30) return null;
 
-    // 1. Trích xuất APN (Hỗ trợ toàn diện CA: San Bernardino 4-3-2, LA 4-3-3, Orange 3-3-2, Riverside 3-3-3, v.v.)
-    const apnPatterns = [
-      // Dạng có nhãn APN / Parcel / AIN / Folio với khoảng trắng hoặc gạch nối (vd: "APN 1049 441 21", "APN: 1049-441-21")
-      /(?:APN|Parcel(?:\s*(?:Number|ID|#|No\.?))?|AIN|Folio)[\s:\-–—#\.\t]{1,15}(\d{3,5}[\s\-\.]\d{2,4}[\s\-\.]\d{2,4}(?:[\s\-\.]\d{2,4})?|\d{8,12})\b/gi,
-      // Dạng San Bernardino 4-3-2: 1049 441 21 hoặc 1049-441-21
-      /\bAPN\s*[:#\s]?\s*(\d{4}[\s\-\.]\d{3}[\s\-\.]\d{2})\b/gi,
-      // Dạng LA 4-3-3: 3111-005-016
-      /\bAPN\s*[:#\s]?\s*(\d{4}[\s\-\.]\d{3}[\s\-\.]\d{3})\b/gi,
-      // Dạng Orange / Riverside: 096-382-04 hoặc 123-456-789
-      /\bAPN\s*[:#\s]?\s*(\d{3}[\s\-\.]\d{3}[\s\-\.]\d{2,3})\b/gi,
-      // Dạng chuỗi số liên tiếp 8-12 số
-      /\bAPN\s*[:#\s]?\s*(\d{8,12})\b/gi
-    ];
-
-    let foundAPNs = new Set();
-    for (const pat of apnPatterns) {
-      let matches;
-      while ((matches = pat.exec(pageText)) !== null) {
-        if (matches[1]) {
-          const raw = matches[1].trim();
-          const clean = raw.replace(/[\s\-\.]/g, '');
-          if (clean.length >= 8 && clean.length <= 12) {
-            foundAPNs.add(raw.replace(/\s+/g, '-')); // Chuẩn hóa thành dạng có gạch nối rõ ràng (1049-441-21)
-          }
-        }
-      }
-    }
-
-    if (foundAPNs.size === 0) {
-      // Fallback tìm kiếm linh hoạt trên toàn text
-      const fb = pageText.match(/(?:APN|Parcel)[\s:\-–—#\.\t]{1,15}(\d{4}[\s\-\.]\d{3}[\s\-\.]\d{2}|\d{3,4}[\s\-\.]\d{3}[\s\-\.]\d{2,3}|\d{8,12})\b/i);
-      if (fb && fb[1]) {
-        foundAPNs.add(fb[1].trim().replace(/\s+/g, '-'));
-      }
-    }
-
-    const firstAPN = foundAPNs.size > 0 ? [...foundAPNs][0] : null;
-
-    // 2. Trích xuất Property Type / Use & Stories từ AI Overview hoặc Snippets
+    // 1. Trích xuất Property Type / Use & Stories từ AI Overview hoặc Snippets
     let propType = null;
     let stories = null;
 
@@ -333,7 +295,6 @@
     const finalAddress = canonicalAddress || searchedAddress;
 
     return {
-      apn: firstAPN,
       address: finalAddress,
       canonicalAddress: canonicalAddress || null,
       propType,
@@ -369,47 +330,7 @@
       const role = response.role;
 
       // =========================================================================
-      // VAI TRÒ 1: APN_SEARCH (Bước 1 - Tìm mã APN)
-      // =========================================================================
-      if (role === "APN_SEARCH") {
-        let isDone = false;
-
-        function checkAPN() {
-          if (isDone) return true;
-          const data = parseGoogleSpecs();
-          if (data && data.apn) {
-            isDone = true;
-            chrome.runtime.sendMessage({
-              action: "STEP1_APN_FOUND",
-              apn: data.apn,
-              details: data
-            });
-            return true;
-          }
-          return false;
-        }
-
-        if (!checkAPN()) {
-          let attempts = 0;
-          const timer = setInterval(() => {
-            attempts++;
-            if (checkAPN() || attempts >= 20) {
-              clearInterval(timer);
-            }
-          }, 400);
-
-          const observer = new MutationObserver(() => {
-            if (checkAPN()) {
-              observer.disconnect();
-              clearInterval(timer);
-            }
-          });
-          if (document.body) observer.observe(document.body, { childList: true, subtree: true });
-        }
-      }
-
-      // =========================================================================
-      // VAI TRÒ 2: PROPERTY_OVERVIEW_SEARCH (Bước 2 - Đợi AI Overview & Property Overview)
+      // VAI TRÒ: PROPERTY_OVERVIEW_SEARCH (Đợi AI Overview & Property Overview)
       // =========================================================================
       if (role === "PROPERTY_OVERVIEW_SEARCH") {
         let isDone = false;
@@ -429,7 +350,7 @@
           if (hasKeyData || checkCount >= 20) {
             isDone = true;
             chrome.runtime.sendMessage({
-              action: "STEP2_PROPERTY_OVERVIEW_FOUND",
+              action: "PROPERTY_OVERVIEW_FOUND",
               details: data || {}
             });
             return true;
@@ -467,10 +388,8 @@
           domain: window.location.hostname,
           url: window.location.href,
           data: {
-            apn: data.apn,
             address: data.address,
             lot: {
-              parcelId: data.apn,
               projectAddress: data.address,
               parking: data.parking,
               parkingRaw: data.parkingRaw,

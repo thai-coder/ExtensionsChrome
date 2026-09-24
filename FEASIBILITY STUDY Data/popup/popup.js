@@ -512,40 +512,27 @@ document.addEventListener("DOMContentLoaded", () => {
     chrome.storage.local.set({ lastSearchQuery: address });
 
     // Kiểm tra nếu người dùng dán trực tiếp mã APN vào ô địa chỉ
-    const isApn = /^[0-9-]{6,15}$/.test(address.replace(/\s/g, ""));
+    const isApn = /^[0-9\-\s]{6,16}$/.test(address) && /\d{6,}/.test(address.replace(/\D/g, ""));
     const cleanApn = isApn ? address.replace(/[^0-9]/g, "") : "";
 
     if (cleanApn) {
       storedApn = cleanApn;
       setText("v-ov-apn", cleanApn);
       setText("v-lot-parcelId", cleanApn);
-      statusLabel.textContent = `APN: ${cleanApn}`;
+      statusLabel.textContent = `Finding Address from APN: ${cleanApn}...`;
       statusPill.className = "status-pill active";
-      showToast(`Opening PropZone for APN: ${cleanApn}`);
-
-      const propZoneUrl = "https://propzone.gridics.com/";
-      chrome.storage.local.set({
-        pendingExtractorCommand: {
-          url: propZoneUrl,
-          portalKey: "propzone",
-          address: address,
-          apn: cleanApn,
-          timestamp: Date.now()
-        }
-      });
-      chrome.tabs.create({ url: propZoneUrl });
-      return;
+      showToast(`Searching Address for APN: ${cleanApn}...`);
+    } else {
+      if (county?.isStreetOnly) {
+        showToast("⚠️ Đang tìm với địa chỉ thiếu City/Zip! Khuyên dùng: thêm ', City'");
+      } else {
+        showToast("Starting Pipeline: Property Overview → PropZone...");
+      }
+      statusLabel.textContent = "Finding Property Overview...";
+      statusPill.className = "status-pill active";
     }
 
     // GỬI LỆNH ĐẾN BACKGROUND SERVICE WORKER KHỞI CHẠY QUY TRÌNH
-    if (county?.isStreetOnly) {
-      showToast("⚠️ Đang tìm với địa chỉ thiếu City/Zip! Khuyên dùng: thêm ', City'");
-    } else {
-      showToast("Starting Pipeline: Property Overview → PropZone...");
-    }
-    statusLabel.textContent = "Finding Property Overview...";
-    statusPill.className = "status-pill active";
-
     chrome.runtime.sendMessage({
       action: "START_AUTO_PIPELINE",
       address: address
@@ -567,17 +554,15 @@ document.addEventListener("DOMContentLoaded", () => {
         break;
 
       case "propzone":
-        targetUrl = "https://propzone.gridics.com/";
+        targetUrl = "https://propzone.gridics.com/state/us/ca";
         break;
-
-
 
       case "fema":
         targetUrl = "https://experience.arcgis.com/experience/9d22cdae8b7542b88e0d555a3eb92949/page/Main?org=hazards-FEMA";
         break;
 
       default:
-        targetUrl = "https://propzone.gridics.com/";
+        targetUrl = "https://propzone.gridics.com/state/us/ca";
         break;
     }
 

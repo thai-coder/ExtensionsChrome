@@ -1,9 +1,9 @@
 /**
- * FEASIBILITY STUDY Data - Direct Google & PropZone Background Service Worker
- * Quản lý quy trình tự động 3 bước chuẩn xác theo Tab ID (Không cần tham số URL):
- * - Bước 1: Mở Google tìm kiếm APN -> Lấy APN -> Đóng Tab 1.
- * - Bước 2: Mở Google "[Địa chỉ] properties" -> Đợi AI Overview / Property Overview -> Lấy Property Type, Stories, Parking / Garage -> Đóng Tab 2.
- * - Bước 3: Mở PropZone Gridics Map -> Bóc tách Lot, Zoning, Setbacks, Capacity -> Đóng Tab 3.
+ * FEASIBILITY STUDY Data - Background Service Worker
+ * Quản lý quy trình tìm kiếm và bóc tách dữ liệu theo phiên làm việc (Tab ID):
+ * - Tiền trạm (Nếu nhập APN): Mở Google tìm Địa chỉ thực tế -> Nối tiếp Luồng chính (1*).
+ * - Bước 1 (Luồng 1*): Mở Google "[Địa chỉ] properties" -> Bóc tách Property Overview / Specs -> Đóng Tab 1.
+ * - Bước 2 (Luồng 1*): Mở PropZone Gridics Map -> Bóc tách Lot, Zoning, Setbacks, Capacity -> Đóng Tab 2.
  */
 
 importScripts("../config/county-detector.js");
@@ -19,7 +19,7 @@ const PROPZONE_TAB_LIFETIME_MS = 10 * 60 * 1000;
 let pipelineSession = {
   address: "",
   apn: "",
-  apnTabId: null,
+  apnSearchTabId: null,
   propertyOverviewTabId: null,
   propZoneTabId: null,
   specs: {}
@@ -41,47 +41,70 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true; // async
   }
 
-  // 2. CONTENT SCRIPT HỎI VAI TRÒ CỦA TAB GOOGLE HIỆN TẠI (Dựa trên Tab ID)
+  // 2. CONTENT SCRIPT HỎI VAI TRÒ CỦA TAB GOOGLE HIỆN TẠI (Dựa trên Tab ID & Persistent Storage)
   if (request.action === "GET_SEARCH_PIPELINE_ROLE") {
     const tabId = sender.tab ? sender.tab.id : null;
-    if (tabId && tabId === pipelineSession.apnTabId) {
-      sendResponse({ role: "APN_SEARCH", address: pipelineSession.address });
-    } else if (tabId && tabId === pipelineSession.propertyOverviewTabId) {
-      sendResponse({ role: "PROPERTY_OVERVIEW_SEARCH", address: pipelineSession.address, apn: pipelineSession.apn });
-    } else {
-      sendResponse({ role: "NONE" }); // Người dùng tìm kiếm Google bình thường
-    }
-    return true;
+    chrome.storage.local.get(["activePipelineSession"], (res) => {
+      const session = res.activePipelineSession || pipelineSession || {};
+      if (tabId && (tabId === session.apnSearchTabId || tabId === pipelineSession.apnSearchTabId)) {
+        sendResponse({ role: "APN_TO_ADDRESS_SEARCH", apn: session.apn || pipelineSession.apn });
+      } else if (tabId && (tabId === session.propertyOverviewTabId || tabId === pipelineSession.propertyOverviewTabId)) {
+        sendResponse({ role: "PROPERTY_OVERVIEW_SEARCH", address: session.address || pipelineSession.address, apn: session.apn || pipelineSession.apn });
+      } else {
+        sendResponse({ role: "NONE" }); // Người dùng tìm kiếm Google bình thường
+      }
+    });
+    return true; // async
   }
 
-  // 3. CONTENT SCRIPT HỎI VAI TRÒ CỦA TAB PROPZONE HIỆN TẠI
+  // 3. CONTENT SCRIPT HỎI VAI TRÒ CỦA TAB PROPZONE HIỆN TẠI (Dựa trên Tab ID & Persistent Storage)
   if (request.action === "GET_PROPZONE_PIPELINE_ROLE") {
     const tabId = sender.tab ? sender.tab.id : null;
-    if (tabId && tabId === pipelineSession.propZoneTabId) {
-      sendResponse({ role: "AUTO_PIPELINE", apn: pipelineSession.apn, address: pipelineSession.address });
-    } else {
-      sendResponse({ role: "MANUAL" }); // Người dùng mở PropZone thủ công
+    chrome.storage.local.get(["activePipelineSession", "lastSearchQuery", "lastApn"], (res) => {
+      const session = res.activePipelineSession || pipelineSession || {};
+      const isTargetTab = tabId && (tabId === session.propZoneTabId || tabId === pipelineSession.propZoneTabId);
+      if (isTargetTab) {
+        sendResponse({
+          role: "AUTO_PIPELINE",
+          apn: session.apn || pipelineSession.apn || res.lastApn || "",
+          address: session.address || pipelineSession.address || res.lastSearchQuery || ""
+        });
+      } else {
+        sendResponse({ role: "MANUAL" }); // Người dùng mở PropZone thủ công
+      }
+    });
+    return true; // async
+  }
+
+
+
+  // 4. BƯỚC TIỀN TRẠM HOÀN THÀNH: ĐÃ TÌM THẤY ĐỊA CHỈ TỪ MÃ APN -> NỐI VÀO LUỒNG CHÍNH (1*)
+  if (request.action === "APN_ADDRESS_RESOLVED") {
+    handleApnAddressResolved(request.apn, request.address, request.specs || {}, sender.tab ? sender.tab.id : null);
+    sendResponse({ success: true });
+    return true;
+  }
+
+  // NẾU TÌM ĐỊA CHỈ TỪ APN BỊ TIMEOUT / THẤT BẠI
+  if (request.action === "APN_ADDRESS_RESOLVE_FAILED") {
+    if (sender.tab && sender.tab.id) {
+      chrome.tabs.remove(sender.tab.id).catch(() => {});
     }
-    return true;
-  }
-
-  // 4. BƯỚC 1 HOÀN THÀNH: ĐÃ TÌM THẤY APN -> ĐÓNG TAB 1 VÀ MỞ TIẾP TAB 2 ("[Địa chỉ] properties")
-  if (request.action === "STEP1_APN_FOUND") {
-    handleStep1ApnFound(request.apn, request.details || {}, sender.tab ? sender.tab.id : null);
+    pipelineSession.apnSearchTabId = null;
     sendResponse({ success: true });
     return true;
   }
 
-  // 5. BƯỚC 2 HOÀN THÀNH: ĐÃ TÌM THẤY PROPERTY OVERVIEW / AI OVERVIEW -> ĐÓNG TAB 2 VÀ MỞ TAB 3 (PROPZONE)
-  if (request.action === "STEP2_PROPERTY_OVERVIEW_FOUND") {
-    handleStep2PropertyOverviewFound(request.details || {}, sender.tab ? sender.tab.id : null);
+  // 5. BƯỚC 1 CỦA LUỒNG CHÍNH: ĐÃ TÌM THẤY PROPERTY OVERVIEW -> MỞ TIẾP BẢN ĐỒ PROPZONE
+  if (request.action === "PROPERTY_OVERVIEW_FOUND") {
+    handlePropertyOverviewFound(request.details || {}, sender.tab ? sender.tab.id : null);
     sendResponse({ success: true });
     return true;
   }
 
-  // 6. BƯỚC 3 HOÀN THÀNH: ĐÃ LƯU DỮ LIỆU PROPZONE VÀ ĐÓNG TAB 3
+  // 6. BƯỚC 2 CỦA LUỒNG CHÍNH: ĐÃ LƯU DỮ LIỆU PROPZONE VÀ ĐÓNG TAB PROPZONE
   if (request.action === "AUTO_SAVE_AND_CLOSE_TAB" && request.data) {
-    handleStep3SaveAndClose(request.data, sender.tab ? sender.tab.id : null);
+    handlePropZoneSaveAndClose(request.data, sender.tab ? sender.tab.id : null);
     sendResponse({ success: true });
     return true;
   }
@@ -180,64 +203,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
 });
-
 /**
- * Xử lý Bước 1: Nhận APN -> Đóng Tab 1 -> Mở Tab 2 "[Địa chỉ] properties"
+ * Xử lý Bước 1: Nhận thông tin Property Overview / AI Overview -> Đóng Tab Google -> Mở Tab PropZone
  */
-async function handleStep1ApnFound(apn, details, tabId) {
-  if (!apn) return;
-  const formattedApn = apn.trim().replace(/\s+/g, '-');
-  const cleanDigits = formattedApn.replace(/[^0-9]/g, "");
-  pipelineSession.apn = formattedApn;
-  pipelineSession.specs = { ...pipelineSession.specs, ...(details || {}) };
-
-  const { lastSearchQuery, lastPipelineResult } = await chrome.storage.local.get(["lastSearchQuery", "lastPipelineResult"]);
-  const address = (details && details.canonicalAddress) || (details && details.address) || pipelineSession.address || lastSearchQuery || lastPipelineResult?.address || "";
-  pipelineSession.address = address;
-  const countyInfo = CountyDetector.detect(address);
-
-  // Lưu APN bước 1
-  await chrome.storage.local.set({
-    lastApn: formattedApn,
-    lastSearchQuery: address,
-    lastPipelineResult: {
-      ...(lastPipelineResult || {}),
-      address: address,
-      apn: formattedApn,
-      lot: {
-        ...(lastPipelineResult?.lot || {}),
-        parcelId: formattedApn,
-        parcelNumber: formattedApn,
-        cleanApn: cleanDigits,
-        projectAddress: address
-      },
-      source: "Google Search (Step 1 APN)",
-      county: countyInfo.name,
-      countyKey: countyInfo.countyKey,
-      updatedAt: new Date().toISOString()
-    }
-  });
-
-  // Đóng Tab 1 (APN search tab)
-  if (tabId) {
-    try {
-      await chrome.tabs.remove(tabId);
-    } catch (e) {}
-  }
-  pipelineSession.apnTabId = null;
-
-  // Mở Bước 2: Google "[Địa chỉ] properties"
-  const propOverviewQuery = `${address} properties`;
-  const propOverviewUrl = `https://www.google.com/search?q=${encodeURIComponent(propOverviewQuery)}`;
-  
-  const propTab = await chrome.tabs.create({ url: propOverviewUrl, active: true });
-  pipelineSession.propertyOverviewTabId = propTab.id;
-}
-
-/**
- * Xử lý Bước 2: Nhận thông tin Property Overview / AI Overview -> Đóng Tab 2 -> Mở Tab 3 (PropZone)
- */
-async function handleStep2PropertyOverviewFound(details, tabId) {
+async function handlePropertyOverviewFound(details, tabId) {
 
   const { lastSearchQuery, lastPipelineResult } = await chrome.storage.local.get(["lastSearchQuery", "lastPipelineResult"]);
   const address = (details && details.canonicalAddress) || (details && details.address) || pipelineSession.address || lastSearchQuery || lastPipelineResult?.address || "";
@@ -291,28 +260,45 @@ async function handleStep2PropertyOverviewFound(details, tabId) {
     }
   });
 
-  // Đóng Tab 2 (Properties Search Tab)
+  // Mở Bước 2: Chuyển hướng tab hiện tại sang Bản đồ PropZone Gridics California (Mượt mà, không nháy màn hình, không mất focus)
+  const targetPropZoneUrl = "https://propzone.gridics.com/state/us/ca";
+  lastOpenedPropZoneUrl = targetPropZoneUrl;
+  lastOpenedTime = Date.now();
+
+  let targetTabId = tabId;
+
   if (tabId) {
     try {
-      await chrome.tabs.remove(tabId);
-    } catch (e) {}
+      await chrome.tabs.update(tabId, { url: targetPropZoneUrl, active: true });
+      targetTabId = tabId;
+    } catch (e) {
+      const pzTab = await chrome.tabs.create({ url: targetPropZoneUrl, active: true });
+      targetTabId = pzTab.id;
+    }
+  } else {
+    const pzTab = await chrome.tabs.create({ url: targetPropZoneUrl, active: true });
+    targetTabId = pzTab.id;
   }
+
+  pipelineSession.propZoneTabId = targetTabId;
   pipelineSession.propertyOverviewTabId = null;
 
-  // Mở Bước 3: Bản đồ PropZone Gridics
-  const targetPropZoneUrl = "https://propzone.gridics.com/";
-  if (targetPropZoneUrl) {
-    lastOpenedPropZoneUrl = targetPropZoneUrl;
-    lastOpenedTime = Date.now();
-    const pzTab = await chrome.tabs.create({ url: targetPropZoneUrl, active: true });
-    pipelineSession.propZoneTabId = pzTab.id;
-  }
+  // Lưu ngay tab ID và dữ liệu vào Persistent Storage để Service Worker ngủ ngầm vẫn nhận diện 100%
+  await chrome.storage.local.set({
+    activePipelineSession: {
+      address: address,
+      apn: cleanApn,
+      propZoneTabId: targetTabId,
+      step: "PROPZONE_MAP",
+      timestamp: Date.now()
+    }
+  });
 }
 
 /**
- * Xử lý Bước 3: Lưu toàn bộ dữ liệu PropZone & Đóng Tab 3
+ * Xử lý Bước 2: Lưu toàn bộ dữ liệu PropZone & Giữ nguyên Tab PropZone mở cho người dùng
  */
-async function handleStep3SaveAndClose(data, tabId) {
+async function handlePropZoneSaveAndClose(data, tabId) {
   const { lastPipelineResult, lastSearchQuery } = await chrome.storage.local.get(["lastPipelineResult", "lastSearchQuery"]);
   const prev = lastPipelineResult || {};
   const extractedAddress = data.address || data.lot?.projectAddress || data.lot?.address || data.lot?.situsAddress;
@@ -320,6 +306,7 @@ async function handleStep3SaveAndClose(data, tabId) {
 
   await chrome.storage.local.set({
     lastSearchQuery: finalAddress || lastSearchQuery || "",
+    activePipelineSession: null, // Giải phóng phiên làm việc tự động
     lastPipelineResult: {
       ...prev,
       ...data,
@@ -337,28 +324,107 @@ async function handleStep3SaveAndClose(data, tabId) {
     }
   });
 
-  if (tabId) {
-    if (tabId === pipelineSession.propZoneTabId) {
-      pipelineSession.propZoneTabId = null;
-    }
-    setTimeout(() => {
-      chrome.tabs.remove(tabId).catch(() => {});
-    }, PROPZONE_TAB_LIFETIME_MS);
+  // Giải phóng phiên làm việc của Tab để không kích hoạt lại pipeline tự động
+  if (tabId && tabId === pipelineSession.propZoneTabId) {
+    pipelineSession.propZoneTabId = null;
   }
+  // Giữ nguyên tab PropZone mở để người dùng xem bản đồ trực quan
 }
 
 /**
- * Khởi chạy quy trình Tìm kiếm Tự Động
+ * Xử lý khi Bước tiền trạm đã tìm thấy Địa chỉ từ APN -> Nối thẳng vào Luồng chính (1*)
  */
-async function runDirectSearchPipeline(query) {
+async function handleApnAddressResolved(apn, foundAddress, specs = {}, tabId) {
+  if (!foundAddress) return;
+
+  // Đóng tab tìm kiếm APN
+  if (tabId) {
+    try {
+      await chrome.tabs.remove(tabId);
+    } catch (e) {}
+  }
+  pipelineSession.apnSearchTabId = null;
+
+  // Lưu APN, Địa chỉ và Specs vừa tìm được từ Google AI Overview
+  pipelineSession.apn = apn;
+  pipelineSession.address = foundAddress;
+  pipelineSession.specs = { ...pipelineSession.specs, ...specs };
+
+  const countyInfo = CountyDetector.detect(foundAddress);
+
+  await chrome.storage.local.set({
+    lastApn: apn,
+    lastSearchQuery: foundAddress,
+    lastPipelineResult: {
+      address: foundAddress,
+      apn: apn,
+      lot: {
+        parcelId: apn,
+        projectAddress: foundAddress,
+        existingBuildingUse: specs.propType || null,
+        existingBuildingArea: specs.bldgSize || null
+      },
+      county: specs.county || countyInfo.name,
+      countyKey: countyInfo.countyKey,
+      updatedAt: new Date().toISOString()
+    }
+  });
+
+  // Tái tiếp tục luồng: Chuyển tiếp vào Luồng chính (1*)
+  await runDirectSearchPipeline(foundAddress, apn);
+}
+
+/**
+ * Khởi chạy quy trình Tìm kiếm Tự Động (Điều phối APN / Địa chỉ)
+ */
+async function runDirectSearchPipeline(query, providedApn = "") {
   if (!query || !query.trim()) {
     throw new Error("Query is empty");
   }
 
   const cleanQuery = query.trim();
 
-  // 1. KIỂM TRA NẾU CÓ APN ĐỨNG ĐẦU ĐỊA CHỈ (VD: "104944121, 1026 S GREENWOOD AVE, ONTARIO, CA, 91761")
-  let leadApn = null;
+  // 1. KIỂM TRA NẾU ĐẦU VÀO LÀ MÃ APN TRỰC TIẾP
+  const isDirectApn = /^[0-9\-\s]{6,16}$/.test(cleanQuery) && /\d{6,}/.test(cleanQuery.replace(/\D/g, ""));
+  const cleanApn = isDirectApn ? cleanQuery.replace(/\s+/g, "-") : (providedApn ? providedApn.replace(/\s+/g, "-") : "");
+
+  if (isDirectApn && !providedApn) {
+    // KÍCH HOẠT BƯỚC TIỀN TRẠM: Tìm kiếm Địa chỉ từ APN trên Google với cú pháp "[mã] APN CA"
+    const apnSearchQuery = `${cleanApn} APN CA`;
+    const apnSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(apnSearchQuery)}`;
+
+    pipelineSession = {
+      address: "",
+      apn: cleanApn,
+      apnSearchTabId: null,
+      propertyOverviewTabId: null,
+      propZoneTabId: null,
+      specs: {}
+    };
+
+    const apnTab = await chrome.tabs.create({ url: apnSearchUrl, active: true });
+    pipelineSession.apnSearchTabId = apnTab.id;
+
+    await chrome.storage.local.set({
+      activePipelineSession: {
+        apn: cleanApn,
+        apnSearchTabId: apnTab.id,
+        step: "APN_SEARCH",
+        timestamp: Date.now()
+      }
+    });
+
+    return {
+      success: true,
+      role: "APN_TO_ADDRESS_SEARCH",
+      apn: cleanApn,
+      googleSearchUrl: apnSearchUrl,
+      searchTabId: apnTab.id
+    };
+  }
+
+  // 2. NẾU CÓ APN ĐỨNG ĐẦU ĐỊA CHỈ (VD: "1049-441-21, 1026 S GREENWOOD AVE, ONTARIO, CA, 91761")
+  let leadApn = cleanApn;
   let targetAddress = cleanQuery;
   const leadApnMatch = cleanQuery.match(/^(\d{4}[-\s]?\d{3}[-\s]?\d{2}|\d{3,4}[-\s]?\d{3}[-\s]?\d{2,3}|\d{8,12})\s*,\s*(.+)$/i);
   if (leadApnMatch) {
@@ -366,99 +432,15 @@ async function runDirectSearchPipeline(query) {
     targetAddress = leadApnMatch[2].trim();
   }
 
-  // 2. KIỂM TRA NẾU LÀ APN TRỰC TIẾP
-  const isDirectApn = /^[0-9-]{6,15}$/.test(cleanQuery.replace(/\s/g, ""));
-  let cleanApn = isDirectApn ? cleanQuery.replace(/[^0-9]/g, "") : (leadApn ? leadApn.replace(/[^0-9]/g, "") : "");
-
-  if (isDirectApn) {
-    const targetPropZoneUrl = "https://propzone.gridics.com/";
-    const countyInfo = CountyDetector.detect(cleanQuery);
-
-    const payload = {
-      address: cleanQuery,
-      apn: cleanApn,
-      lot: {
-        parcelId: cleanApn,
-        projectAddress: cleanQuery
-      },
-      source: "Direct APN",
-      county: countyInfo.name,
-      countyKey: countyInfo.countyKey,
-      updatedAt: new Date().toISOString()
-    };
-
-    await chrome.storage.local.set({ 
-      lastPipelineResult: payload,
-      lastSearchQuery: cleanQuery,
-      lastApn: cleanApn
-    });
-
-    pipelineSession = {
-      address: cleanQuery,
-      apn: cleanApn,
-      apnTabId: null,
-      propertyOverviewTabId: null,
-      propZoneTabId: null,
-      specs: {}
-    };
-
-    lastOpenedPropZoneUrl = targetPropZoneUrl;
-    lastOpenedTime = Date.now();
-    const portalTab = await chrome.tabs.create({ url: targetPropZoneUrl, active: true });
-    pipelineSession.propZoneTabId = portalTab.id;
-    return { success: true, data: payload, portalUrl: targetPropZoneUrl, portalTabId: portalTab.id };
-  }
-
-  // 3. NẾU ĐÃ CÓ LEAD APN -> MỞ LUÔN BƯỚC 2 ĐỂ TÌM OVERVIEW & SPECS
-  if (leadApn) {
-    const countyInfo = CountyDetector.detect(targetAddress);
-    const propOverviewQuery = `${targetAddress} properties`;
-    const propOverviewUrl = `https://www.google.com/search?q=${encodeURIComponent(propOverviewQuery)}`;
-
-    pipelineSession = {
-      address: targetAddress,
-      apn: leadApn,
-      apnTabId: null,
-      propertyOverviewTabId: null,
-      propZoneTabId: null,
-      specs: {}
-    };
-
-    const payload = {
-      address: targetAddress,
-      apn: leadApn,
-      source: "User Provided APN + Address",
-      county: countyInfo.name,
-      countyKey: countyInfo.countyKey,
-      updatedAt: new Date().toISOString()
-    };
-
-    await chrome.storage.local.set({ 
-      lastPipelineResult: payload,
-      lastSearchQuery: targetAddress,
-      lastApn: leadApn
-    });
-
-    const propTab = await chrome.tabs.create({ url: propOverviewUrl, active: true });
-    pipelineSession.propertyOverviewTabId = propTab.id;
-
-    return {
-      success: true,
-      data: payload,
-      googleSearchUrl: propOverviewUrl,
-      searchTabId: propTab.id
-    };
-  }
-
-  // 4. NẾU LÀ ĐỊA CHỈ THUẦN -> BỎ QUA TÌM APN -> MỞ TRỰC TIẾP TAB TÌM PROPERTY OVERVIEW
-  const countyInfo = CountyDetector.detect(cleanQuery);
-  const propOverviewQuery = `${cleanQuery} properties`;
+  // 3. LUỒNG CHÍNH (1*): MỞ TAB TÌM PROPERTY OVERVIEW & SPECS
+  const countyInfo = CountyDetector.detect(targetAddress);
+  const propOverviewQuery = `${targetAddress} properties`;
   const propOverviewUrl = `https://www.google.com/search?q=${encodeURIComponent(propOverviewQuery)}`;
-  
+
   pipelineSession = {
-    address: cleanQuery,
-    apn: "",
-    apnTabId: null,
+    address: targetAddress,
+    apn: leadApn || "",
+    apnSearchTabId: null,
     propertyOverviewTabId: null,
     propZoneTabId: null,
     specs: {}
@@ -468,9 +450,9 @@ async function runDirectSearchPipeline(query) {
   pipelineSession.propertyOverviewTabId = propTab.id;
 
   const payload = {
-    address: cleanQuery,
-    apn: null,
-    source: "Google Search (AI Property Overview)",
+    address: targetAddress,
+    apn: leadApn || null,
+    source: leadApn ? "APN Resolved + AI Overview" : "Google Search (AI Property Overview)",
     county: countyInfo.name,
     countyKey: countyInfo.countyKey,
     updatedAt: new Date().toISOString()
@@ -478,7 +460,15 @@ async function runDirectSearchPipeline(query) {
 
   await chrome.storage.local.set({ 
     lastPipelineResult: payload,
-    lastSearchQuery: cleanQuery
+    lastSearchQuery: targetAddress,
+    activePipelineSession: {
+      address: targetAddress,
+      apn: leadApn || "",
+      propertyOverviewTabId: propTab.id,
+      step: "PROPERTY_OVERVIEW",
+      timestamp: Date.now()
+    },
+    ...(leadApn ? { lastApn: leadApn } : {})
   });
 
   return {

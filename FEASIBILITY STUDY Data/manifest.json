@@ -89,7 +89,7 @@
         "https://*.google.co.uk/search*",
         "https://*.google.com.au/search*"
       ],
-      "js": ["config/ca-cities-data.js", "config/county-detector.js", "content/google-extractor.js"],
+      "js": ["content/google-extractor.js", "content/apn-address-extractor.js"],
       "run_at": "document_idle"
     },
     {

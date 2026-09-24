@@ -19,6 +19,25 @@
 
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+  // Chờ trang tải hoàn tất cả Window Load và DOM ReadyState complete
+  function waitForPageFullyLoaded() {
+    return new Promise((resolve) => {
+      if (document.readyState === "complete") {
+        setTimeout(resolve, 800);
+      } else {
+        const onComplete = () => {
+          if (document.readyState === "complete") {
+            window.removeEventListener("load", onComplete);
+            document.removeEventListener("readystatechange", onComplete);
+            setTimeout(resolve, 800);
+          }
+        };
+        window.addEventListener("load", onComplete, { once: true });
+        document.addEventListener("readystatechange", onComplete);
+      }
+    });
+  }
+
   // Helper: Chờ phần tử xuất hiện trong DOM (Tối đa timeout ms)
   const waitForElement = (selector, timeout = 15000) => {
     return new Promise((resolve) => {
@@ -147,6 +166,15 @@
     return !!hasTableIds;
   }
 
+  // Kiểm tra nếu trang hiện tại đã là trang chi tiết lô đất (Parcel Detail View)
+  function isParcelDetailPage() {
+    const path = (window.location.pathname || '').toLowerCase();
+    const href = (window.location.href || '').toLowerCase();
+    if (path.includes('/parcel/') || path.includes('/property/') || path.includes('/folio/')) return true;
+    if (/[?&](apn|folio|parcelid|id)=/i.test(href)) return true;
+    return false;
+  }
+
   // Kiểm tra thông báo không tìm thấy lô đất trên PropZone
   function checkPropZoneNotFound() {
     const text = document.body ? (document.body.innerText || '') : '';
@@ -199,9 +227,9 @@
 
     if (!targetAddress) {
       try {
-        const stored = await chrome.storage.local.get(['lastSearchQuery', 'lastApn']);
-        targetAddress = stored.lastSearchQuery || "";
-        if (!targetApn) targetApn = stored.lastApn || "";
+        const stored = await chrome.storage.local.get(['lastSearchQuery', 'lastApn', 'lastPipelineResult']);
+        targetAddress = stored.lastSearchQuery || stored.lastPipelineResult?.address || "";
+        if (!targetApn) targetApn = stored.lastApn || stored.lastPipelineResult?.apn || "";
       } catch (e) { }
     }
 
@@ -216,125 +244,291 @@
   }
 
   // ==========================================
-  // BƯỚC 1: ÉP FOCUS, GIẢ LẬP GÕ PHÍM & BẮT DROPDOWN
+  // BƯỚC 1: ÉP FOCUS, GIẢ LẬP GÕ TỪNG KÝ TỰ & CHỌN GỢI Ý DROPDOWN
   // ==========================================
   async function step1_ForceFocusAndTyping(addressToSearch) {
-    console.log("=== Bắt đầu: Ép con trỏ nhấp nháy và Giả lập gõ phím ===");
+    console.log("=== Bắt đầu: Đợi ô tìm kiếm và gõ từng ký tự địa chỉ ===");
     if (!addressToSearch || !addressToSearch.trim()) {
       console.warn("[Bước 1] Không có địa chỉ hợp lệ để tìm kiếm.");
       return false;
     }
 
     const targetAddress = addressToSearch.trim();
-    // Tách phần rút gọn (Bỏ state/zip) để gõ nhanh gợi ý, ví dụ: "936 East 2nd Street, Santa Ana"
+    // Tách phần rút gọn (Bỏ state/zip) để hiển thị gợi ý tốt nhất, ví dụ: "12881 Lucille Ave, Garden Grove"
     const typingText = targetAddress.replace(/,\s*(?:CA|California)\s*\d{5}$/i, '').trim() || targetAddress;
 
-    const normalizeAddress = (str) => (str || '').toUpperCase().replace(/[,.]/g, ' ').replace(/\s+/g, ' ').trim();
-    const targetNorm = normalizeAddress(targetAddress);
-
-    const inputSelector = 'input[name="search"][placeholder*="Enter an address"], input[name="search"], #map-search input, .search-box.map input';
-    const searchInput = (await waitForElement(inputSelector, 15000)) || document.querySelector('input[name="search"]');
+    const inputSelector = 'input[placeholder*="Place or Address" i], input[name="search"], input[type="search"], #map-search input, .search-box.map input, input[placeholder*="Address" i]';
+    const searchInput = (await waitForElement(inputSelector, 20000)) || document.querySelector('input[name="search"]') || document.querySelector('input[placeholder*="Place or Address" i]');
 
     if (!searchInput) {
-      console.error("[Lỗi] Không tìm thấy ô nhập địa chỉ.");
+      console.error("[Lỗi] Không tìm thấy ô nhập địa chỉ sau khi đợi trang load.");
       return false;
     }
 
-    // 1. CHUỖI SỰ KIỆN ÉP FOCUS (Tuyệt chiêu gọi con trỏ nhấp nháy)
-    searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    await sleep(300);
+    // Đợi thêm một nhịp 400ms cho React gắn đầy đủ event listeners
+    await sleep(400);
 
-    // Bắn đủ bộ event như khi bạn dùng chuột click thật
+    // 1. ÉP FOCUS VÀO Ô TÌM KIẾM
+    searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    await sleep(250);
+
     searchInput.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
     searchInput.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
     searchInput.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
     searchInput.click();
     searchInput.focus();
-    searchInput.dispatchEvent(new Event('focusin', { bubbles: true })); // Ép React/Angular nhận focus
-
-    // Ép con trỏ nhấp nháy (Caret) xuất hiện ở cuối dòng
-    try {
-      searchInput.setSelectionRange(0, 0);
-    } catch (e) { }
+    searchInput.dispatchEvent(new Event('focusin', { bubbles: true }));
 
     await sleep(200);
 
     const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
-    console.log("[Bước 1] Đang gõ từng phím. Hãy quan sát con trỏ nhấp nháy...");
 
-    // 2. GIẢ LẬP GÕ TỪNG KÝ TỰ (Di chuyển con trỏ theo chữ)
-    let currentString = "";
-    for (let char of typingText) {
-      currentString += char;
+    // Xóa trắng input ban đầu
+    if (nativeSetter) {
+      nativeSetter.call(searchInput, '');
+    } else {
+      searchInput.value = '';
+    }
+    searchInput.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+    await sleep(150);
 
+    // 2. GÕ TỪNG KÝ TỰ (CHARACTER-BY-CHARACTER) ĐỂ KÍCH HOẠT DEBOUNCE/AUTOCOMPLETE CỦA PROPZONE
+    console.log(`[Bước 1] Đang bắt đầu gõ từng chữ: "${typingText}"...`);
+    let currentText = '';
+
+    for (let idx = 0; idx < typingText.length; idx++) {
+      const char = typingText[idx];
+      currentText += char;
+
+      // Cập nhật giá trị
       if (nativeSetter) {
-        nativeSetter.call(searchInput, currentString);
+        nativeSetter.call(searchInput, currentText);
       } else {
-        searchInput.value = currentString;
+        searchInput.value = currentText;
       }
 
-      // Bắn sự kiện phím
-      searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: char, bubbles: true, cancelable: true }));
-      searchInput.dispatchEvent(new Event('input', { bubbles: true }));
-      searchInput.dispatchEvent(new KeyboardEvent('keyup', { key: char, bubbles: true, cancelable: true }));
+      // Phát chuỗi Keydown -> InputEvent -> Event('input') -> Keyup
+      searchInput.dispatchEvent(new KeyboardEvent('keydown', {
+        key: char,
+        bubbles: true,
+        cancelable: true
+      }));
 
-      // LUÔN ÉP CON TRỎ NHẤP NHÁY CHẠY VỀ CUỐI CHỮ (Rất quan trọng)
       try {
-        searchInput.focus();
-        searchInput.setSelectionRange(currentString.length, currentString.length);
+        searchInput.dispatchEvent(new InputEvent('input', {
+          bubbles: true,
+          cancelable: true,
+          inputType: 'insertText',
+          data: char
+        }));
       } catch (e) { }
 
-      // Random độ trễ 30ms - 60ms cho giống người gõ thật
-      await sleep(30 + Math.random() * 30);
+      searchInput.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+
+      searchInput.dispatchEvent(new KeyboardEvent('keyup', {
+        key: char,
+        bubbles: true,
+        cancelable: true
+      }));
+
+      // Giữ con trỏ ở cuối chuỗi và duy trì focus
+      try {
+        searchInput.focus();
+        searchInput.setSelectionRange(currentText.length, currentText.length);
+      } catch (e) { }
+
+      // Nghỉ giữa các nhịp gõ (khoảng 50ms - 80ms)
+      await sleep(50 + Math.floor(Math.random() * 30));
     }
 
-    console.log("[Bước 2] Gõ xong. Đang chờ danh sách Dropdown xuất hiện...");
+    // Bắn sự kiện change sau khi hoàn tất gõ
+    searchInput.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
+    searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+    searchInput.dispatchEvent(new KeyboardEvent('keyup', { key: 'ArrowDown', bubbles: true }));
 
-    // 3. VÒNG LẶP CHỜ DROPDOWN (Có cơ chế ép focus lại nếu bị rớt)
+    console.log(`[Bước 1] Đã gõ xong toàn bộ: "${typingText}". Bắt đầu cơ chế dò địa chỉ & kiên nhẫn chờ Dropdown hiển thị (tối đa 5 phút)...`);
+
+    // Helper kiểm tra danh sách dropdown đang hiển thị
+    const getVisibleDropdownOptions = () => {
+      const dropdownSelectors = [
+        'li[role="option"]',
+        '.search-results li',
+        '.results li',
+        'ul.results li',
+        '[class*="search-result"] li',
+        '[class*="suggestion"] li',
+        '[class*="suggestion"]',
+        'ul[role="listbox"] li',
+        'div[role="listbox"] div',
+        '.pac-container .pac-item',
+        '.dropdown-menu li',
+        '.search-item',
+        '[class*="autocomplete"] li',
+        '[class*="option"]'
+      ].join(', ');
+
+      return Array.from(document.querySelectorAll(dropdownSelectors)).filter(el => {
+        const text = (el.innerText || el.textContent || '').trim();
+        return text.length > 0 && el.offsetParent !== null; // Phần tử đang hiển thị thực tế
+      });
+    };
+
+    // Helper: Gõ thêm chuỗi ký tự mô phỏng người dùng
+    const typeAppend = async (suffixStr) => {
+      for (let c of suffixStr) {
+        if (getVisibleDropdownOptions().length > 0) return;
+        currentText += c;
+        if (nativeSetter) nativeSetter.call(searchInput, currentText);
+        else searchInput.value = currentText;
+
+        searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: c, bubbles: true, cancelable: true }));
+        try {
+          searchInput.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true, inputType: 'insertText', data: c }));
+        } catch (e) { }
+        searchInput.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+        searchInput.dispatchEvent(new KeyboardEvent('keyup', { key: c, bubbles: true, cancelable: true }));
+
+        try {
+          searchInput.focus();
+          searchInput.setSelectionRange(currentText.length, currentText.length);
+        } catch (e) { }
+
+        await sleep(50 + Math.floor(Math.random() * 30));
+      }
+      searchInput.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
+    };
+
+    // Helper: Xóa từng ký tự (Backspace) mô phỏng người dùng
+    const backspaceDelete = async (count) => {
+      for (let k = 0; k < count; k++) {
+        if (getVisibleDropdownOptions().length > 0) return;
+        if (currentText.length === 0) break;
+
+        currentText = currentText.slice(0, -1);
+        if (nativeSetter) nativeSetter.call(searchInput, currentText);
+        else searchInput.value = currentText;
+
+        searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', code: 'Backspace', keyCode: 8, which: 8, bubbles: true, cancelable: true }));
+        try {
+          searchInput.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true, inputType: 'deleteContentBackward' }));
+        } catch (e) { }
+        searchInput.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+        searchInput.dispatchEvent(new KeyboardEvent('keyup', { key: 'Backspace', code: 'Backspace', keyCode: 8, which: 8, bubbles: true, cancelable: true }));
+
+        try {
+          searchInput.focus();
+          searchInput.setSelectionRange(currentText.length, currentText.length);
+        } catch (e) { }
+
+        await sleep(40 + Math.floor(Math.random() * 20));
+      }
+      searchInput.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
+    };
+
+    // Helper: Kiểm tra và chọn ngay mục đầu tiên của Dropdown nếu xuất hiện
     let isSelected = false;
-    for (let i = 0; i < 30; i++) { // 15 giây
-      await sleep(500);
+    const checkAndSelectDropdown = async () => {
+      const options = getVisibleDropdownOptions();
+      if (options.length > 0) {
+        await sleep(200); // Cho dropdown render ổn định
 
-      // Nếu trình duyệt làm mất dấu nhấp nháy, gọi nó lại
+        const firstOption = options[0];
+        const placeNameDiv = firstOption.querySelector('.place-name') || firstOption.querySelector('[class*="name"]') || firstOption;
+        const selectedText = (placeNameDiv.textContent || placeNameDiv.innerText || "").trim();
+
+        console.log(`[Thành công] 🎉 Đã tìm thấy Dropdown! Click chọn mục đầu tiên: "${selectedText}"`);
+
+        // ĐÁNH DẤU TRẠNG THÁI VÀO SESSION STORAGE TRƯỚC KHI CLICK ĐỂ CHỐNG VÒNG LẶP VÔ HẠN KHI TRANG RELOAD
+        try {
+          sessionStorage.setItem('__PROPZONE_SEARCH_STATE__', 'SEARCH_COMPLETED');
+        } catch (e) { }
+
+        firstOption.scrollIntoView({ behavior: 'instant', block: 'center' });
+        await sleep(150);
+
+        firstOption.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+        firstOption.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+        firstOption.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+        firstOption.click();
+
+        isSelected = true;
+
+        // Chờ 1.5 giây để bản đồ bay tới lô đất và load dữ liệu
+        await sleep(1500);
+        return true;
+      }
+      return false;
+    };
+
+    // 3. VÒNG LẶP CHỜ ĐỢI & DÒ ĐỊA CHỈ (Thêm ', CA' -> Chờ 2s -> Xóa ', CA' -> Nhập lại liên tục tối đa 5 phút)
+    const probeStartTime = Date.now();
+    const MAX_WAIT_MS = 300000; // 5 phút = 300,000 ms
+    const suffix = ', CA';
+    let hasSuffix = false;
+    let cycleCount = 0;
+
+    while (Date.now() - probeStartTime < MAX_WAIT_MS) {
+      cycleCount++;
+
+      // 1. Kiểm tra ngay tức thì
+      if (await checkAndSelectDropdown()) break;
+
+      // Đảm bảo textbox luôn giữ focus và con trỏ ở cuối
       if (document.activeElement !== searchInput) {
         searchInput.focus();
         try { searchInput.setSelectionRange(searchInput.value.length, searchInput.value.length); } catch (e) { }
       }
 
-      // Kích thích API bằng phím mũi tên (nếu web bị lỳ không chịu mở drop)
-      if (i === 3 || i === 6) {
-        searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
-        searchInput.dispatchEvent(new KeyboardEvent('keyup', { key: 'ArrowDown', bubbles: true }));
-      }
-
-      const options = document.querySelectorAll('li[role="option"], .search-results li, .results li');
-
-      if (options.length > 0) {
-        for (let li of options) {
-          const placeNameDiv = li.querySelector('.place-name') || li;
-          if (placeNameDiv) {
-            const optionNorm = normalizeAddress(placeNameDiv.textContent || placeNameDiv.innerText);
-
-            if (optionNorm.includes(targetNorm) || targetNorm.includes(optionNorm) || optionNorm.includes(normalizeAddress(typingText))) {
-              console.log(`[Thành công] 🎉 Đã chọn: "${placeNameDiv.textContent || placeNameDiv.innerText}"`);
-
-              li.scrollIntoView({ behavior: 'instant', block: 'center' });
-              await sleep(100);
-              li.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
-              li.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
-              li.click();
-
-              isSelected = true;
-              break;
-            }
-          }
-        }
+      // 2. Chờ 1 giây (quét liên tục mỗi 200ms)
+      for (let t = 0; t < 5; t++) {
+        await sleep(200);
+        if (await checkAndSelectDropdown()) break;
       }
       if (isSelected) break;
+
+      // 3. Nếu chưa có suffix -> Gõ thêm ', CA'
+      if (!hasSuffix) {
+        console.log(`[Dò địa chỉ - Vòng ${cycleCount}] Gõ thêm "${suffix}" để kích thích gợi ý...`);
+        await typeAppend(suffix);
+        hasSuffix = true;
+
+        if (await checkAndSelectDropdown()) break;
+
+        // 4. Sau khi gõ xong -> Chờ 2 giây (quét liên tục mỗi 200ms)
+        for (let t = 0; t < 10; t++) {
+          await sleep(200);
+          if (await checkAndSelectDropdown()) break;
+        }
+        if (isSelected) break;
+      }
+
+      // 5. Sau khi chờ 2s -> Xóa ', CA' để trở lại địa chỉ gốc
+      if (hasSuffix) {
+        console.log(`[Dò địa chỉ - Vòng ${cycleCount}] Xóa "${suffix}" để kích hoạt debounce lại...`);
+        await backspaceDelete(suffix.length);
+        hasSuffix = false;
+
+        if (await checkAndSelectDropdown()) break;
+
+        // 6. Chờ 1 giây trước khi lặp lại vòng tiếp theo
+        for (let t = 0; t < 5; t++) {
+          await sleep(200);
+          if (await checkAndSelectDropdown()) break;
+        }
+        if (isSelected) break;
+      }
+
+      // Kích thích nhẹ bằng ArrowDown nếu cần
+      searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+      searchInput.dispatchEvent(new KeyboardEvent('keyup', { key: 'ArrowDown', bubbles: true }));
     }
 
     if (!isSelected) {
-      console.warn("[Bước 2] Không thấy dropdown khớp, fallback sang gửi Submit/Enter.");
+      console.warn("[Bước 1] Không thấy dropdown mở sau 5 phút chờ, fallback nhấn Enter...");
+      try {
+        sessionStorage.setItem('__PROPZONE_SEARCH_STATE__', 'SEARCH_COMPLETED');
+      } catch (e) { }
+
       const submitBtn = document.querySelector('#map-search button.form-submit, button[aria-label="Search"], button.form-submit, .map-search button');
       if (submitBtn) {
         submitBtn.click();
@@ -342,6 +536,7 @@
         searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
         searchInput.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
       }
+      await sleep(1500);
     }
 
     return true;
@@ -652,7 +847,12 @@
       FloatingUI.showSuccess(title, message, 8000, mapLinks);
     }
 
-    // Gửi message lưu storage
+    // Đánh dấu đã bóc tách xong để không chạy lại
+    try {
+      sessionStorage.setItem('__PROPZONE_SEARCH_STATE__', 'EXTRACTED');
+    } catch (e) { }
+
+    // Gửi message lưu storage (Không đóng tab theo yêu cầu)
     if (isAutoPipeline) {
       setTimeout(() => {
         chrome.runtime.sendMessage({
@@ -672,6 +872,9 @@
   // PIPELINE ĐIỀU PHỐI CHÍNH
   // ==========================================
   async function initPropZonePipeline() {
+    // 1. Đợi trang hoàn tất việc tải (Window Load & React mount)
+    await waitForPageFullyLoaded();
+
     const context = await resolvePipelineContext();
     const { targetAddress, targetApn, isAutoPipeline, shouldExecute } = context;
 
@@ -680,9 +883,15 @@
       return;
     }
 
-    // Bước 1 & 2: Ép focus, giả lập gõ phím & bắt dropdown chọn địa chỉ nếu chưa có bảng dữ liệu
-    if (!hasGridicsTablesDOM() && targetAddress) {
+    const searchState = sessionStorage.getItem('__PROPZONE_SEARCH_STATE__') || 'INITIAL';
+    const isDetailPage = isParcelDetailPage();
+    const alreadySearched = searchState === 'SEARCH_COMPLETED' || searchState === 'EXTRACTED';
+
+    // 2. Điền địa chỉ -> CHỈ CHẠY 1 LẦN DUY NHẤT nếu chưa tìm kiếm và chưa phải trang chi tiết
+    if (!hasGridicsTablesDOM() && targetAddress && !alreadySearched && !isDetailPage) {
       await step1_ForceFocusAndTyping(targetAddress);
+    } else if (alreadySearched || isDetailPage) {
+      console.log("[PropZone Map Extractor] Trang đã ở chế độ xem lô đất hoặc đã chọn gợi ý trước đó. Bỏ qua bước gõ tìm kiếm, kiên nhẫn chờ render bảng dữ liệu...");
     }
 
     let isCompleted = false;

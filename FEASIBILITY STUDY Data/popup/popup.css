@@ -261,9 +261,6 @@ body {
   border-color: var(--border-focus);
 }
 
-.portal-badge.google:hover { background: rgba(59, 130, 246, 0.25); border-color: #3b82f6; color: #93c5fd; }
-.portal-badge.propzone:hover { background: rgba(139, 92, 246, 0.2); border-color: #8b5cf6; color: #c4b5fd; }
-.portal-badge.assessor:hover { background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #6ee7b7; }
 .portal-badge.fema:hover { background: rgba(245, 158, 11, 0.2); border-color: #f59e0b; color: #fde68a; }
 
 /* County Badge Row & PropZone Auto Toggle */
@@ -399,7 +396,7 @@ body {
   background: transparent;
   border: none;
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 500;
   padding: 5px 0;
   border-radius: 5px;
@@ -518,29 +515,30 @@ body {
 /* Bottom Action Bar (2 Buttons) */
 .bottom-bar {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   padding-top: 2px;
 }
 
 .action-btn {
   flex: 1;
   border: none;
-  border-radius: 7px;
-  font-size: 12px;
+  border-radius: 6px;
+  font-size: 10.5px;
   font-weight: 600;
-  padding: 9px;
+  padding: 5px 8px;
+  min-height: 28px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
   transition: all 0.2s;
 }
 
 .btn-primary {
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   color: #fff;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.3);
 }
 
 .btn-primary:hover {
@@ -550,18 +548,27 @@ body {
 .btn-secondary-download {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: #fff;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+  box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
 }
 
 .btn-secondary-download:hover {
   background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
 }
+
+.action-btn:disabled,
+.action-btn.disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+  pointer-events: none;
+  filter: grayscale(85%);
+  box-shadow: none;
+}
 /* Extracted Map Links (OCGIS) */
 .map-links-bar {
   display: flex;
-  gap: 8px;
-  margin-top: 8px;
-  margin-bottom: 8px;
+  gap: 6px;
+  margin-top: 4px;
+  margin-bottom: 4px;
 }
 
 .map-link-btn {
@@ -569,13 +576,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 8px;
+  gap: 4px;
+  padding: 4px 6px;
+  min-height: 26px;
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
-  border-radius: 6px;
+  border-radius: 5px;
   color: var(--text-muted);
-  font-size: 11.5px;
+  font-size: 10px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -607,22 +615,31 @@ body {
   transform: translateY(-1px);
 }
 
-/* Toast */
+/* Toast (Centered) */
 .toast {
   position: fixed;
-  bottom: 14px;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   background: #10b981;
   color: #fff;
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-size: 11px;
+  padding: 9px 16px;
+  border-radius: 12px;
+  font-size: 11.5px;
   font-weight: 600;
+  text-align: center;
+  max-width: 82%;
+  line-height: 1.4;
   z-index: 999;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.15);
   pointer-events: none;
   opacity: 1;
+  animation: toastPop 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes toastPop {
+  0% { transform: translate(-50%, -50%) scale(0.85); opacity: 0; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
 }
 
 .toast.hidden {

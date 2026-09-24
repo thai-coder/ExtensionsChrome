@@ -86,13 +86,8 @@
 
       <!-- Quick Launch Portal Badges -->
       <div class="portal-badges">
-        <button id="btn-nav-google" class="portal-badge google" title="Search APN directly on Google"><span>Google
-            Search APN</span></button>
-        <button id="btn-nav-propzone" class="portal-badge propzone" title="Gridics PropZone Zoning Map"><span>Gridics
-            PropZone</span></button>
         <button id="btn-nav-fema" class="portal-badge fema"
           title="FEMA Flood ArcGIS Map (US IP/VPN required)"><span>FEMA Flood Map*</span></button>
-
       </div>
 
       <!-- Detected County & Auto-Fetch Toggle Banner -->
@@ -125,6 +120,7 @@
         <button id="tab-zoning" class="seg-btn">Zoning</button>
         <button id="tab-setbacks" class="seg-btn">Setbacks</button>
         <button id="tab-capacity" class="seg-btn">Capacity</button>
+        <button id="tab-civil" class="seg-btn">Civil</button>
       </nav>
 
       <!-- Scrollable Tab Content Area -->
@@ -301,12 +297,34 @@
             </div>
           </div>
         </div>
+
+        <!-- 6. Civil Tab -->
+        <div id="view-civil" class="tab-view hidden">
+          <div class="card-section">
+            <div class="data-table">
+              <div class="data-row"><span class="d-key">FEMA Flood Zone:</span><span id="v-cv-flood"
+                  class="d-val text-cyan">-</span></div>
+              <div class="data-row"><span class="d-key">Water Service:</span><span id="v-cv-water"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Sewer / Septic:</span><span id="v-cv-sewer"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Storm Drainage:</span><span id="v-cv-drainage"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Topography / Slope:</span><span id="v-cv-slope"
+                  class="d-val">-</span></div>
+              <div class="data-row"><span class="d-key">Fire Hazard Severity:</span><span id="v-cv-fire"
+                  class="d-val">-</span></div>
+              <div class="data-row col-wrap"><span class="d-key">Civil Notes:</span><span id="v-cv-notes"
+                  class="d-val-full text-dim">Civil data will be updated here.</span></div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Extracted Map Links (OCGIS) -->
       <div class="map-links-bar">
         <button id="btn-link-parcels" class="map-link-btn disabled" title="Link bản đồ Parcels" disabled>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
             <polyline points="7 10 12 15 17 10"></polyline>
             <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -314,7 +332,7 @@
           <span>Parcels</span>
         </button>
         <button id="btn-link-tract" class="map-link-btn disabled" title="Link bản đồ Tract Map" disabled>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
             <polyline points="7 10 12 15 17 10"></polyline>
             <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -326,7 +344,7 @@
       <!-- Bottom Action Bar with 2 Buttons: Copy JSON & Download Parcel Map -->
       <footer class="bottom-bar">
         <button id="btn-copy-json" class="action-btn btn-primary" title="Copy aggregated property data to clipboard">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
           </svg>
@@ -334,7 +352,7 @@
         </button>
         <button id="btn-download-map" class="action-btn btn-secondary-download"
           title="Open official Parcels / Plat Map Viewer">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
             <polyline points="7 10 12 15 17 10"></polyline>
             <line x1="12" y1="15" x2="12" y2="3"></line>

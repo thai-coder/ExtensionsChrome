@@ -21,9 +21,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const togglePropZoneExtract = document.getElementById("toggle-propzone-extract");
 
   // Quick Portal Launcher Badges
-  const btnNavGoogle = document.getElementById("btn-nav-google");
-  const btnNavPropZone = document.getElementById("btn-nav-propzone");
-
   const btnNavFema = document.getElementById("btn-nav-fema");
 
   // Tabs
@@ -32,6 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const tabZoning = document.getElementById("tab-zoning");
   const tabSetbacks = document.getElementById("tab-setbacks");
   const tabCapacity = document.getElementById("tab-capacity");
+  const tabCivil = document.getElementById("tab-civil");
 
   // Views
   const viewOverview = document.getElementById("view-overview");
@@ -39,6 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const viewZoning = document.getElementById("view-zoning");
   const viewSetbacks = document.getElementById("view-setbacks");
   const viewCapacity = document.getElementById("view-capacity");
+  const viewCivil = document.getElementById("view-civil");
 
   // Actions
   const btnCopyJson = document.getElementById("btn-copy-json");
@@ -192,7 +191,8 @@ document.addEventListener("DOMContentLoaded", () => {
       "v-sb-primary", "v-sb-secondary", "v-sb-side", "v-sb-rear", "v-sb-water",
       "v-cp-bldgArea", "v-cp-stories", "v-cp-height", "v-cp-far", "v-cp-lotCov",
       "v-cp-footprint", "v-cp-openSpace", "v-cp-resDensity", "v-cp-resArea", "v-cp-resUnits",
-      "v-cp-lodgingDensity", "v-cp-lodgingArea", "v-cp-officeArea", "v-cp-commArea"
+      "v-cp-lodgingDensity", "v-cp-lodgingArea", "v-cp-officeArea", "v-cp-commArea",
+      "v-cv-flood", "v-cv-water", "v-cv-sewer", "v-cv-drainage", "v-cv-slope", "v-cv-fire", "v-cv-notes"
     ];
 
     allFieldIds.forEach(id => {
@@ -216,6 +216,8 @@ document.addEventListener("DOMContentLoaded", () => {
       btnLinkTract.onclick = null;
     }
 
+    updateMapButtonState("");
+
     showToast("Session data cleaned!");
   }
 
@@ -229,7 +231,8 @@ document.addEventListener("DOMContentLoaded", () => {
     { btn: tabLot, view: viewLot },
     { btn: tabZoning, view: viewZoning },
     { btn: tabSetbacks, view: viewSetbacks },
-    { btn: tabCapacity, view: viewCapacity }
+    { btn: tabCapacity, view: viewCapacity },
+    { btn: tabCivil, view: viewCivil }
   ];
 
   navTabs.forEach(item => {
@@ -251,14 +254,43 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // Danh sách các Quận đã hỗ trợ công cụ Parcels / Plat Map
+  const SUPPORTED_MAP_COUNTIES = ["orange", "losAngeles", "riverside", "sanBernardino"];
+
+  // Quản lý trạng thái nút Get Parcels / Plat Map
+  function updateMapButtonState(addr) {
+    if (!btnDownloadMap) return;
+    const query = addr !== undefined ? addr : (inputAddress ? inputAddress.value.trim() : "");
+    if (!query) {
+      btnDownloadMap.disabled = true;
+      btnDownloadMap.classList.add("disabled");
+      btnDownloadMap.title = "Vui lòng nhập địa chỉ hợp lệ để mở bản đồ";
+      return;
+    }
+
+    const county = currentDetectedCounty || (window.CountyDetector ? window.CountyDetector.detect(query) : null);
+    if (!county || county.isUnknown || county.isStreetOnly || county.countyKey === "unknown") {
+      btnDownloadMap.disabled = true;
+      btnDownloadMap.classList.add("disabled");
+      btnDownloadMap.title = "Địa chỉ chưa xác định được Quận/Thành phố. Vui lòng bổ sung City/Zip.";
+      return;
+    }
+
+    btnDownloadMap.disabled = false;
+    btnDownloadMap.classList.remove("disabled");
+    btnDownloadMap.title = `Mở Parcels / Plat Map cho ${county.name || "Quận"}`;
+  }
+
   // 2. Real-time County Detection on Address Input
   function updateCountyBadge(addr) {
     if (!addr) {
       if (vDetectedCounty) {
-        vDetectedCounty.textContent = "Orange County (CA)";
-        vDetectedCounty.classList.remove("county-warn");
-        vDetectedCounty.title = "Mặc định (chưa nhập địa chỉ)";
+        vDetectedCounty.textContent = "Chưa nhập địa chỉ";
+        vDetectedCounty.classList.add("county-warn");
+        vDetectedCounty.title = "Vui lòng nhập địa chỉ";
       }
+      currentDetectedCounty = null;
+      updateMapButtonState("");
       return;
     }
 
@@ -279,6 +311,7 @@ document.addEventListener("DOMContentLoaded", () => {
           vDetectedCounty.classList.remove("county-warn");
         }
       }
+      updateMapButtonState(addr);
     }
   }
 
@@ -333,6 +366,8 @@ document.addEventListener("DOMContentLoaded", () => {
         inputAddress.value = res.lastSearchQuery;
         btnClearAddress.classList.remove("hidden");
         updateCountyBadge(res.lastSearchQuery);
+      } else {
+        updateMapButtonState(inputAddress.value.trim());
       }
       if (res.lastApn) {
         storedApn = res.lastApn;
@@ -502,13 +537,13 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // GỬI LỆNH ĐẾN BACKGROUND SERVICE WORKER KHỞI CHẠY QUY TRÌNH 3 BƯỚC CHUẨN XÁC
+    // GỬI LỆNH ĐẾN BACKGROUND SERVICE WORKER KHỞI CHẠY QUY TRÌNH
     if (county?.isStreetOnly) {
       showToast("⚠️ Đang tìm với địa chỉ thiếu City/Zip! Khuyên dùng: thêm ', City'");
     } else {
-      showToast("Starting 3-Step Pipeline: APN → Property Overview → PropZone...");
+      showToast("Starting Pipeline: Property Overview → PropZone...");
     }
-    statusLabel.textContent = "Step 1: Finding APN...";
+    statusLabel.textContent = "Finding Property Overview...";
     statusPill.className = "status-pill active";
 
     chrome.runtime.sendMessage({
@@ -560,8 +595,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Bind Navigation Buttons
   [
-    { btn: btnNavGoogle, key: "google" },
-    { btn: btnNavPropZone, key: "propzone" },
     { btn: btnNavFema, key: "fema" }
   ].forEach(item => {
     if (item.btn) item.btn.addEventListener("click", () => navigateToPortal(item.key));
@@ -569,10 +602,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 6. Parcels / Plat Map Action (Isolated Multi-County & City Engine)
   btnDownloadMap.addEventListener("click", () => {
-    const apn = storedApn || currentPayload?.lot?.parcelId || inputAddress.value.trim();
-    const query = inputAddress.value.trim();
-    const county = currentDetectedCounty || window.CountyDetector?.detect(query);
-    const countyKey = county?.countyKey || "orange";
+    const query = inputAddress ? inputAddress.value.trim() : "";
+    if (!query) {
+      showToast("⚠️ Vui lòng nhập địa chỉ trước khi mở bản đồ.");
+      return;
+    }
+
+    const county = currentDetectedCounty || (window.CountyDetector ? window.CountyDetector.detect(query) : null);
+    if (!county || county.isUnknown || county.isStreetOnly || county.countyKey === "unknown") {
+      showToast("⚠️ Địa chỉ chưa xác định được Quận. Vui lòng thêm City hoặc Zipcode.");
+      return;
+    }
+
+    const countyKey = county.countyKey;
+    if (!SUPPORTED_MAP_COUNTIES.includes(countyKey)) {
+      showToast(`⚠️ Chúng tôi chưa hỗ trợ Parcels / Plat Map cho ${county.name || "County này"}.`);
+      return;
+    }
+
+    const apn = storedApn || currentPayload?.lot?.parcelId || query;
     const cityLabel = county?.matchedCity ? `, ${county.matchedCity.toUpperCase()}` : "";
 
     showToast(`Checking Parcels / Plat Map (${county?.name || "County"}${cityLabel})...`);
@@ -884,6 +932,16 @@ document.addEventListener("DOMContentLoaded", () => {
     setText("v-cp-lodgingArea", formatSqFt(capacity.maximumLodgingAreaAllowed));
     setText("v-cp-officeArea", formatSqFt(capacity.maximumOfficeAreaAllowed));
     setText("v-cp-commArea", formatSqFt(capacity.maximumCommercialAreaAllowed));
+
+    // 6. Civil Tab
+    const civil = data.civil || {};
+    setText("v-cv-flood", zoning.femaFloodZone ?? zoning.floodZone ?? civil.femaFloodZone ?? "N/A");
+    setText("v-cv-water", civil.waterService ?? civil.water ?? "-");
+    setText("v-cv-sewer", civil.sewerService ?? civil.sewer ?? "-");
+    setText("v-cv-drainage", civil.stormDrainage ?? civil.drainage ?? "-");
+    setText("v-cv-slope", civil.topography ?? civil.slope ?? "-");
+    setText("v-cv-fire", civil.fireHazardSeverity ?? civil.fireZone ?? "-");
+    setText("v-cv-notes", civil.notes ?? "Civil data will be updated here.");
   }
 
   function formatSqFt(val) {

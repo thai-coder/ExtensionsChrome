@@ -450,9 +450,10 @@ async function runDirectSearchPipeline(query) {
     };
   }
 
-  // 4. NẾU LÀ ĐỊA CHỈ THUẦN -> BƯỚC 1: MỞ TAB TÌM APN TRƯỚC
+  // 4. NẾU LÀ ĐỊA CHỈ THUẦN -> BỎ QUA TÌM APN -> MỞ TRỰC TIẾP TAB TÌM PROPERTY OVERVIEW
   const countyInfo = CountyDetector.detect(cleanQuery);
-  const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(cleanQuery + " The Assessor's Parcel Number (APN)")}`;
+  const propOverviewQuery = `${cleanQuery} properties`;
+  const propOverviewUrl = `https://www.google.com/search?q=${encodeURIComponent(propOverviewQuery)}`;
   
   pipelineSession = {
     address: cleanQuery,
@@ -463,13 +464,13 @@ async function runDirectSearchPipeline(query) {
     specs: {}
   };
 
-  const searchTab = await chrome.tabs.create({ url: googleSearchUrl, active: true });
-  pipelineSession.apnTabId = searchTab.id;
+  const propTab = await chrome.tabs.create({ url: propOverviewUrl, active: true });
+  pipelineSession.propertyOverviewTabId = propTab.id;
 
   const payload = {
     address: cleanQuery,
     apn: null,
-    source: "Google Search (Step 1)",
+    source: "Google Search (AI Property Overview)",
     county: countyInfo.name,
     countyKey: countyInfo.countyKey,
     updatedAt: new Date().toISOString()
@@ -483,8 +484,8 @@ async function runDirectSearchPipeline(query) {
   return {
     success: true,
     data: payload,
-    googleSearchUrl: googleSearchUrl,
-    searchTabId: searchTab.id
+    googleSearchUrl: propOverviewUrl,
+    searchTabId: propTab.id
   };
 }
 

@@ -37,7 +37,9 @@
     "https://*.google.com.vn/*",
     "https://*.google.ca/*",
     "https://*.google.co.uk/*",
-    "https://*.google.com.au/*"
+    "https://*.google.com.au/*",
+    "https://websoilsurvey.nrcs.usda.gov/*",
+    "https://sdmdataaccess.nrcs.usda.gov/*"
   ],
   "action": {
     "default_popup": "popup/popup.html",
@@ -139,6 +141,13 @@
         "https://*.ontarioca.gov/*"
       ],
       "js": ["content/sanbernardino-map-extractor.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://websoilsurvey.nrcs.usda.gov/*"
+      ],
+      "js": ["content/soil-extractor.js"],
       "run_at": "document_idle"
     }
   ],

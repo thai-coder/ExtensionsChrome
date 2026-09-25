@@ -9,6 +9,7 @@
 importScripts("../config/county-detector.js");
 importScripts("../config/map-sources.js");
 importScripts("./map-download-handler.js");
+importScripts("./soil-handler.js");
 importScripts("../config/update-config.js");
 importScripts("./update-checker.js");
 
@@ -200,6 +201,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       address: request.address,
       countyKey: request.countyKey
     }).then(res => sendResponse(res));
+    return true;
+  }
+
+  // SOIL SURVEY PIPELINE (USDA WEB SOIL SURVEY)
+  if (request.action === "START_SOIL_EXTRACTION_PIPELINE") {
+    SoilHandler.startExtraction(request).then(res => sendResponse(res));
+    return true;
+  }
+
+  if (request.action === "GET_SOIL_PIPELINE_ROLE") {
+    const tabId = sender.tab ? sender.tab.id : null;
+    sendResponse(SoilHandler.getTabRole(tabId));
+    return true;
+  }
+
+  if (request.action === "SOIL_DATA_EXTRACTED") {
+    SoilHandler.handleSoilExtracted(request, sender.tab ? sender.tab.id : null).then(res => sendResponse(res));
     return true;
   }
 });

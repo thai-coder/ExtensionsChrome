@@ -261,7 +261,6 @@ body {
   border-color: var(--border-focus);
 }
 
-.portal-badge.fema:hover { background: rgba(245, 158, 11, 0.2); border-color: #f59e0b; color: #fde68a; }
 
 /* County Badge Row & PropZone Auto Toggle */
 .county-badge-row {
@@ -842,5 +841,60 @@ body {
 .fs-btn-reload-now:active {
   transform: translateY(0);
 }
+
+/* Civil Tab: 3-column inline mini action row */
+.data-row.data-row-3col {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.data-row.data-row-3col .d-key {
+  flex: 1;
+}
+
+.data-row.data-row-3col .d-val {
+  text-align: right;
+  margin-right: 4px;
+}
+
+.mini-inline-btn {
+  height: 20px;
+  line-height: 18px;
+  padding: 0 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  border-radius: 4px;
+  color: #34d399;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.mini-inline-btn:hover {
+  background: rgba(16, 185, 129, 0.3);
+  border-color: #34d399;
+  color: #ffffff;
+  transform: translateY(-0.5px);
+}
+
+.mini-inline-btn:active {
+  transform: translateY(0);
+}
+
+.mini-inline-btn:disabled,
+.mini-inline-btn.loading {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
 
 

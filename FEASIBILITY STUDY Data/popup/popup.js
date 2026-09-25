@@ -20,8 +20,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnRecheckCounty = document.getElementById("btn-recheck-county");
   const togglePropZoneExtract = document.getElementById("toggle-propzone-extract");
 
-  // Quick Portal Launcher Badges
-  const btnNavFema = document.getElementById("btn-nav-fema");
 
   // Tabs
   const tabOverview = document.getElementById("tab-overview");
@@ -546,52 +544,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // 5. Multi-Portal Navigation Router
-  function navigateToPortal(portalKey) {
-    const query = inputAddress.value.trim();
-    const county = currentDetectedCounty || window.CountyDetector?.detect(query);
-    const apn = storedApn || currentPayload?.apn || currentPayload?.lot?.parcelId || "";
-    let targetUrl = "";
-
-    switch (portalKey) {
-      case "google":
-        targetUrl = query
-          ? `https://www.google.com/search?q=${encodeURIComponent(query + " The Assessor's Parcel Number (APN)")}`
-          : "https://www.google.com/";
-        break;
-
-      case "propzone":
-        targetUrl = "https://propzone.gridics.com/state/us/ca";
-        break;
-
-      case "fema":
-        targetUrl = "https://experience.arcgis.com/experience/9d22cdae8b7542b88e0d555a3eb92949/page/Main?org=hazards-FEMA";
-        break;
-
-      default:
-        targetUrl = "https://propzone.gridics.com/state/us/ca";
-        break;
-    }
-
-    if (targetUrl) {
-      chrome.storage.local.set({
-        pendingExtractorCommand: {
-          url: targetUrl,
-          portalKey: portalKey,
-          timestamp: Date.now()
-        }
-      });
-      chrome.tabs.create({ url: targetUrl });
-    }
-  }
-
-  // Bind Navigation Buttons
-  [
-    { btn: btnNavFema, key: "fema" }
-  ].forEach(item => {
-    if (item.btn) item.btn.addEventListener("click", () => navigateToPortal(item.key));
-  });
-
   // 6. Parcels / Plat Map Action (Isolated Multi-County & City Engine)
   btnDownloadMap.addEventListener("click", () => {
     const query = inputAddress ? inputAddress.value.trim() : "";
@@ -928,6 +880,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 6. Civil Tab
     const civil = data.civil || {};
     setText("v-cv-flood", zoning.femaFloodZone ?? zoning.floodZone ?? civil.femaFloodZone ?? "N/A");
+    setText("v-cv-soil-group", civil.hydrologicSoilGroup ?? civil.soilGroup ?? "-");
     setText("v-cv-water", civil.waterService ?? civil.water ?? "-");
     setText("v-cv-sewer", civil.sewerService ?? civil.sewer ?? "-");
     setText("v-cv-drainage", civil.stormDrainage ?? civil.drainage ?? "-");

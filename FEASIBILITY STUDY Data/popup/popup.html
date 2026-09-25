@@ -84,11 +84,6 @@
         </button>
       </div>
 
-      <!-- Quick Launch Portal Badges -->
-      <div class="portal-badges">
-        <button id="btn-nav-fema" class="portal-badge fema"
-          title="FEMA Flood ArcGIS Map (US IP/VPN required)"><span>FEMA Flood Map*</span></button>
-      </div>
 
       <!-- Detected County & Auto-Fetch Toggle Banner -->
       <div id="county-badge-row" class="county-badge-row">
@@ -302,8 +297,20 @@
         <div id="view-civil" class="tab-view hidden">
           <div class="card-section">
             <div class="data-table">
-              <div class="data-row"><span class="d-key">FEMA Flood Zone:</span><span id="v-cv-flood"
-                  class="d-val text-cyan">-</span></div>
+              <div class="data-row data-row-3col">
+                <span class="d-key">FEMA Flood Zone:</span>
+                <span id="v-cv-flood" class="d-val text-cyan">-</span>
+                <button id="btn-get-fema" class="mini-inline-btn" title="Lấy dữ liệu FEMA Flood Zone">
+                  <span>⚡ Get</span>
+                </button>
+              </div>
+              <div class="data-row data-row-3col">
+                <span class="d-key">Hydrologic Soil Group:</span>
+                <span id="v-cv-soil-group" class="d-val text-cyan">-</span>
+                <button id="btn-get-soil" class="mini-inline-btn" title="Bóc tách Hydrologic Soil Group từ USDA Web Soil Survey">
+                  <span>⚡ Get</span>
+                </button>
+              </div>
               <div class="data-row"><span class="d-key">Water Service:</span><span id="v-cv-water"
                   class="d-val">-</span></div>
               <div class="data-row"><span class="d-key">Sewer / Septic:</span><span id="v-cv-sewer"
@@ -390,6 +397,8 @@
   <script src="../config/map-sources.js"></script>
   <script src="../config/rules.js"></script>
   <script src="popup.js"></script>
+  <script src="soil-controller.js"></script>
+  <script src="fema-controller.js"></script>
 </body>
 
 </html>

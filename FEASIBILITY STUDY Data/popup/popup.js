@@ -51,6 +51,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnVpnFallback = document.getElementById("btn-vpn-fallback");
   const btnVpnClose = document.getElementById("btn-vpn-close");
 
+  // Civil Actions
+  const btnGetFema = document.getElementById("btn-get-fema");
+  const btnGetSoil = document.getElementById("btn-get-soil");
+
   let currentPayload = null;
   let toastTimer = null;
   let currentDetectedCounty = null;
@@ -192,7 +196,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "v-cp-bldgArea", "v-cp-stories", "v-cp-height", "v-cp-far", "v-cp-lotCov",
       "v-cp-footprint", "v-cp-openSpace", "v-cp-resDensity", "v-cp-resArea", "v-cp-resUnits",
       "v-cp-lodgingDensity", "v-cp-lodgingArea", "v-cp-officeArea", "v-cp-commArea",
-      "v-cv-flood", "v-cv-water", "v-cv-sewer", "v-cv-drainage", "v-cv-slope", "v-cv-fire", "v-cv-notes"
+      "v-cv-flood", "v-cv-soil-group", "v-cv-water", "v-cv-sewer", "v-cv-drainage", "v-cv-slope", "v-cv-fire", "v-cv-notes"
     ];
 
     allFieldIds.forEach(id => {
@@ -619,6 +623,61 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // 7. Civil Tab Actions (FEMA Flood Zone & Hydrologic Soil Group)
+  if (btnGetFema) {
+    btnGetFema.addEventListener("click", () => {
+      const query = inputAddress ? inputAddress.value.trim() : "";
+      if (!query) {
+        showToast("⚠️ Vui lòng nhập địa chỉ trước khi lấy FEMA Flood Zone.");
+        return;
+      }
+
+      const femaUrl = "https://experience.arcgis.com/experience/9d22cdae8b7542b88e0d555a3eb92949/page/Main?org=hazards-FEMA";
+      chrome.storage.local.set({
+        pendingExtractorCommand: {
+          url: femaUrl,
+          portalKey: "fema",
+          searchQuery: query
+        }
+      });
+
+      chrome.tabs.create({ url: femaUrl });
+      showToast("🌊 Đang điều hướng FEMA Flood Map...");
+    });
+  }
+
+  if (btnGetSoil) {
+    btnGetSoil.addEventListener("click", () => {
+      const query = inputAddress ? inputAddress.value.trim() : "";
+      if (!query) {
+        showToast("⚠️ Vui lòng nhập địa chỉ trước khi lấy Hydrologic Soil Group.");
+        return;
+      }
+
+      btnGetSoil.classList.add("loading");
+      btnGetSoil.disabled = true;
+      btnGetSoil.textContent = "⏳...";
+      showToast("🌱 Đang mở Web Soil Survey và bóc tách dữ liệu...");
+
+      chrome.runtime.sendMessage({
+        action: "START_SOIL_EXTRACTION_PIPELINE",
+        address: query
+      }, (response) => {
+        if (chrome.runtime.lastError || !response || !response.success) {
+          showToast("⚠️ Không thể khởi chạy Web Soil Survey.");
+          if (btnGetSoil) {
+            btnGetSoil.classList.remove("loading");
+            btnGetSoil.disabled = false;
+            btnGetSoil.textContent = "⚡ Get";
+          }
+          return;
+        }
+
+        showToast("⏳ Đang tra cứu Hydrologic Soil Group...");
+      });
+    });
+  }
+
   if (togglePropZoneExtract) {
     togglePropZoneExtract.addEventListener("change", (e) => {
       const isChecked = e.target.checked;
@@ -879,14 +938,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 6. Civil Tab
     const civil = data.civil || {};
-    setText("v-cv-flood", zoning.femaFloodZone ?? zoning.floodZone ?? civil.femaFloodZone ?? "N/A");
-    setText("v-cv-soil-group", civil.hydrologicSoilGroup ?? civil.soilGroup ?? "-");
+    const floodVal = zoning.femaFloodZone ?? zoning.floodZone ?? civil.femaFloodZone ?? "N/A";
+    const soilVal = civil.hydrologicSoilGroup ?? civil.soilGroup ?? "-";
+
+    setText("v-cv-flood", floodVal);
+    setText("v-cv-soil-group", soilVal);
     setText("v-cv-water", civil.waterService ?? civil.water ?? "-");
     setText("v-cv-sewer", civil.sewerService ?? civil.sewer ?? "-");
     setText("v-cv-drainage", civil.stormDrainage ?? civil.drainage ?? "-");
     setText("v-cv-slope", civil.topography ?? civil.slope ?? "-");
     setText("v-cv-fire", civil.fireHazardSeverity ?? civil.fireZone ?? "-");
     setText("v-cv-notes", civil.notes ?? "Civil data will be updated here.");
+
+    // Reset Soil button loading state if data arrives
+    if (soilVal !== "-" && btnGetSoil && btnGetSoil.classList.contains("loading")) {
+      btnGetSoil.classList.remove("loading");
+      btnGetSoil.disabled = false;
+      btnGetSoil.textContent = "⚡ Get";
+      showToast(`✅ Đã nhận Hydrologic Soil Group: ${soilVal}`);
+    }
   }
 
   function formatSqFt(val) {

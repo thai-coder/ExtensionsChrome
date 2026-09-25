@@ -384,6 +384,9 @@ async function runDirectSearchPipeline(query, providedApn = "") {
 
   const cleanQuery = query.trim();
 
+  // Xóa toàn bộ dữ liệu kết quả cũ giống lệnh Clean ngoại trừ lastSearchQuery
+  await chrome.storage.local.remove(["lastPipelineResult", "lastApn", "ocgisMapLinks", "activePipelineSession"]);
+
   // 1. KIỂM TRA NẾU ĐẦU VÀO LÀ MÃ APN TRỰC TIẾP
   const isDirectApn = /^[0-9\-\s]{6,16}$/.test(cleanQuery) && /\d{6,}/.test(cleanQuery.replace(/\D/g, ""));
   const cleanApn = isDirectApn ? cleanQuery.replace(/\s+/g, "-") : (providedApn ? providedApn.replace(/\s+/g, "-") : "");

@@ -166,20 +166,22 @@ document.addEventListener("DOMContentLoaded", () => {
     return output;
   }
 
-  // Reset/Clean session data explicitly on Clean button click
-  function resetSessionData() {
-    chrome.storage.local.remove(["lastSearchQuery", "lastPipelineResult", "lastApn", "ocgisMapLinks"]);
+  // Reset/Clean session data explicitly on Clean button click or when starting a new Fetch
+  function resetSessionData(keepAddress = false) {
+    if (!keepAddress) {
+      chrome.storage.local.remove(["lastSearchQuery", "lastPipelineResult", "lastApn", "ocgisMapLinks", "activePipelineSession"]);
+      inputAddress.value = "";
+      btnClearAddress.classList.add("hidden");
+      if (vDetectedCounty) vDetectedCounty.textContent = "-";
+      statusLabel.textContent = "Ready";
+      statusPill.className = "status-pill pending";
+      currentDetectedCounty = null;
+    } else {
+      chrome.storage.local.remove(["lastPipelineResult", "lastApn", "ocgisMapLinks", "activePipelineSession"]);
+    }
 
     currentPayload = null;
     storedApn = null;
-    currentDetectedCounty = null;
-
-    inputAddress.value = "";
-    btnClearAddress.classList.add("hidden");
-    if (vDetectedCounty) vDetectedCounty.textContent = "-";
-
-    statusLabel.textContent = "Ready";
-    statusPill.className = "status-pill pending";
 
     const allFieldIds = [
       "v-ov-apn", "v-ov-taxArea", "v-ov-bldgArea", "v-ov-maxHeight", "v-ov-maxUnits",
@@ -218,11 +220,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     updateMapButtonState("");
 
-    showToast("Session data cleaned!");
+    if (!keepAddress) {
+      showToast("Session data cleaned!");
+    }
   }
 
   if (btnClean) {
-    btnClean.addEventListener("click", resetSessionData);
+    btnClean.addEventListener("click", () => resetSessionData(false));
   }
 
   // 1. Tab Switching Setup
@@ -506,6 +510,9 @@ document.addEventListener("DOMContentLoaded", () => {
       inputAddress.focus();
       return;
     }
+
+    // Xoá toàn bộ data cũ giống Clean ngoại trừ ô nhập địa chỉ
+    resetSessionData(true);
 
     const county = currentDetectedCounty || window.CountyDetector?.detect(address);
     updateCountyBadge(address);

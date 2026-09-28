@@ -175,10 +175,18 @@
      */
     renderCivilTab(data, zoning, btnGetSoil) {
       const civil = data.civil || {};
-      const floodVal = zoning.femaFloodZone ?? zoning.floodZone ?? civil.femaFloodZone ?? "N/A";
+      const femaDetails = civil.femaDetails || civil || {};
+      const floodVal = zoning.femaFloodZone ?? zoning.floodZone ?? civil.femaFloodZone ?? civil.fldZone ?? "N/A";
       const soilVal = civil.hydrologicSoilGroup ?? civil.soilGroup ?? "-";
 
       setText("v-cv-flood", floodVal);
+      setText("v-cv-fema-panel", femaDetails.firmPanel ?? femaDetails["FIRM Panels"] ?? civil.firmPanel ?? "-");
+      setText("v-cv-fema-eff-date", femaDetails.mapEffectiveDate ?? femaDetails["Map Effective Date"] ?? civil.mapEffectiveDate ?? "-");
+      setText("v-cv-fema-cid", femaDetails.cid ?? femaDetails.CID ?? civil.cid ?? "-");
+      setText("v-cv-fema-jurisdiction", femaDetails.jurisdiction ?? femaDetails["Political Jurisdictions"] ?? civil.jurisdiction ?? "-");
+      setText("v-cv-fema-fld-zone", femaDetails.fldZone ?? femaDetails.FLD_ZONE ?? civil.fldZone ?? civil.femaFloodZone ?? "-");
+      setText("v-cv-fema-zone-subty", femaDetails.zoneSubty ?? femaDetails.ZONE_SUBTY ?? civil.floodSubtype ?? civil.zoneSubty ?? "-");
+
       setText("v-cv-soil-group", soilVal);
       setText("v-cv-water", civil.waterService ?? civil.water ?? "-");
       setText("v-cv-sewer", civil.sewerService ?? civil.sewer ?? "-");

@@ -43,6 +43,16 @@ document.addEventListener("DOMContentLoaded", () => {
   // Civil Actions
   const btnGetFema = document.getElementById("btn-get-fema");
   const btnGetSoil = document.getElementById("btn-get-soil");
+  const btnToggleFemaDetails = document.getElementById("btn-toggle-fema-details");
+  const femaDetailsPanel = document.getElementById("fema-details-panel");
+
+  if (btnToggleFemaDetails && femaDetailsPanel) {
+    btnToggleFemaDetails.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isHidden = femaDetailsPanel.classList.toggle("hidden");
+      btnToggleFemaDetails.classList.toggle("open", !isHidden);
+    });
+  }
 
   // VPN Modal
   const vpnModal = document.getElementById("vpn-modal");
@@ -63,23 +73,40 @@ document.addEventListener("DOMContentLoaded", () => {
   let storedApn = null;
 
   // 3. Tab Switching
+  function switchTab(btn, save = true) {
+    if (!btn) return;
+    navTabs.forEach(t => {
+      if (t.btn) t.btn.classList.remove("active");
+      if (t.view) {
+        t.view.classList.add("hidden");
+        t.view.classList.remove("active");
+      }
+    });
+    btn.classList.add("active");
+    const activeItem = navTabs.find(t => t.btn === btn);
+    if (activeItem && activeItem.view) {
+      activeItem.view.classList.remove("hidden");
+      activeItem.view.classList.add("active");
+    }
+    if (save && btn.id) {
+      chrome.storage.local.set({ lastActiveTab: btn.id });
+      try { localStorage.setItem("lastActiveTab", btn.id); } catch (e) {}
+    }
+  }
+
   navTabs.forEach(item => {
     if (item.btn) {
-      item.btn.addEventListener("click", () => {
-        navTabs.forEach(t => {
-          if (t.btn) t.btn.classList.remove("active");
-          if (t.view) {
-            t.view.classList.add("hidden");
-            t.view.classList.remove("active");
-          }
-        });
-        item.btn.classList.add("active");
-        if (item.view) {
-          item.view.classList.remove("hidden");
-          item.view.classList.add("active");
-        }
-      });
+      item.btn.addEventListener("click", () => switchTab(item.btn));
     }
+  });
+
+  try {
+    const cachedTab = localStorage.getItem("lastActiveTab");
+    if (cachedTab) switchTab(document.getElementById(cachedTab), false);
+  } catch (e) {}
+
+  chrome.storage.local.get("lastActiveTab", res => {
+    if (res && res.lastActiveTab) switchTab(document.getElementById(res.lastActiveTab), false);
   });
 
   // 4. Update UI Wrappers

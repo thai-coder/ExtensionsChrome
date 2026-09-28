@@ -297,12 +297,28 @@
         <div id="view-civil" class="tab-view hidden">
           <div class="card-section">
             <div class="data-table">
-              <div class="data-row data-row-3col">
-                <span class="d-key">FEMA Flood Zone:</span>
-                <span id="v-cv-flood" class="d-val text-cyan">-</span>
-                <button id="btn-get-fema" class="mini-inline-btn" title="Lấy dữ liệu FEMA Flood Zone">
-                  <span>⚡ Get</span>
-                </button>
+              <!-- FEMA Flood Zone Dropdown Section -->
+              <div class="fema-accordion-container">
+                <div class="data-row data-row-3col fema-header-row">
+                  <button type="button" id="btn-toggle-fema-details" class="fema-toggle-btn" title="Xem chi tiết các trường FEMA">
+                    <svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                    <span class="d-key">FEMA Flood Zone:</span>
+                  </button>
+                  <span id="v-cv-flood" class="d-val text-cyan">-</span>
+                  <button id="btn-get-fema" class="mini-inline-btn" title="Lấy dữ liệu FEMA Flood Zone">
+                    <span>⚡ Get</span>
+                  </button>
+                </div>
+                <div id="fema-details-panel" class="fema-details-panel hidden">
+                  <div class="fema-sub-row"><span class="d-sub-key">FIRM Panels:</span><span id="v-cv-fema-panel" class="d-val">-</span></div>
+                  <div class="fema-sub-row"><span class="d-sub-key">Map Effective Date:</span><span id="v-cv-fema-eff-date" class="d-val">-</span></div>
+                  <div class="fema-sub-row"><span class="d-sub-key">CID:</span><span id="v-cv-fema-cid" class="d-val">-</span></div>
+                  <div class="fema-sub-row"><span class="d-sub-key">Political Jurisdictions:</span><span id="v-cv-fema-jurisdiction" class="d-val">-</span></div>
+                  <div class="fema-sub-row"><span class="d-sub-key">FLD_ZONE:</span><span id="v-cv-fema-fld-zone" class="d-val text-cyan">-</span></div>
+                  <div class="fema-sub-row"><span class="d-sub-key">ZONE_SUBTY:</span><span id="v-cv-fema-zone-subty" class="d-val">-</span></div>
+                </div>
               </div>
               <div class="data-row data-row-3col">
                 <span class="d-key">Hydrologic Soil Group:</span>

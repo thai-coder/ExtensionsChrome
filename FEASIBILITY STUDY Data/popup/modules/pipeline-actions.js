@@ -175,6 +175,9 @@
             btnClearAddress.classList.toggle("hidden", val === "");
           }
           if (updateCountyBadge) updateCountyBadge(val);
+          if (val) {
+            chrome.storage.local.set({ lastSearchQuery: val });
+          }
         });
 
         inputAddress.addEventListener("keyup", (e) => {
@@ -189,6 +192,7 @@
           if (inputAddress) inputAddress.value = "";
           btnClearAddress.classList.add("hidden");
           if (updateCountyBadge) updateCountyBadge("");
+          chrome.storage.local.remove(["lastSearchQuery"]);
           if (inputAddress) inputAddress.focus();
         });
       }
@@ -266,15 +270,17 @@
 
           const femaUrl = "https://experience.arcgis.com/experience/9d22cdae8b7542b88e0d555a3eb92949/page/Main?org=hazards-FEMA";
           chrome.storage.local.set({
+            lastSearchQuery: query,
             pendingExtractorCommand: {
               url: femaUrl,
               portalKey: "fema",
-              searchQuery: query
+              searchQuery: query,
+              timestamp: Date.now()
             }
+          }, () => {
+            chrome.tabs.create({ url: femaUrl });
+            if (showToast) showToast("🌊 Đang điều hướng FEMA Flood Map...");
           });
-
-          chrome.tabs.create({ url: femaUrl });
-          if (showToast) showToast("🌊 Đang điều hướng FEMA Flood Map...");
         });
       }
 
@@ -286,6 +292,8 @@
             if (showToast) showToast("⚠️ Vui lòng nhập địa chỉ trước khi lấy Hydrologic Soil Group.");
             return;
           }
+
+          chrome.storage.local.set({ lastSearchQuery: query });
 
           btnGetSoil.classList.add("loading");
           btnGetSoil.disabled = true;

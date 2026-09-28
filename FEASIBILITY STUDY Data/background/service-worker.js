@@ -141,20 +141,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       const extractedAddress = request.data.address || request.data.lot?.projectAddress || request.data.lot?.address || request.data.lot?.situsAddress;
       const finalAddress = extractedAddress || prev.address || res.lastSearchQuery || "";
 
+      const updatedSearchQuery = finalAddress || res.lastSearchQuery || "";
+
       chrome.storage.local.set({
-        lastSearchQuery: finalAddress || res.lastSearchQuery || "",
+        lastSearchQuery: updatedSearchQuery,
         lastPipelineResult: {
           ...prev,
           ...request.data,
-          address: finalAddress,
+          address: finalAddress || prev.address || updatedSearchQuery,
           lot: {
             ...(prev.lot || {}),
             ...(request.data.lot || {}),
-            projectAddress: finalAddress || prev.lot?.projectAddress || request.data.lot?.projectAddress
+            projectAddress: finalAddress || prev.lot?.projectAddress || request.data.lot?.projectAddress || prev.address
           },
           zoning: { ...(prev.zoning || {}), ...(request.data.zoning || {}) },
           setbacks: { ...(prev.setbacks || {}), ...(request.data.setbacks || {}) },
           capacity: { ...(prev.capacity || {}), ...(request.data.capacity || {}) },
+          civil: { ...(prev.civil || {}), ...(request.data.civil || {}) },
           updatedAt: new Date().toISOString()
         }
       });

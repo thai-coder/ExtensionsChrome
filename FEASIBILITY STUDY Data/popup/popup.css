@@ -896,5 +896,80 @@ body {
   cursor: not-allowed;
 }
 
+/* FEMA Flood Zone Accordion / Dropdown */
+.fema-accordion-container {
+  border-bottom: 1px solid var(--border-subtle, #1e293b);
+}
+
+.fema-header-row {
+  border-bottom: none !important;
+}
+
+.fema-toggle-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  flex: 1;
+}
+
+.fema-toggle-btn .chevron-icon {
+  color: var(--text-muted, #94a3b8);
+  transition: transform 0.2s ease, color 0.2s ease;
+  transform: rotate(-90deg);
+  flex-shrink: 0;
+}
+
+.fema-toggle-btn.open .chevron-icon {
+  transform: rotate(0deg);
+  color: var(--accent-cyan, #06b6d4);
+}
+
+.fema-toggle-btn:hover .chevron-icon {
+  color: var(--text-main, #f8fafc);
+}
+
+.fema-details-panel {
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px dashed rgba(59, 130, 246, 0.25);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin: 2px 0 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fema-details-panel.hidden {
+  display: none;
+}
+
+.fema-sub-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  padding: 2px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.fema-sub-row:last-child {
+  border-bottom: none;
+}
+
+.d-sub-key {
+  color: var(--text-muted, #94a3b8);
+  font-size: 10.5px;
+  font-weight: 500;
+}
+
+
 
 

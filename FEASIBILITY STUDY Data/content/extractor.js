@@ -324,8 +324,7 @@
       const isFresh = cmd.timestamp && (now - cmd.timestamp < 60000);
       const isMatching = cmd.url && (
         window.location.href.includes(cmd.url) ||
-        cmd.url.includes(window.location.hostname) ||
-        (cmd.portalKey === 'fema' && window.location.hostname.includes('arcgis'))
+        cmd.url.includes(window.location.hostname)
       );
 
       if (!isFresh || !isMatching) return;

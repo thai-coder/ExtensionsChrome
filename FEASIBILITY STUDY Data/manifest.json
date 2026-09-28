@@ -76,11 +76,20 @@
       "matches": [
         "https://portal.assessor.lacounty.gov/*",
         "https://webapps.ocgis.com/*",
-        "https://experience.arcgis.com/*",
         "https://*.redfin.com/*",
         "https://*.zillow.com/*"
       ],
       "js": ["content/floating-ui.js", "config/ca-cities-data.js", "config/county-detector.js", "config/rules.js", "content/extractor.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://experience.arcgis.com/*"
+      ],
+      "js": [
+        "content/floating-ui.js",
+        "content/fema-extractor.js"
+      ],
       "run_at": "document_idle"
     },
     {

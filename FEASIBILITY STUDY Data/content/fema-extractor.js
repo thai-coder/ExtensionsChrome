@@ -24,7 +24,7 @@
     if (isFlowStarted || !cmd) return;
 
     const now = Date.now();
-    const isFresh = cmd.timestamp ? (now - cmd.timestamp < 120000) : true;
+    const isFresh = cmd.timestamp ? (now - cmd.timestamp < 45000) : false;
     const isMatching = cmd.portalKey === 'fema' || (cmd.url && cmd.url.includes('experience.arcgis.com'));
 
     if (!isFresh || !isMatching) return;
@@ -39,17 +39,10 @@
     initFemaAutomationFlow(targetAddress);
   }
 
-  // 1. Kiểm tra storage ngay khi Content Script load
-  chrome.storage.local.get(['pendingExtractorCommand', 'lastSearchQuery'], (res) => {
+  // 1. Chỉ kích hoạt khi có pendingExtractorCommand MỚI được phát từ Extension
+  chrome.storage.local.get(['pendingExtractorCommand'], (res) => {
     if (res?.pendingExtractorCommand) {
       tryTriggerAutomation(res.pendingExtractorCommand);
-    } else if (res?.lastSearchQuery && !isFlowStarted) {
-      tryTriggerAutomation({
-        portalKey: 'fema',
-        url: window.location.href,
-        searchQuery: res.lastSearchQuery,
-        timestamp: Date.now()
-      });
     }
   });
 
@@ -237,6 +230,7 @@
   // ==========================================
   // B3: CÀO DỮ LIỆU TOÀN TẬP TỪ CÁC TRANG POPUP
   // ==========================================
+  // Hàm quét xuyên tường Shadow DOM
   function deepFind(root, selector) {
     if (!root) return null;
     let found = root.querySelector(selector);
@@ -250,6 +244,7 @@
     return null;
   }
 
+  // Hàm lấy danh sách thẻ xuyên tường Shadow DOM
   function deepFindAll(root, selector, results = []) {
     if (!root) return results;
     root.querySelectorAll(selector).forEach(el => results.push(el));
@@ -260,110 +255,38 @@
   }
 
   // ==========================================
-  // LỆNH CLICK NÚT NEXT (CHUẨN HOÁ XUYÊN SHADOW DOM)
+  // LỆNH CLICK NÚT NEXT (CHUYÊN TRỊ CALCITE COMPONENT)
   // ==========================================
-  function fireRealClick() {
-    function findNode(root) {
-      // Ưu tiên tìm thẻ vỏ calcite-action trước
-      let action = root.querySelector('calcite-action[title="Next"]');
-      if (action) return action;
+  function fireNextClick(root) {
+    let action = root.querySelector('calcite-action[title="Next"]');
+    if (action) { action.click(); return true; }
 
-      // Nếu không có, tìm thẻ button rồi dò ngược ra thẻ vỏ
-      let btn = root.querySelector('button[aria-label="Next"]');
-      if (btn && btn.getRootNode().host) return btn.getRootNode().host;
+    let btn = root.querySelector('button[aria-label="Next"]');
+    if (btn && btn.getRootNode().host) { btn.getRootNode().host.click(); return true; }
 
-      // Quét đệ quy Shadow DOM
-      for (let el of root.querySelectorAll('*')) {
-        if (el.shadowRoot) {
-          let res = findNode(el.shadowRoot);
-          if (res) return res;
-        }
-      }
-      return null;
+    for (let el of root.querySelectorAll('*')) {
+      if (el.shadowRoot && fireNextClick(el.shadowRoot)) return true;
     }
-
-    let target = findNode(document);
-    if (target) {
-      target.click();
-      return true;
-    } else {
-      console.log('Không tìm thấy nút Next');
-      return false;
-    }
-  }
-
-  /**
-   * Bóc tách dữ liệu 6 trường từ nội dung trang Popup hiện tại (Quét bảng + Slot + Regex toàn diện)
-   */
-  function extractFieldsFromCurrentPage(root) {
-    const targetFields = ['FIRM Panels', 'Map Effective Date', 'CID', 'Political Jurisdictions', 'FLD_ZONE', 'ZONE_SUBTY'];
-    const pageData = {};
-    targetFields.forEach(f => pageData[f] = '---');
-
-    // 1. Quét toàn bộ văn bản trong Popup
-    const popupEl = deepFind(root, '.esri-popup__content, .esri-feature, calcite-flow-item, calcite-panel, .esri-popup') || root;
-    const fullText = (popupEl.innerText || popupEl.textContent || '').replace(/\s+/g, ' ');
-
-    // Regex quét toàn diện
-    const regexMap = {
-      'FLD_ZONE': /(?:FLD_ZONE|Flood\s*Zone|Zone)[:\s]+([A-Z0-9]+(?:\s+Area)?)/i,
-      'ZONE_SUBTY': /(?:ZONE_SUBTY|Zone\s*Subtype|Subtype)[:\s]+([^,;\n\r|]{3,60})/i,
-      'FIRM Panels': /(?:FIRM\s*Panels?|FIRM_PAN|Panel\s*Number)[:\s]+([0-9A-Z]{6,15})/i,
-      'Map Effective Date': /(?:Map\s*Effective\s*Date|EFF_DATE|Effective\s*Date)[:\s]+([0-9\/\-]{6,12})/i,
-      'CID': /(?:CID|Community\s*ID)[:\s]+([0-9A-Z]{4,10})/i,
-      'Political Jurisdictions': /(?:Political\s*Jurisdictions?|Jurisdiction|COMMUNITY_NAME|Community)[:\s]+([^,;\n\r|]{3,60})/i
-    };
-
-    for (const [field, regex] of Object.entries(regexMap)) {
-      const m = fullText.match(regex);
-      if (m && m[1]) {
-        pageData[field] = m[1].trim();
-      }
-    }
-
-    // 2. Quét thẻ bảng th/td
-    const allThs = deepFindAll(root, 'th');
-    allThs.forEach(th => {
-      const thText = (th.textContent || '').trim();
-      targetFields.forEach(f => {
-        if (thText.toLowerCase().includes(f.toLowerCase())) {
-          const td = th.nextElementSibling;
-          if (td && td.textContent.trim()) {
-            pageData[f] = td.textContent.trim();
-          }
-        }
-      });
-    });
-
-    // 3. Quét các thẻ Calcite / heading / fields
-    const allElements = deepFindAll(root, 'calcite-flow-item div[slot="heading"], div[slot="heading"] div, p, span, div.esri-feature-fields, div.esri-feature__title');
-    allElements.forEach(el => {
-      const txt = (el.textContent || '').trim();
-      targetFields.forEach(f => {
-        if (txt.toLowerCase().includes(f.toLowerCase()) && pageData[f] === '---') {
-          if (txt.includes(':')) {
-            const parts = txt.split(':');
-            pageData[f] = parts.slice(1).join(':').trim();
-          } else {
-            const reg = new RegExp(f, 'i');
-            pageData[f] = txt.replace(reg, '').trim();
-          }
-        }
-      });
-    });
-
-    return pageData;
+    return false;
   }
 
   async function scrapeAllPopupPages(targetAddress = '') {
-    const targetFields = ['FIRM Panels', 'Map Effective Date', 'CID', 'Political Jurisdictions', 'FLD_ZONE', 'ZONE_SUBTY'];
-    console.log('🚀 B3: Bắt đầu cào dữ liệu toàn tập...');
+    const targetFields = [
+      "FIRM Panels", 
+      "Map Effective Date", 
+      "CID", 
+      "Political Jurisdictions", 
+      "FLD_ZONE", 
+      "ZONE_SUBTY",
+      "Flood Hazard Zones"
+    ];
+    console.log('🚀 B3: Bắt đầu quét cạn đáy ArcGIS...');
 
     let popupReady = false;
     let waitPopupTime = 0;
     while (waitPopupTime < 20000) {
       await waitIfLocked();
-      const selectBtn = deepFind(document, 'button[aria-label="Select feature"], .esri-popup, calcite-flow-item, .esri-feature');
+      const selectBtn = deepFind(document, 'button[aria-label="Select feature"]');
       if (selectBtn) {
         popupReady = true;
         break;
@@ -377,107 +300,130 @@
       return;
     }
 
-    let loaderWait = 0;
-    while (loaderWait < 6000) {
-      const loader = deepFind(document, 'calcite-loader, .esri-popup--is-loading, .esri-feature__loading');
-      if (!loader) break;
-      await delay(400);
-      loaderWait += 400;
-    }
-
-    let collectedDataMap = { 'FIRM Panels': '', 'Map Effective Date': '', 'CID': '', 'Political Jurisdictions': '', 'FLD_ZONE': '', 'ZONE_SUBTY': '' };
+    let collectedDataMap = {};
+    targetFields.forEach(f => collectedDataMap[f] = '');
     let allExtractedData = [];
-    const maxPasses = 2;
 
-    for (let pass = 1; pass <= maxPasses; pass++) {
-      console.log(`🔄 B3: Bắt đầu Vòng quét thứ ${pass}/${maxPasses}...`);
+    while (true) {
+      await waitIfLocked();
 
-      while (true) {
-        await waitIfLocked();
-        await delay(700);
+      // 1. TÌM CHỐT CHẶN BÁO TRANG
+      const selectFeatureBtn = deepFind(document, 'button[aria-label="Select feature"]');
+      if (!selectFeatureBtn) {
+        console.log('❌ Không tìm thấy nút Select feature.');
+        break;
+      }
 
-        const selectFeatureBtn = deepFind(document, 'button[aria-label="Select feature"]');
-        let currentX = 1;
-        let maxY = 1;
-        let currentPageText = '1 of 1';
+      const textContainer = selectFeatureBtn.querySelector('.text-container') || selectFeatureBtn;
+      let currentPageText = textContainer.textContent.trim();
 
-        if (selectFeatureBtn) {
-          const textContainer = selectFeatureBtn.querySelector('.text-container') || selectFeatureBtn;
-          currentPageText = textContainer.textContent.trim();
-          const match = currentPageText.match(/(\d+)\s+of\s+(\d+)/i);
-          if (match) {
-            currentX = parseInt(match[1]);
-            maxY = parseInt(match[2]);
-          }
-        }
+      const match = currentPageText.match(/(\d+)\s+of\s+(\d+)/i);
+      if (!match) break;
 
-        const pageData = extractFieldsFromCurrentPage(document);
-        pageData['Trang'] = currentPageText;
+      let currentX = parseInt(match[1]);
+      let maxY = parseInt(match[2]);
 
-        targetFields.forEach(f => {
-          if (pageData[f] && pageData[f] !== '---' && !collectedDataMap[f]) {
-            collectedDataMap[f] = pageData[f];
+      // 2. NHẶT DATA TRANG HIỆN TẠI
+      let pageData = { "Trang": currentPageText };
+      targetFields.forEach(field => pageData[field] = "---");
+
+      // A. Quét trong bảng (th và td)
+      const allThs = deepFindAll(document, 'th');
+      allThs.forEach(th => {
+        const thText = th.textContent.trim();
+        targetFields.forEach(field => {
+          if (thText.includes(field)) {
+            const td = th.nextElementSibling;
+            if (td) pageData[field] = td.textContent.trim();
           }
         });
+      });
 
-        allExtractedData.push(pageData);
-        console.log(`✅ Đã lấy xong: ${currentPageText}`, pageData);
-
-        if (currentX >= maxY || !selectFeatureBtn) {
-          console.log(`🏁 Đã duyệt đến trang (${currentX}/${maxY})`);
-          break;
-        }
-
-        let clicked = fireRealClick();
-        if (!clicked) {
-          console.log('❌ Không tìm thấy nút Next để bấm.');
-          break;
-        }
-
-        let waitTime = 0;
-        let newPageText = currentPageText;
-
-        while (newPageText === currentPageText && waitTime < 5000) {
-          await delay(250);
-          waitTime += 250;
-          const checkBtn = deepFind(document, 'button[aria-label="Select feature"]');
-          if (checkBtn) {
-            const checkTextContainer = checkBtn.querySelector('.text-container') || checkBtn;
-            newPageText = checkTextContainer.textContent.trim();
+      // B. Quét ngoài bảng (Bao gồm slot="heading", thẻ p, thẻ div, thẻ span...)
+      const allTextElements = deepFindAll(document, 'div[slot="heading"], .heading, p, span, strong, h2');
+      allTextElements.forEach(el => {
+        const text = el.textContent.trim();
+        targetFields.forEach(field => {
+          if (text.includes(field) && pageData[field] === "---") {
+            let cleanText = text.substring(text.indexOf(field) + field.length).replace(/^[:\s]+/, '').trim();
+            if (cleanText === "") {
+              const nextEl = el.nextElementSibling;
+              if (nextEl) cleanText = nextEl.textContent.trim();
+            }
+            if (cleanText !== "") {
+              pageData[field] = cleanText;
+            }
           }
-        }
+        });
+      });
 
-        if (newPageText === currentPageText) {
-          console.log('⏳ Trang không nạp số trang mới sau 5s click. Chuyển sang xử lý tiếp...');
-          break;
+      targetFields.forEach(f => {
+        if (pageData[f] && pageData[f] !== '---' && !collectedDataMap[f]) {
+          collectedDataMap[f] = pageData[f];
+        }
+      });
+
+      allExtractedData.push(pageData);
+      console.log(`✅ Đã cào xong: ${currentPageText}`, pageData);
+
+      // 3. ĐIỀU KIỆN DỪNG (Vòng lặp 1 lần duy nhất)
+      if (currentX === maxY) {
+        console.log(`🏁 Đã duyệt hết tất cả các trang (${currentX}/${maxY})`);
+        break;
+      }
+
+      // 4. CLICK NEXT VÀ CHỜ
+      let clicked = fireNextClick(document);
+      if (!clicked) {
+        console.log('❌ Không tìm thấy nút Next để bấm.');
+        break;
+      }
+
+      let waitTime = 0;
+      let newPageText = currentPageText;
+
+      while (newPageText === currentPageText && waitTime < 5000) {
+        await delay(200);
+        waitTime += 200;
+
+        const checkBtn = deepFind(document, 'button[aria-label="Select feature"]');
+        if (checkBtn) {
+          const checkTextContainer = checkBtn.querySelector('.text-container') || checkBtn;
+          newPageText = checkTextContainer.textContent.trim();
         }
       }
 
-      const missingFields = targetFields.filter(f => !collectedDataMap[f] || collectedDataMap[f] === '---');
-      if (missingFields.length === 0) {
-        console.log('🎯 Tất cả 6 trường dữ liệu đã được thu thập đầy đủ 100%!');
+      if (newPageText === currentPageText) {
+        console.log('⏳ Hết thời gian chờ chuyển trang.');
         break;
-      } else if (pass < maxPasses) {
-        console.log(`⚠️ Vòng ${pass} còn thiếu: [${missingFields.join(', ')}]. Bấm Next thực hiện vòng quét 2...`);
-        fireRealClick();
-        await delay(800);
       }
     }
 
-    console.log('\n🎉 HOÀN TẤT B3! BẢNG DỮ LIỆU CÀO ĐƯỢC:');
+    console.log('\n🎉 HOÀN TẤT B3! KẾT QUẢ TỔNG HỢP:');
     console.table(allExtractedData);
 
     const finalFldZone = collectedDataMap['FLD_ZONE'] || '';
+    const finalFloodHazardZones = collectedDataMap['Flood Hazard Zones'] || '';
     const finalZoneSubty = collectedDataMap['ZONE_SUBTY'] || '';
     const finalFirmPanel = collectedDataMap['FIRM Panels'] || '';
     const finalMapEffectiveDate = collectedDataMap['Map Effective Date'] || '';
     const finalCid = collectedDataMap['CID'] || '';
     const finalJurisdiction = collectedDataMap['Political Jurisdictions'] || '';
 
-    const cleanFloodZone = finalFldZone || (finalZoneSubty && /minimal/i.test(finalZoneSubty) ? 'X' : finalZoneSubty) || 'N/A';
+    let cleanFloodZone = finalFldZone;
+    if (!cleanFloodZone || cleanFloodZone === '---') {
+      if (finalFloodHazardZones && finalFloodHazardZones !== '---') {
+        const m = finalFloodHazardZones.match(/Zone\s*([A-Z0-9]+)/i);
+        cleanFloodZone = m ? m[1] : finalFloodHazardZones;
+      }
+    }
+    if (!cleanFloodZone || cleanFloodZone === '---') {
+      cleanFloodZone = (finalZoneSubty && /minimal/i.test(finalZoneSubty) ? 'X' : finalZoneSubty) || 'N/A';
+    }
 
     console.log('[FEMA Extractor] Tổng hợp kết quả:', {
       femaFloodZone: cleanFloodZone,
+      floodHazardZones: finalFloodHazardZones,
       floodSubtype: finalZoneSubty,
       firmPanel: finalFirmPanel,
       mapEffectiveDate: finalMapEffectiveDate,
@@ -487,15 +433,17 @@
 
     chrome.runtime.sendMessage({
       action: 'AUTO_SAVE_FULL_EXTRACTED_DATA',
+      closeTab: true,
       data: {
         address: targetAddress,
         zoning: {
           femaFloodZone: cleanFloodZone,
-          floodDescription: finalZoneSubty || ''
+          floodDescription: finalZoneSubty || finalFloodHazardZones || ''
         },
         civil: {
           femaFloodZone: cleanFloodZone,
           floodSubtype: finalZoneSubty || '',
+          floodHazardZones: finalFloodHazardZones || '',
           firmPanel: finalFirmPanel || '',
           mapEffectiveDate: finalMapEffectiveDate || '',
           cid: finalCid || '',

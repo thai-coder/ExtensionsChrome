@@ -64,6 +64,8 @@
   const toCamelCase = (str) => {
     if (!str) return '';
     return str
+      .replace(/\([sS]\)/g, '')
+      .replace(/\([eE][sS]\)/g, '')
       .replace(/[\(\)\%\$\#\:\/\-\–]/g, ' ')
       .trim()
       .split(/\s+/)

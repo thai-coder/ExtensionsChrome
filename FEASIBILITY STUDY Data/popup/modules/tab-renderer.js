@@ -47,7 +47,14 @@
      */
     renderOverviewTab(lot, zoning, capacity, setbacks, currentApn, currentAddr) {
       const detectedCityInfo = window.CountyDetector ? window.CountyDetector.detect(currentAddr) : null;
-      const finalZoningDistrict = zoning.zoningDistrict ?? zoning.zoningDistricts ?? zoning.zoningCode ?? detectedCityInfo?.zoningDistrict ?? detectedCityInfo?.zoning ?? "-";
+      const finalZoningDistrict = zoning.zoningDistrict 
+        ?? zoning.zoningDistricts 
+        ?? zoning.zoningDistrictS 
+        ?? (zoning.zoningCode && !zoning.zoningCodeUrl ? zoning.zoningCode : null)
+        ?? detectedCityInfo?.zoningDistrict 
+        ?? detectedCityInfo?.zoning 
+        ?? zoning.zoningCode 
+        ?? "-";
 
       setText("v-ov-apn", currentApn);
       setText("v-ov-taxArea", formatSqFt(lot.lotAreaTaxRecord));
@@ -111,7 +118,14 @@
      */
     renderZoningTab(zoning, currentAddr) {
       const detectedCityInfo = window.CountyDetector ? window.CountyDetector.detect(currentAddr) : null;
-      const finalZoningDistrict = zoning.zoningDistrict ?? zoning.zoningDistricts ?? zoning.zoningCode ?? detectedCityInfo?.zoningDistrict ?? detectedCityInfo?.zoning ?? "-";
+      const finalZoningDistrict = zoning.zoningDistrict 
+        ?? zoning.zoningDistricts 
+        ?? zoning.zoningDistrictS 
+        ?? (zoning.zoningCode && !zoning.zoningCodeUrl ? zoning.zoningCode : null)
+        ?? detectedCityInfo?.zoningDistrict 
+        ?? detectedCityInfo?.zoning 
+        ?? zoning.zoningCode 
+        ?? "-";
       const finalZoningDesc = zoning.zoneDescription ?? zoning.description ?? zoning.zoningDesc ?? detectedCityInfo?.zoningDesc ?? "-";
       const finalZoningCode = zoning.zoningCode ?? zoning.code ?? detectedCityInfo?.zoningCode ?? detectedCityInfo?.zoning ?? "-";
       const finalZoningUrl = zoning.zoningCodeUrl ?? zoning.codeUrl ?? zoning.zoningUrl ?? detectedCityInfo?.zoningCodeUrl ?? detectedCityInfo?.officialUrl ?? null;
@@ -135,8 +149,7 @@
 
       setText("v-zn-district", finalZoningDistrict);
       setText("v-zn-desc", finalZoningDesc);
-      setText("v-zn-allowed", zoning.allowedUses ?? zoning.allowedUse ?? zoning.permittedUses);
-      setText("v-zn-flood", zoning.femaFloodZone ?? zoning.floodZone ?? "N/A");
+      setText("v-zn-allowed", zoning.allowedUses ?? zoning.allowedUse ?? zoning.allowedUseS ?? zoning.permittedUses ?? "-");
     },
 
     /**
@@ -188,12 +201,6 @@
       setText("v-cv-fema-zone-subty", femaDetails.zoneSubty ?? femaDetails.ZONE_SUBTY ?? civil.floodSubtype ?? civil.zoneSubty ?? "-");
 
       setText("v-cv-soil-group", soilVal);
-      setText("v-cv-water", civil.waterService ?? civil.water ?? "-");
-      setText("v-cv-sewer", civil.sewerService ?? civil.sewer ?? "-");
-      setText("v-cv-drainage", civil.stormDrainage ?? civil.drainage ?? "-");
-      setText("v-cv-slope", civil.topography ?? civil.slope ?? "-");
-      setText("v-cv-fire", civil.fireHazardSeverity ?? civil.fireZone ?? "-");
-      setText("v-cv-notes", civil.notes ?? "Civil data will be updated here.");
 
       // Reset Soil button loading state nếu đã nhận được data
       if (soilVal !== "-" && btnGetSoil && btnGetSoil.classList.contains("loading")) {

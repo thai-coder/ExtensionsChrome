@@ -24,14 +24,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnRecheckCounty = document.getElementById("btn-recheck-county");
   const togglePropZoneExtract = document.getElementById("toggle-propzone-extract");
 
-  // Tabs & Views
-  const navTabs = [
-    { btn: document.getElementById("tab-overview"), view: document.getElementById("view-overview") },
-    { btn: document.getElementById("tab-lot"), view: document.getElementById("view-lot") },
-    { btn: document.getElementById("tab-zoning"), view: document.getElementById("view-zoning") },
-    { btn: document.getElementById("tab-setbacks"), view: document.getElementById("view-setbacks") },
-    { btn: document.getElementById("tab-capacity"), view: document.getElementById("view-capacity") },
-    { btn: document.getElementById("tab-civil"), view: document.getElementById("view-civil") }
+  // Main Tabs & Views (Arch, Civil, Wood)
+  const mainNavTabs = [
+    { btn: document.getElementById("tab-arch"), view: document.getElementById("view-arch") },
+    { btn: document.getElementById("tab-civil"), view: document.getElementById("view-civil") },
+    { btn: document.getElementById("tab-wood"), view: document.getElementById("view-wood") }
+  ];
+
+  // Arch Subtabs & Views (Overview, Lot, Zoning, Setbacks, Capacity)
+  const archSubTabs = [
+    { btn: document.getElementById("subtab-overview"), view: document.getElementById("view-overview") },
+    { btn: document.getElementById("subtab-lot"), view: document.getElementById("view-lot") },
+    { btn: document.getElementById("subtab-zoning"), view: document.getElementById("view-zoning") },
+    { btn: document.getElementById("subtab-setbacks"), view: document.getElementById("view-setbacks") },
+    { btn: document.getElementById("subtab-capacity"), view: document.getElementById("view-capacity") }
   ];
 
   // Actions
@@ -45,6 +51,195 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnGetSoil = document.getElementById("btn-get-soil");
   const btnToggleFemaDetails = document.getElementById("btn-toggle-fema-details");
   const femaDetailsPanel = document.getElementById("fema-details-panel");
+
+  // Wood Actions
+  const btnAsceHazard = document.getElementById("btn-asce-hazard");
+  const btnToggleAsceDetails = document.getElementById("btn-toggle-asce-details");
+  const asceOptionsPanel = document.getElementById("asce-options-panel");
+  const asceOptVersion = document.getElementById("asce-opt-version");
+  const asceOptRisk = document.getElementById("asce-opt-risk");
+  const asceOptSoil = document.getElementById("asce-opt-soil");
+  const asceBtnSelectAll = document.getElementById("asce-btn-select-all");
+  const vWdAsce = document.getElementById("v-wd-asce");
+
+  function setupCustomDropdowns() {
+    document.querySelectorAll(".custom-dropdown").forEach(dropdown => {
+      const btn = dropdown.querySelector(".custom-dropdown-btn");
+      const textEl = dropdown.querySelector(".custom-dropdown-text");
+      const menu = dropdown.querySelector(".custom-dropdown-menu");
+      const hiddenInput = dropdown.querySelector("input[type='hidden']");
+      const items = dropdown.querySelectorAll(".custom-dropdown-item");
+
+      if (!btn || !menu || !hiddenInput) return;
+
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        document.querySelectorAll(".custom-dropdown").forEach(d => {
+          if (d !== dropdown) {
+            d.classList.remove("open");
+            d.querySelector(".custom-dropdown-menu")?.classList.add("hidden");
+          }
+        });
+        const isOpen = dropdown.classList.toggle("open");
+        menu.classList.toggle("hidden", !isOpen);
+      });
+
+      items.forEach(item => {
+        item.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const val = item.getAttribute("data-value");
+          hiddenInput.value = val;
+          if (textEl) textEl.textContent = item.textContent.trim();
+          items.forEach(i => i.classList.remove("selected"));
+          item.classList.add("selected");
+          dropdown.classList.remove("open");
+          menu.classList.add("hidden");
+          hiddenInput.dispatchEvent(new Event("change", { bubbles: true }));
+        });
+      });
+    });
+
+    document.addEventListener("click", () => {
+      document.querySelectorAll(".custom-dropdown").forEach(d => {
+        d.classList.remove("open");
+        d.querySelector(".custom-dropdown-menu")?.classList.add("hidden");
+      });
+    });
+  }
+
+  function updateDropdownUI(hiddenInputId, value) {
+    const hiddenInput = document.getElementById(hiddenInputId);
+    if (!hiddenInput) return;
+    hiddenInput.value = value;
+    const dropdown = hiddenInput.closest(".custom-dropdown");
+    if (!dropdown) return;
+    const textEl = dropdown.querySelector(".custom-dropdown-text");
+    const items = dropdown.querySelectorAll(".custom-dropdown-item");
+    items.forEach(item => {
+      if (item.getAttribute("data-value") === value) {
+        item.classList.add("selected");
+        if (textEl) textEl.textContent = item.textContent.trim();
+      } else {
+        item.classList.remove("selected");
+      }
+    });
+  }
+
+  setupCustomDropdowns();
+
+  function getAsceSettings() {
+    const version = asceOptVersion ? asceOptVersion.value : "ASCE/SEI 7-22";
+    const risk = asceOptRisk ? asceOptRisk.value : "Risk Category II";
+    const soil = asceOptSoil ? asceOptSoil.value : "Default";
+    const measCustomary = document.getElementById("asce-meas-customary");
+    const measurement = (measCustomary && measCustomary.checked) ? "Customary" : "SI";
+
+    const loadCheckboxes = document.querySelectorAll(".asce-load-item");
+    const loadTypes = {};
+    loadCheckboxes.forEach(cb => {
+      loadTypes[cb.value] = cb.checked;
+    });
+
+    return { version, risk, soil, measurement, loadTypes };
+  }
+
+  function saveAsceSettings() {
+    const settings = getAsceSettings();
+    chrome.storage.local.set({ asceHazardSettings: settings });
+    if (vWdAsce) {
+      vWdAsce.textContent = settings.version.replace("ASCE/SEI ", "ASCE ");
+    }
+  }
+
+  function loadAsceSettings() {
+    chrome.storage.local.get(["asceHazardSettings"], (res) => {
+      const s = res?.asceHazardSettings;
+      if (!s) return;
+      if (s.version) updateDropdownUI("asce-opt-version", s.version);
+      if (s.risk) updateDropdownUI("asce-opt-risk", s.risk);
+      if (s.soil) updateDropdownUI("asce-opt-soil", s.soil);
+      if (s.measurement) {
+        const rad = document.querySelector(`input[name="asce-measurement"][value="${s.measurement}"]`);
+        if (rad) rad.checked = true;
+      }
+      if (s.loadTypes) {
+        Object.entries(s.loadTypes).forEach(([val, checked]) => {
+          const cb = document.querySelector(`.asce-load-item[value="${val}"]`);
+          if (cb) cb.checked = !!checked;
+        });
+      }
+      if (vWdAsce && s.version) {
+        vWdAsce.textContent = s.version.replace("ASCE/SEI ", "ASCE ");
+      }
+    });
+  }
+
+  loadAsceSettings();
+
+  if (asceOptVersion) asceOptVersion.addEventListener("change", saveAsceSettings);
+  if (asceOptRisk) asceOptRisk.addEventListener("change", saveAsceSettings);
+  if (asceOptSoil) asceOptSoil.addEventListener("change", saveAsceSettings);
+  document.querySelectorAll('input[name="asce-measurement"]').forEach(r => {
+    r.addEventListener("change", saveAsceSettings);
+  });
+  document.querySelectorAll(".asce-load-item").forEach(cb => {
+    cb.addEventListener("change", saveAsceSettings);
+  });
+
+  if (asceBtnSelectAll) {
+    asceBtnSelectAll.addEventListener("click", () => {
+      const allCb = Array.from(document.querySelectorAll(".asce-load-item"));
+      const someUnchecked = allCb.some(cb => !cb.checked);
+      allCb.forEach(cb => { cb.checked = someUnchecked; });
+      asceBtnSelectAll.textContent = someUnchecked ? "Deselect all" : "Select all";
+      saveAsceSettings();
+    });
+  }
+
+  if (btnToggleAsceDetails && asceOptionsPanel) {
+    btnToggleAsceDetails.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isHidden = asceOptionsPanel.classList.toggle("hidden");
+      btnToggleAsceDetails.classList.toggle("open", !isHidden);
+    });
+  }
+
+  if (btnAsceHazard) {
+    btnAsceHazard.addEventListener("click", () => {
+      const query = inputAddress ? inputAddress.value.trim() : "";
+      const asceUrl = "https://ascehazardtool.org/";
+      const asceSettings = getAsceSettings();
+
+      if (query) {
+        chrome.storage.local.set({
+          lastSearchQuery: query,
+          pendingExtractorCommand: {
+            url: asceUrl,
+            portalKey: "asce",
+            searchQuery: query,
+            asceSettings: asceSettings,
+            timestamp: Date.now()
+          }
+        }, () => {
+          chrome.tabs.create({ url: asceUrl });
+          if (showToast) showToast("🌪️ Đang mở ASCE Hazard Tool và tự động xử lý...");
+        });
+      } else {
+        chrome.storage.local.set({
+          pendingExtractorCommand: {
+            url: asceUrl,
+            portalKey: "asce",
+            searchQuery: "",
+            asceSettings: asceSettings,
+            timestamp: Date.now()
+          }
+        }, () => {
+          chrome.tabs.create({ url: asceUrl });
+          if (showToast) showToast("🌪️ Đang mở ASCE Hazard Tool...");
+        });
+      }
+    });
+  }
 
   if (btnToggleFemaDetails && femaDetailsPanel) {
     btnToggleFemaDetails.addEventListener("click", (e) => {
@@ -72,10 +267,10 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentDetectedCounty = null;
   let storedApn = null;
 
-  // 3. Tab Switching
-  function switchTab(btn, save = true) {
+  // 3. Tab Switching: Main Tabs (Arch / Civil / Wood)
+  function switchMainTab(btn, save = true) {
     if (!btn) return;
-    navTabs.forEach(t => {
+    mainNavTabs.forEach(t => {
       if (t.btn) t.btn.classList.remove("active");
       if (t.view) {
         t.view.classList.add("hidden");
@@ -83,30 +278,77 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
     btn.classList.add("active");
-    const activeItem = navTabs.find(t => t.btn === btn);
+    const activeItem = mainNavTabs.find(t => t.btn === btn);
     if (activeItem && activeItem.view) {
       activeItem.view.classList.remove("hidden");
       activeItem.view.classList.add("active");
     }
     if (save && btn.id) {
-      chrome.storage.local.set({ lastActiveTab: btn.id });
-      try { localStorage.setItem("lastActiveTab", btn.id); } catch (e) {}
+      chrome.storage.local.set({ lastActiveMainTab: btn.id });
+      try { localStorage.setItem("lastActiveMainTab", btn.id); } catch (e) {}
     }
   }
 
-  navTabs.forEach(item => {
+  // 3b. Tab Switching: Arch Subtabs (Overview / Lot / Zoning / Setbacks / Capacity)
+  function switchArchSubTab(btn, save = true) {
+    if (!btn) return;
+    archSubTabs.forEach(t => {
+      if (t.btn) t.btn.classList.remove("active");
+      if (t.view) {
+        t.view.classList.add("hidden");
+        t.view.classList.remove("active");
+      }
+    });
+    btn.classList.add("active");
+    const activeItem = archSubTabs.find(t => t.btn === btn);
+    if (activeItem && activeItem.view) {
+      activeItem.view.classList.remove("hidden");
+      activeItem.view.classList.add("active");
+    }
+    if (save && btn.id) {
+      chrome.storage.local.set({ lastActiveArchSubTab: btn.id });
+      try { localStorage.setItem("lastActiveArchSubTab", btn.id); } catch (e) {}
+    }
+  }
+
+  mainNavTabs.forEach(item => {
     if (item.btn) {
-      item.btn.addEventListener("click", () => switchTab(item.btn));
+      item.btn.addEventListener("click", () => switchMainTab(item.btn));
     }
   });
 
+  archSubTabs.forEach(item => {
+    if (item.btn) {
+      item.btn.addEventListener("click", () => switchArchSubTab(item.btn));
+    }
+  });
+
+  // Khôi phục Tab đã mở trước đó
   try {
-    const cachedTab = localStorage.getItem("lastActiveTab");
-    if (cachedTab) switchTab(document.getElementById(cachedTab), false);
+    const cachedMainTab = localStorage.getItem("lastActiveMainTab");
+    if (cachedMainTab) switchMainTab(document.getElementById(cachedMainTab), false);
+    const cachedSubTab = localStorage.getItem("lastActiveArchSubTab");
+    if (cachedSubTab) switchArchSubTab(document.getElementById(cachedSubTab), false);
   } catch (e) {}
 
-  chrome.storage.local.get("lastActiveTab", res => {
-    if (res && res.lastActiveTab) switchTab(document.getElementById(res.lastActiveTab), false);
+  chrome.storage.local.get(["lastActiveMainTab", "lastActiveArchSubTab", "lastActiveTab"], res => {
+    if (res?.lastActiveMainTab) {
+      switchMainTab(document.getElementById(res.lastActiveMainTab), false);
+    } else if (res?.lastActiveTab) {
+      if (res.lastActiveTab === "tab-civil" || res.lastActiveTab === "tab-wood") {
+        switchMainTab(document.getElementById(res.lastActiveTab), false);
+      } else {
+        switchMainTab(document.getElementById("tab-arch"), false);
+      }
+    }
+
+    if (res?.lastActiveArchSubTab) {
+      switchArchSubTab(document.getElementById(res.lastActiveArchSubTab), false);
+    } else if (res?.lastActiveTab && res.lastActiveTab.startsWith("tab-")) {
+      const subId = res.lastActiveTab.replace("tab-", "subtab-");
+      const targetSubBtn = document.getElementById(subId);
+      if (targetSubBtn) switchArchSubTab(targetSubBtn, false);
+    }
   });
 
   // 4. Update UI Wrappers

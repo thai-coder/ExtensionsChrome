@@ -24,15 +24,26 @@
   margin: 0;
   padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE & Edge */
+}
+
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
 }
 
 body {
-  width: 450px;
+  width: 400px;
   background-color: var(--bg-app);
   color: var(--text-main);
   font-size: 12.5px;
   line-height: 1.4;
-  padding: 12px;
+  padding: 10px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .app-container {
@@ -380,7 +391,7 @@ body {
   box-shadow: 0 0 4px rgba(16, 185, 129, 0.8);
 }
 
-/* Segmented Control Tabs */
+/* Segmented Control Tabs (Top Level: Arch, Civil, Wood) */
 .segmented-control {
   display: flex;
   background: #080c16;
@@ -390,24 +401,74 @@ body {
   gap: 2px;
 }
 
-.seg-btn {
+.segmented-control.main-tabs .seg-btn {
   flex: 1;
   background: transparent;
   border: none;
   color: var(--text-muted);
-  font-size: 10.5px;
-  font-weight: 500;
-  padding: 5px 0;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 5.5px 0;
   border-radius: 5px;
   cursor: pointer;
   transition: all 0.15s;
+  letter-spacing: 0.2px;
 }
 
-.seg-btn.active {
+.segmented-control.main-tabs .seg-btn:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.segmented-control.main-tabs .seg-btn.active {
   background: var(--accent-blue);
   color: #fff;
-  font-weight: 600;
+  font-weight: 700;
   box-shadow: 0 2px 6px rgba(59, 130, 246, 0.35);
+}
+
+/* Sub-segmented Control (Overview, Lot, Zoning, Setbacks, Capacity inside Arch) */
+.sub-segmented-control {
+  display: flex;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-subtle);
+  padding: 2px;
+  border-radius: 6px;
+  gap: 2px;
+  margin-bottom: 2px;
+}
+
+.sub-seg-btn {
+  flex: 1;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 4px 0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+
+.sub-seg-btn:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.sub-seg-btn.active {
+  background: rgba(56, 189, 248, 0.15);
+  color: var(--accent-cyan);
+  border-color: rgba(56, 189, 248, 0.35);
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(56, 189, 248, 0.2);
+}
+
+.subtab-content-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 /* Content Area */
@@ -418,10 +479,18 @@ body {
   max-height: 270px;
   min-height: 200px;
   overflow-y: auto;
-  padding-right: 2px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-right: 0;
 }
 
-.tab-view.hidden, .main-panel.hidden, .blocked-state.hidden {
+.content-scroll::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.tab-view.hidden, .subtab-view.hidden, .main-panel.hidden, .blocked-state.hidden {
   display: none !important;
 }
 
@@ -969,6 +1038,253 @@ body {
   font-size: 10.5px;
   font-weight: 500;
 }
+
+/* ASCE Hazard Accordion & Options Panel */
+.asce-accordion-container {
+  border-bottom: 1px solid var(--border-subtle, #1e293b);
+}
+
+.asce-header-row {
+  border-bottom: none !important;
+}
+
+.asce-toggle-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  flex: 1;
+}
+
+.asce-toggle-btn .chevron-icon {
+  color: var(--text-muted, #94a3b8);
+  transition: transform 0.2s ease, color 0.2s ease;
+  transform: rotate(-90deg);
+  flex-shrink: 0;
+}
+
+.asce-toggle-btn.open .chevron-icon {
+  transform: rotate(0deg);
+  color: var(--accent-cyan, #06b6d4);
+}
+
+.asce-toggle-btn:hover .chevron-icon {
+  color: var(--text-main, #f8fafc);
+}
+
+.asce-options-panel {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px dashed rgba(59, 130, 246, 0.3);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 2px 0 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.asce-options-panel.hidden {
+  display: none;
+}
+
+.asce-opt-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.asce-opt-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.asce-opt-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted, #94a3b8);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.asce-badge-new {
+  font-size: 9px;
+  font-weight: 600;
+  color: #ef4444;
+}
+
+/* Custom Styled Combobox / Dropdown */
+.custom-dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.custom-dropdown-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #0b1329;
+  color: #f1f5f9;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 5px;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.35;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: all 0.15s ease-in-out;
+  text-align: left;
+}
+
+.custom-dropdown-btn:hover {
+  border-color: rgba(56, 189, 248, 0.45);
+  background: #131f37;
+}
+
+.custom-dropdown.open .custom-dropdown-btn {
+  border-color: var(--accent-cyan, #38bdf8);
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+  background: #131f37;
+}
+
+.custom-dropdown-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.custom-dropdown-arrow {
+  width: 12px;
+  height: 12px;
+  stroke: #94a3b8;
+  transition: transform 0.2s ease, stroke 0.15s ease;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+.custom-dropdown.open .custom-dropdown-arrow {
+  transform: rotate(180deg);
+  stroke: #38bdf8;
+}
+
+.custom-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #0f172a;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 6px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.8), 0 8px 10px -6px rgba(0, 0, 0, 0.6);
+  z-index: 100;
+  max-height: 160px;
+  overflow-y: auto;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  backdrop-filter: blur(8px);
+}
+
+.custom-dropdown-menu.hidden {
+  display: none !important;
+}
+
+.custom-dropdown-menu::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-dropdown-menu::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+
+.custom-dropdown-item {
+  padding: 5px 8px;
+  font-size: 11px;
+  color: #cbd5e1;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.custom-dropdown-item:hover {
+  background: rgba(56, 189, 248, 0.12);
+  color: #38bdf8;
+  font-weight: 500;
+}
+
+.custom-dropdown-item.selected {
+  background: rgba(56, 189, 248, 0.2);
+  color: #38bdf8;
+  font-weight: 600;
+}
+
+.asce-grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.asce-radio-row {
+  display: flex;
+  gap: 16px;
+  padding: 2px 0;
+}
+
+.asce-choice-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  color: #cbd5e1;
+  cursor: pointer;
+  user-select: none;
+}
+
+.asce-choice-label input[type="radio"],
+.asce-choice-label input[type="checkbox"] {
+  cursor: pointer;
+  accent-color: var(--accent-blue, #3b82f6);
+  margin: 0;
+}
+
+.asce-link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent-cyan, #06b6d4);
+  font-size: 10px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.asce-link-btn:hover {
+  color: #38bdf8;
+}
+
+.asce-checkbox-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  row-gap: 5px;
+  column-gap: 8px;
+  padding: 3px 0;
+}
+
+
 
 
 

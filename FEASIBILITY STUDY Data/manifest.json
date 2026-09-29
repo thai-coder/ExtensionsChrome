@@ -39,7 +39,8 @@
     "https://*.google.co.uk/*",
     "https://*.google.com.au/*",
     "https://websoilsurvey.nrcs.usda.gov/*",
-    "https://sdmdataaccess.nrcs.usda.gov/*"
+    "https://sdmdataaccess.nrcs.usda.gov/*",
+    "https://ascehazardtool.org/*"
   ],
   "action": {
     "default_popup": "popup/popup.html",
@@ -157,6 +158,17 @@
         "https://websoilsurvey.nrcs.usda.gov/*"
       ],
       "js": ["content/soil-extractor.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://ascehazardtool.org/*",
+        "https://*.ascehazardtool.org/*"
+      ],
+      "js": [
+        "content/floating-ui.js",
+        "content/asce-extractor.js"
+      ],
       "run_at": "document_idle"
     }
   ],

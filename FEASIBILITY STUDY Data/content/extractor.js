@@ -14,6 +14,8 @@
   const toCamelCase = (str) => {
     if (!str) return '';
     return str
+      .replace(/\([sS]\)/g, '')
+      .replace(/\([eE][sS]\)/g, '')
       .replace(/[\(\)\%\$\#\:\/\-\–]/g, ' ')
       .trim()
       .split(/\s+/)
@@ -156,7 +158,19 @@
       } else if (/use\s*code|land\s*use|property\s*use|property\s*type|building\s*use/i.test(k)) {
         lot.existingBuildingUse = v;
         zoning.existingLandUse = v;
-      } else if (/zoning|zone\s*code|zone\s*district/i.test(k) && !zoning.zoningDistrict) {
+      } else if (/zone\s*code/i.test(k)) {
+        zoning.zoningCode = v;
+        const linkEl = el.querySelector('a[href]');
+        if (linkEl && linkEl.href) {
+          zoning.zoningCodeUrl = linkEl.href;
+        }
+      } else if (/zone\s*district/i.test(k)) {
+        zoning.zoningDistrict = v;
+      } else if (/zone\s*desc/i.test(k) && !zoning.zoneDescription) {
+        zoning.zoneDescription = v;
+      } else if (/allowed\s*use/i.test(k) && !zoning.allowedUse) {
+        zoning.allowedUse = v;
+      } else if (/zoning/i.test(k) && !zoning.zoningDistrict && !zoning.zoningCode) {
         zoning.zoningDistrict = v;
         zoning.zoningCode = v;
         const linkEl = el.querySelector('a[href]');

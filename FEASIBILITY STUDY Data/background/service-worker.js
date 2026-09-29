@@ -162,6 +162,24 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         }
       });
     });
+
+    if (request.closeTab && sender.tab && sender.tab.id) {
+      setTimeout(() => {
+        chrome.tabs.remove(sender.tab.id).catch(() => {});
+      }, 1200);
+    }
+
+    sendResponse({ success: true });
+    return true;
+  }
+
+  // ĐÓNG TAB HIỆN TẠI THEO YÊU CẦU TỪ CONTENT SCRIPT
+  if (request.action === "CLOSE_CURRENT_TAB") {
+    if (sender.tab && sender.tab.id) {
+      setTimeout(() => {
+        chrome.tabs.remove(sender.tab.id).catch(() => {});
+      }, 800);
+    }
     sendResponse({ success: true });
     return true;
   }
@@ -554,3 +572,27 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
 });
+
+// Lắng nghe sự kiện Tải File hoàn tất để thông báo tới Content Scripts
+if (chrome.downloads && chrome.downloads.onChanged) {
+  chrome.downloads.onChanged.addListener((downloadDelta) => {
+    if (downloadDelta.state && downloadDelta.state.current === "complete") {
+      chrome.downloads.search({ id: downloadDelta.id }, (results) => {
+        const item = results && results[0];
+        const filename = item ? (item.filename || "") : "";
+        chrome.tabs.query({}, (tabs) => {
+          tabs.forEach((tab) => {
+            if (tab.id) {
+              chrome.tabs.sendMessage(tab.id, {
+                action: "FILE_DOWNLOAD_COMPLETE",
+                downloadId: downloadDelta.id,
+                filename: filename
+              }).catch(() => {});
+            }
+          });
+        });
+      });
+    }
+  });
+}
+

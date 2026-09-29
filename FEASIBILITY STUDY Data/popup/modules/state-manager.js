@@ -10,13 +10,13 @@
     "v-lot-address", "v-lot-bldgArea", "v-lot-bldgUse", "v-lot-stories", "v-lot-parking", "v-lot-garageArea", "v-lot-units", "v-lot-yearBuilt", "v-lot-neighborhood",
     "v-lot-parcelId", "v-lot-groupId", "v-lot-taxRecord", "v-lot-parcelShape", "v-lot-acres",
     "v-lot-type", "v-lot-frontage", "v-lot-vacant", "v-lot-legal",
-    "v-zn-landUse", "v-zn-code", "v-zn-district", "v-zn-desc", "v-zn-allowed", "v-zn-flood",
+    "v-zn-landUse", "v-zn-code", "v-zn-district", "v-zn-desc", "v-zn-allowed",
     "v-sb-primary", "v-sb-secondary", "v-sb-side", "v-sb-rear", "v-sb-water",
     "v-cp-bldgArea", "v-cp-stories", "v-cp-height", "v-cp-far", "v-cp-lotCov",
     "v-cp-footprint", "v-cp-openSpace", "v-cp-resDensity", "v-cp-resArea", "v-cp-resUnits",
     "v-cp-lodgingDensity", "v-cp-lodgingArea", "v-cp-officeArea", "v-cp-commArea",
     "v-cv-flood", "v-cv-fema-panel", "v-cv-fema-eff-date", "v-cv-fema-cid", "v-cv-fema-jurisdiction", "v-cv-fema-fld-zone", "v-cv-fema-zone-subty",
-    "v-cv-soil-group", "v-cv-water", "v-cv-sewer", "v-cv-drainage", "v-cv-slope", "v-cv-fire", "v-cv-notes"
+    "v-cv-soil-group"
   ];
 
   const FsStateManager = {

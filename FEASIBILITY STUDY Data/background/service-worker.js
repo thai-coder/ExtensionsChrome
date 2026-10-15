@@ -28,10 +28,25 @@ let pipelineSession = {
 
 let lastOpenedPropZoneUrl = null;
 let lastOpenedTime = 0;
+let lastCountyOfficeOpenTime = 0;
+
+async function openParallelCountyOfficeTab() {
+  const now = Date.now();
+  if (now - lastCountyOfficeOpenTime < 60000) return;
+  const existingTabs = await chrome.tabs.query({ url: "*://*.countyoffice.org/*" });
+  if (existingTabs && existingTabs.length > 0) return;
+  lastCountyOfficeOpenTime = now;
+  try {
+    const coTab = await chrome.tabs.create({ url: "https://www.countyoffice.org/", active: false });
+    pipelineSession.countyOfficeTabId = coTab ? coTab.id : null;
+  } catch (err) {
+    console.warn("[ServiceWorker] Mở tab song song CountyOffice lỗi:", err);
+  }
+}
 
 // Lắng nghe lệnh từ Popup hoặc Content Scripts
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  
+
   // 1. KHỞI CHẠY QUY TRÌNH TỰ ĐỘNG TỪ POPUP (NÚT FETCH)
   if (request.action === "START_AUTO_PIPELINE") {
     runDirectSearchPipeline(request.address).then(result => {
@@ -77,8 +92,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true; // async
   }
 
-
-
   // 4. BƯỚC TIỀN TRẠM HOÀN THÀNH: ĐÃ TÌM THẤY ĐỊA CHỈ TỪ MÃ APN -> NỐI VÀO LUỒNG CHÍNH (1*)
   if (request.action === "APN_ADDRESS_RESOLVED") {
     handleApnAddressResolved(request.apn, request.address, request.specs || {}, sender.tab ? sender.tab.id : null);
@@ -89,7 +102,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   // NẾU TÌM ĐỊA CHỈ TỪ APN BỊ TIMEOUT / THẤT BẠI
   if (request.action === "APN_ADDRESS_RESOLVE_FAILED") {
     if (sender.tab && sender.tab.id) {
-      chrome.tabs.remove(sender.tab.id).catch(() => {});
+      chrome.tabs.remove(sender.tab.id).catch(() => { });
     }
     pipelineSession.apnSearchTabId = null;
     sendResponse({ success: true });
@@ -126,7 +139,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     if (sender.tab && sender.tab.id) {
       setTimeout(() => {
-        chrome.tabs.remove(sender.tab.id).catch(() => {});
+        chrome.tabs.remove(sender.tab.id).catch(() => { });
       }, PROPZONE_TAB_LIFETIME_MS);
     }
 
@@ -165,10 +178,44 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     if (request.closeTab && sender.tab && sender.tab.id) {
       setTimeout(() => {
-        chrome.tabs.remove(sender.tab.id).catch(() => {});
+        chrome.tabs.remove(sender.tab.id).catch(() => { });
       }, 1200);
     }
 
+    sendResponse({ success: true });
+    return true;
+  }
+
+  // TỰ ĐỘNG LƯU DỮ LIỆU TỪ COUNTYOFFICE.ORG CHẠY SONG SONG
+  if (request.action === "AUTO_SAVE_COUNTYOFFICE_DATA" && request.data) {
+    chrome.storage.local.get(["lastPipelineResult", "lastSearchQuery"], (res) => {
+      const prev = res.lastPipelineResult || {};
+      const coData = request.data;
+      const finalAddress = coData.address || prev.address || res.lastSearchQuery || "";
+
+      chrome.storage.local.set({
+        lastPipelineResult: {
+          ...prev,
+          countyOffice: coData,
+          lot: {
+            ...(prev.lot || {}),
+            parcelId: prev.lot?.parcelId || coData.apn || null,
+            yearBuilt: prev.lot?.yearBuilt || coData.specs?.yearBuilt || null,
+            existingBuildingArea: prev.lot?.existingBuildingArea || coData.specs?.livingArea || coData.specs?.squareFeet || null,
+            lotAreaTaxRecord: prev.lot?.lotAreaTaxRecord || coData.specs?.lotSize || null
+          },
+          updatedAt: new Date().toISOString()
+        }
+      });
+    });
+
+    sendResponse({ success: true });
+    return true;
+  }
+
+  // KÍCH HOẠT MỞ TAB SONG SONG COUNTYOFFICE.ORG NẾU CHƯA CÓ
+  if (request.action === "TRIGGER_PARALLEL_COUNTYOFFICE") {
+    openParallelCountyOfficeTab();
     sendResponse({ success: true });
     return true;
   }
@@ -177,7 +224,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "CLOSE_CURRENT_TAB") {
     if (sender.tab && sender.tab.id) {
       setTimeout(() => {
-        chrome.tabs.remove(sender.tab.id).catch(() => {});
+        chrome.tabs.remove(sender.tab.id).catch(() => { });
       }, 800);
     }
     sendResponse({ success: true });
@@ -322,12 +369,16 @@ async function handlePropertyOverviewFound(details, tabId) {
   pipelineSession.propZoneTabId = targetTabId;
   pipelineSession.propertyOverviewTabId = null;
 
+  // Mở tab song song tra cứu hồ sơ tài sản trên CountyOffice.org (active: false, có cooldown 60s)
+  openParallelCountyOfficeTab();
+
   // Lưu ngay tab ID và dữ liệu vào Persistent Storage để Service Worker ngủ ngầm vẫn nhận diện 100%
   await chrome.storage.local.set({
     activePipelineSession: {
       address: address,
       apn: cleanApn,
       propZoneTabId: targetTabId,
+      countyOfficeTabId: pipelineSession.countyOfficeTabId || null,
       step: "PROPZONE_MAP",
       timestamp: Date.now()
     }
@@ -380,7 +431,7 @@ async function handleApnAddressResolved(apn, foundAddress, specs = {}, tabId) {
   if (tabId) {
     try {
       await chrome.tabs.remove(tabId);
-    } catch (e) {}
+    } catch (e) { }
   }
   pipelineSession.apnSearchTabId = null;
 
@@ -500,7 +551,7 @@ async function runDirectSearchPipeline(query, providedApn = "") {
     updatedAt: new Date().toISOString()
   };
 
-  await chrome.storage.local.set({ 
+  await chrome.storage.local.set({
     lastPipelineResult: payload,
     lastSearchQuery: targetAddress,
     activePipelineSession: {
@@ -530,7 +581,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     chrome.tabs.create({ url: "fs-update://run" }, (tab) => {
       if (tab && tab.id) {
         // Giữ tab đủ lâu để người dùng xác nhận "Always allow" (nếu là lần đầu)
-        setTimeout(() => chrome.tabs.remove(tab.id).catch(() => {}), 3000);
+        setTimeout(() => chrome.tabs.remove(tab.id).catch(() => { }), 3000);
       }
     });
 
@@ -551,7 +602,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             return;
           }
         }
-      } catch (e) {}
+      } catch (e) { }
 
       if (attempts >= maxAttempts) {
         clearInterval(pollInterval);
@@ -587,7 +638,7 @@ if (chrome.downloads && chrome.downloads.onChanged) {
                 action: "FILE_DOWNLOAD_COMPLETE",
                 downloadId: downloadDelta.id,
                 filename: filename
-              }).catch(() => {});
+              }).catch(() => { });
             }
           });
         });

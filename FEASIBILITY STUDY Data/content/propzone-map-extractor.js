@@ -885,6 +885,17 @@
       return;
     }
 
+    // Kích hoạt tác vụ song song mở tab CountyOffice.org
+    if (targetAddress) {
+      try {
+        chrome.runtime.sendMessage({
+          action: "TRIGGER_PARALLEL_COUNTYOFFICE",
+          address: targetAddress,
+          apn: targetApn || ""
+        });
+      } catch (e) { }
+    }
+
     const searchState = sessionStorage.getItem('__PROPZONE_SEARCH_STATE__') || 'INITIAL';
     const isDetailPage = isParcelDetailPage();
     const alreadySearched = searchState === 'SEARCH_COMPLETED' || searchState === 'EXTRACTED';

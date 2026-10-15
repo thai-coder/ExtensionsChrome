@@ -40,7 +40,8 @@
     "https://*.google.com.au/*",
     "https://websoilsurvey.nrcs.usda.gov/*",
     "https://sdmdataaccess.nrcs.usda.gov/*",
-    "https://ascehazardtool.org/*"
+    "https://ascehazardtool.org/*",
+    "https://www.countyoffice.org/*"
   ],
   "action": {
     "default_popup": "popup/popup.html",
@@ -60,6 +61,19 @@
     "128": "icons/icon128.png"
   },
   "content_scripts": [
+    {
+      "matches": [
+        "https://www.countyoffice.org/*"
+      ],
+      "js": [
+        "content/floating-ui.js",
+        "config/ca-cities-data.js",
+        "config/county-detector.js",
+        "config/rules.js",
+        "content/countyoffice-extractor.js"
+      ],
+      "run_at": "document_idle"
+    },
     {
       "matches": [
         "https://propzone.gridics.com/*"

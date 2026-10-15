@@ -30,18 +30,189 @@ let lastOpenedPropZoneUrl = null;
 let lastOpenedTime = 0;
 let lastCountyOfficeOpenTime = 0;
 
+// Trạng thái đối soát 2 luồng độc lập: PropZone (***A) vs CountyOffice (***B)
+let dualAuditSession = {
+  address: "",
+  sourceA: null, // { status: "SUCCESS" | "FAILED", data: any, error: any }
+  sourceB: null, // { status: "SUCCESS" | "FAILED", data: any, error: any }
+  evaluated: false
+};
+let auditFallbackTimer = null;
+
 async function openParallelCountyOfficeTab() {
   const now = Date.now();
-  if (now - lastCountyOfficeOpenTime < 60000) return;
-  const existingTabs = await chrome.tabs.query({ url: "*://*.countyoffice.org/*" });
-  if (existingTabs && existingTabs.length > 0) return;
+  if (now - lastCountyOfficeOpenTime < 3000) return; // Debounce 3s chống mở đúp
   lastCountyOfficeOpenTime = now;
+
   try {
-    const coTab = await chrome.tabs.create({ url: "https://www.countyoffice.org/", active: false });
-    pipelineSession.countyOfficeTabId = coTab ? coTab.id : null;
+    const existingTabs = await chrome.tabs.query({ url: "*://*.countyoffice.org/*" });
+    if (existingTabs && existingTabs.length > 0) {
+      // Nếu đã có tab CountyOffice, điều hướng lại về trang chủ để tìm kiếm địa chỉ mới
+      const targetTab = existingTabs[0];
+      await chrome.tabs.update(targetTab.id, { url: "https://www.countyoffice.org/", active: false });
+      pipelineSession.countyOfficeTabId = targetTab.id;
+    } else {
+      // Nếu chưa có, tạo tab mới
+      const coTab = await chrome.tabs.create({ url: "https://www.countyoffice.org/", active: false });
+      pipelineSession.countyOfficeTabId = coTab ? coTab.id : null;
+    }
   } catch (err) {
     console.warn("[ServiceWorker] Mở tab song song CountyOffice lỗi:", err);
   }
+}
+
+/**
+ * THỰC THI CHỈ THỊ CỦA SẾP:
+ * - So sánh PropZone (***A) vs CountyOffice (***B)
+ * - Nếu (***A) GIỐNG (***B) => thông báo "Data giống nhau"
+ * - Nếu (***A) KHÁC (***B) => thông báo "Data buộc lấy theo (***B) cấm cãi." (Lấy toàn bộ số liệu của B)
+ * - Nếu (***A) hoặc (***B) không thể tải web => XUI ("Thằng nào load được thì lấy của thằng đó")
+ */
+async function evaluateBossDirective() {
+  const { sourceA, sourceB } = dualAuditSession;
+  if (!sourceA && !sourceB) return;
+
+  const aSuccess = sourceA && sourceA.status === "SUCCESS" && sourceA.data;
+  const bSuccess = sourceB && sourceB.status === "SUCCESS" && sourceB.data;
+  const aFailed = sourceA && sourceA.status === "FAILED";
+  const bFailed = sourceB && sourceB.status === "FAILED";
+
+  // Nếu cả 2 đều chưa ngã ngũ (ví dụ 1 bên xong, 1 bên chưa xong và chưa fail)
+  if (!((aSuccess || aFailed) && (bSuccess || bFailed))) {
+    // Đặt fallback timer 10s: nếu bên kia không phản hồi (treo web) -> coi như bên kia bị XUI
+    if (!auditFallbackTimer) {
+      auditFallbackTimer = setTimeout(() => {
+        auditFallbackTimer = null;
+        if (!dualAuditSession.sourceA) {
+          dualAuditSession.sourceA = { status: "FAILED", error: "TIMEOUT_NO_RESPONSE" };
+        }
+        if (!dualAuditSession.sourceB) {
+          dualAuditSession.sourceB = { status: "FAILED", error: "TIMEOUT_NO_RESPONSE" };
+        }
+        evaluateBossDirective();
+      }, 10000);
+    }
+    return;
+  }
+
+  if (auditFallbackTimer) {
+    clearTimeout(auditFallbackTimer);
+    auditFallbackTimer = null;
+  }
+
+  const { lastPipelineResult, lastSearchQuery } = await chrome.storage.local.get(["lastPipelineResult", "lastSearchQuery"]);
+  const prev = lastPipelineResult || {};
+
+  let verdict = "";
+  let message = "";
+  let title = "";
+  let finalLot = { ...(prev.lot || {}) };
+  let diffDetails = [];
+
+  // TRƯỜNG HỢP 1: CẢ HAI ĐỀU TẢI ĐƯỢC THÀNH CÔNG -> SO SÁNH (***A) VÀ (***B)
+  if (aSuccess && bSuccess) {
+    const dataA = sourceA.data;
+    const lotA = dataA.lot || {};
+    const dataB = sourceB.data;
+
+    const apnA = String(lotA.parcelId || dataA.apn || "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+    const apnB = String(dataB.apn || "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+
+    const lotSqftA = Number(lotA.lotAreaTaxRecord || lotA.lotAreaParcelShape || 0);
+    const lotSqftB = Number(dataB.lotSize || 0);
+
+    const bldgSqftA = Number(lotA.existingBuildingArea || 0);
+    const bldgSqftB = Number(dataB.buildingSize || 0);
+
+    const yearA = Number(lotA.yearBuilt || 0);
+    const yearB = Number(dataB.yearBuilt || 0);
+
+    let isApnDiff = apnA && apnB && apnA !== apnB;
+    let isLotDiff = lotSqftA > 0 && lotSqftB > 0 && Math.abs(lotSqftA - lotSqftB) / Math.max(lotSqftA, lotSqftB) > 0.02;
+    let isBldgDiff = bldgSqftA > 0 && bldgSqftB > 0 && Math.abs(bldgSqftA - bldgSqftB) / Math.max(bldgSqftA, bldgSqftB) > 0.02;
+    let isYearDiff = yearA > 0 && yearB > 0 && yearA !== yearB;
+
+    if (isApnDiff) diffDetails.push(`APN: PropZone(${lotA.parcelId}) ≠ CountyOffice(${dataB.apn})`);
+    if (isLotDiff) diffDetails.push(`Lot Size: PropZone(${lotSqftA.toLocaleString()} sqft) ≠ CountyOffice(${lotSqftB.toLocaleString()} sqft)`);
+    if (isBldgDiff) diffDetails.push(`Bldg Size: PropZone(${bldgSqftA.toLocaleString()} sqft) ≠ CountyOffice(${bldgSqftB.toLocaleString()} sqft)`);
+    if (isYearDiff) diffDetails.push(`Year Built: PropZone(${yearA}) ≠ CountyOffice(${yearB})`);
+
+    const isDifferent = isApnDiff || isLotDiff || isBldgDiff || isYearDiff;
+
+    if (!isDifferent) {
+      verdict = "MATCHED";
+      title = "Data giống nhau";
+      message = "Data giống nhau! Dữ liệu giữa PropZone (***A) và CountyOffice (***B) trùng khớp 100%.";
+      if (dataB.apn && !finalLot.parcelId) finalLot.parcelId = dataB.apn;
+      if (dataB.yearBuilt && !finalLot.yearBuilt) finalLot.yearBuilt = dataB.yearBuilt;
+      if (dataB.buildingSize && !finalLot.existingBuildingArea) finalLot.existingBuildingArea = dataB.buildingSize;
+      if (dataB.lotSize && !finalLot.lotAreaTaxRecord) finalLot.lotAreaTaxRecord = dataB.lotSize;
+    } else {
+      verdict = "OVERRIDDEN_BY_COUNTYOFFICE";
+      title = "Data buộc lấy theo (***B) cấm cãi";
+      message = "Data buộc lấy theo (***B) cấm cãi! Sếp chỉ đạo CountyOffice là chuẩn, toàn bộ số liệu đã ghi đè theo (***B).";
+      // BẮT BUỘC GHI ĐÈ THEO B
+      if (dataB.apn) finalLot.parcelId = dataB.apn;
+      if (dataB.lotSize) finalLot.lotAreaTaxRecord = dataB.lotSize;
+      if (dataB.buildingSize) finalLot.existingBuildingArea = dataB.buildingSize;
+      if (dataB.yearBuilt) finalLot.yearBuilt = dataB.yearBuilt;
+      if (dataB.propertyType) finalLot.existingBuildingUse = dataB.propertyType;
+    }
+
+  // TRƯỜNG HỢP 2: 1 TRONG 2 BÊN KHÔNG THỂ TẢI WEB ("THÌ XUI. THẰNG NÀO LOAD ĐƯỢC THÌ LẤY CỦA THẰNG ĐÓ")
+  } else if (aFailed && bSuccess) {
+    verdict = "ONLY_B_LOADED";
+    title = "(***A) không thể tải web (XUI)";
+    message = "(***A) PropZone không thể tải web (XUI). Lấy toàn bộ data theo (***B) CountyOffice!";
+    const dataB = sourceB.data;
+    if (dataB.apn) finalLot.parcelId = dataB.apn;
+    if (dataB.lotSize) finalLot.lotAreaTaxRecord = dataB.lotSize;
+    if (dataB.buildingSize) finalLot.existingBuildingArea = dataB.buildingSize;
+    if (dataB.yearBuilt) finalLot.yearBuilt = dataB.yearBuilt;
+    if (dataB.propertyType) finalLot.existingBuildingUse = dataB.propertyType;
+
+  } else if (bFailed && aSuccess) {
+    verdict = "ONLY_A_LOADED";
+    title = "(***B) không thể tải web (XUI)";
+    message = "(***B) CountyOffice không thể tải web (XUI / 403 Forbidden). Lấy data theo (***A) PropZone!";
+    // Giữ nguyên dữ liệu của A
+
+  } else if (aFailed && bFailed) {
+    verdict = "BOTH_FAILED";
+    title = "Cả 2 bên đều không tải được";
+    message = "Cả (***A) PropZone và (***B) CountyOffice đều không thể tải web (Quá XUI)!";
+  }
+
+  // Cập nhật Storage
+  const updatedResult = {
+    ...prev,
+    lot: finalLot,
+    bossAudit: {
+      verdict: verdict,
+      title: title,
+      message: message,
+      diffDetails: diffDetails,
+      evaluatedAt: new Date().toISOString(),
+      sourceA: { status: sourceA?.status || "UNKNOWN", lot: sourceA?.data?.lot || null },
+      sourceB: { status: sourceB?.status || "UNKNOWN", data: sourceB?.data || null }
+    },
+    updatedAt: new Date().toISOString()
+  };
+
+  await chrome.storage.local.set({ lastPipelineResult: updatedResult });
+
+  // Phát sóng Toast thông báo tới tất cả các tab
+  try {
+    const tabs = await chrome.tabs.query({});
+    tabs.forEach(t => {
+      chrome.tabs.sendMessage(t.id, {
+        action: "BOSS_AUDIT_NOTIFICATION",
+        verdict: verdict,
+        title: title,
+        message: message + (diffDetails.length > 0 ? "\n" + diffDetails.join("\n") : "")
+      }).catch(() => { });
+    });
+  } catch (e) { }
 }
 
 // Lắng nghe lệnh từ Popup hoặc Content Scripts
@@ -116,14 +287,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
 
-  // 6. BƯỚC 2 CỦA LUỒNG CHÍNH: ĐÃ LƯU DỮ LIỆU PROPZONE VÀ ĐÓNG TAB PROPZONE
+  // 6. BƯỚC 2 CỦA LUỒNG CHÍNH: ĐÃ LƯU DỮ LIỆU PROPZONE VÀ ĐÓNG TAB PROPZONE (Nguồn ***A)
   if (request.action === "AUTO_SAVE_AND_CLOSE_TAB" && request.data) {
     handlePropZoneSaveAndClose(request.data, sender.tab ? sender.tab.id : null);
+    dualAuditSession.sourceA = { status: "SUCCESS", data: request.data };
+    evaluateBossDirective();
     sendResponse({ success: true });
     return true;
   }
 
-  // XỬ LÝ KHI PROPZONE THẤT BẠI SAU 5 LẦN THỬ LẠI
+  // XỬ LÝ KHI PROPZONE THẤT BẠI SAU 5 LẦN THỬ LẠI (Nguồn ***A không tải được web)
   if (request.action === "PROPZONE_EXTRACTION_FAILED") {
     chrome.storage.local.get(["lastPipelineResult"], (res) => {
       const prev = res.lastPipelineResult || {};
@@ -137,6 +310,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       });
     });
 
+    dualAuditSession.sourceA = { status: "FAILED", error: "PROPZONE_LOAD_FAILED" };
+    evaluateBossDirective();
+
     if (sender.tab && sender.tab.id) {
       setTimeout(() => {
         chrome.tabs.remove(sender.tab.id).catch(() => { });
@@ -147,13 +323,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
 
-  // TỰ ĐỘNG LƯU TOÀN BỘ DỮ LIỆU BÓC TÁCH TỪ CÁC TRANG GIS VÀO STORAGE
+  // TỰ ĐỘNG LƯU TOÀN BỘ DỮ LIỆU BÓC TÁCH TỪ CÁC TRANG GIS VÀO STORAGE (Nguồn ***A)
   if (request.action === "AUTO_SAVE_FULL_EXTRACTED_DATA" && request.data) {
     chrome.storage.local.get(["lastPipelineResult", "lastSearchQuery"], (res) => {
       const prev = res.lastPipelineResult || {};
       const extractedAddress = request.data.address || request.data.lot?.projectAddress || request.data.lot?.address || request.data.lot?.situsAddress;
       const finalAddress = extractedAddress || prev.address || res.lastSearchQuery || "";
-
       const updatedSearchQuery = finalAddress || res.lastSearchQuery || "";
 
       chrome.storage.local.set({
@@ -176,6 +351,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       });
     });
 
+    dualAuditSession.sourceA = { status: "SUCCESS", data: request.data };
+    evaluateBossDirective();
+
     if (request.closeTab && sender.tab && sender.tab.id) {
       setTimeout(() => {
         chrome.tabs.remove(sender.tab.id).catch(() => { });
@@ -186,7 +364,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
 
-  // TỰ ĐỘNG LƯU DỮ LIỆU TỪ COUNTYOFFICE.ORG CHẠY SONG SONG
+  // TỰ ĐỘNG LƯU DỮ LIỆU TỪ COUNTYOFFICE.ORG CHẠY SONG SONG (Nguồn ***B)
   if (request.action === "AUTO_SAVE_COUNTYOFFICE_DATA" && request.data) {
     chrome.storage.local.get(["lastPipelineResult", "lastSearchQuery"], (res) => {
       const prev = res.lastPipelineResult || {};
@@ -200,15 +378,27 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           lot: {
             ...(prev.lot || {}),
             parcelId: prev.lot?.parcelId || coData.apn || null,
-            yearBuilt: prev.lot?.yearBuilt || coData.specs?.yearBuilt || null,
-            existingBuildingArea: prev.lot?.existingBuildingArea || coData.specs?.livingArea || coData.specs?.squareFeet || null,
-            lotAreaTaxRecord: prev.lot?.lotAreaTaxRecord || coData.specs?.lotSize || null
+            yearBuilt: prev.lot?.yearBuilt || coData.yearBuilt || null,
+            existingBuildingArea: prev.lot?.existingBuildingArea || coData.buildingSize || null,
+            lotAreaTaxRecord: prev.lot?.lotAreaTaxRecord || coData.lotSize || null
           },
           updatedAt: new Date().toISOString()
         }
       });
     });
 
+    dualAuditSession.sourceB = { status: "SUCCESS", data: request.data };
+    evaluateBossDirective();
+
+    sendResponse({ success: true });
+    return true;
+  }
+
+  // COUNTYOFFICE BỊ LỖI HOẶC 403 FORBIDDEN (Nguồn ***B không tải được web)
+  if (request.action === "COUNTYOFFICE_EXTRACTION_FAILED") {
+    console.warn("⚠️ [ServiceWorker] CountyOffice thất bại:", request.error);
+    dualAuditSession.sourceB = { status: "FAILED", error: request.error || "LOAD_FAILED" };
+    evaluateBossDirective();
     sendResponse({ success: true });
     return true;
   }
@@ -473,6 +663,18 @@ async function runDirectSearchPipeline(query, providedApn = "") {
   }
 
   const cleanQuery = query.trim();
+
+  // Khởi tạo lại phiên đối soát kép PropZone (***A) vs CountyOffice (***B)
+  dualAuditSession = {
+    address: cleanQuery,
+    sourceA: null,
+    sourceB: null,
+    evaluated: false
+  };
+  if (auditFallbackTimer) {
+    clearTimeout(auditFallbackTimer);
+    auditFallbackTimer = null;
+  }
 
   // Xóa toàn bộ dữ liệu kết quả cũ giống lệnh Clean ngoại trừ lastSearchQuery
   await chrome.storage.local.remove(["lastPipelineResult", "lastApn", "ocgisMapLinks", "activePipelineSession"]);

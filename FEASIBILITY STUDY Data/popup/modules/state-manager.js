@@ -73,6 +73,9 @@
         }
       });
 
+      const bossAuditCard = document.getElementById("boss-audit-card");
+      if (bossAuditCard) bossAuditCard.classList.add("hidden");
+
       if (btnLinkParcels) {
         btnLinkParcels.classList.add("disabled");
         btnLinkParcels.classList.remove("active");

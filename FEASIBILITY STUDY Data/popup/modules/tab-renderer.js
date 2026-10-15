@@ -34,12 +34,63 @@
 
       const currentAddr = data.address || lot.projectAddress || (inputAddress ? inputAddress.value : "") || "";
 
+      this.renderBossAudit(data.bossAudit);
       this.renderOverviewTab(lot, zoning, capacity, setbacks, currentApn, currentAddr);
       this.renderLotTab(lot, capacity, currentApn, currentAddr);
       this.renderZoningTab(zoning, currentAddr);
       this.renderSetbacksTab(setbacks);
       this.renderCapacityTab(capacity);
       this.renderCivilTab(data, zoning, btnGetSoil);
+    },
+
+    /**
+     * Render Banner Đối soát dữ liệu theo chỉ thị của Sếp
+     */
+    renderBossAudit(bossAudit) {
+      const card = document.getElementById("boss-audit-card");
+      if (!card) return;
+
+      if (!bossAudit || !bossAudit.verdict) {
+        card.classList.add("hidden");
+        return;
+      }
+
+      card.classList.remove("hidden", "matched", "overridden", "fallback", "failed");
+
+      const badge = document.getElementById("boss-audit-badge");
+      const timeEl = document.getElementById("boss-audit-time");
+      const msgEl = document.getElementById("boss-audit-message");
+      const diffEl = document.getElementById("boss-audit-diff");
+
+      if (bossAudit.verdict === "MATCHED") {
+        card.classList.add("matched");
+        if (badge) badge.textContent = "✅ Data giống nhau";
+      } else if (bossAudit.verdict === "OVERRIDDEN_BY_COUNTYOFFICE") {
+        card.classList.add("overridden");
+        if (badge) badge.textContent = "⚠️ Buộc lấy theo (***B) cấm cãi";
+      } else if (bossAudit.verdict === "ONLY_B_LOADED" || bossAudit.verdict === "ONLY_A_LOADED") {
+        card.classList.add("fallback");
+        if (badge) badge.textContent = "ℹ️ Thằng nào load được lấy thằng đó (XUI)";
+      } else {
+        card.classList.add("failed");
+        if (badge) badge.textContent = "❌ Cả 2 đều lỗi (Quá XUI)";
+      }
+
+      if (msgEl) msgEl.textContent = bossAudit.message || "";
+      if (timeEl && bossAudit.evaluatedAt) {
+        const d = new Date(bossAudit.evaluatedAt);
+        timeEl.textContent = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      }
+
+      if (diffEl) {
+        if (bossAudit.diffDetails && bossAudit.diffDetails.length > 0) {
+          diffEl.classList.remove("hidden");
+          diffEl.textContent = "Chi tiết sai lệch giữa 2 nguồn:\n• " + bossAudit.diffDetails.join("\n• ");
+        } else {
+          diffEl.classList.add("hidden");
+          diffEl.textContent = "";
+        }
+      }
     },
 
     /**

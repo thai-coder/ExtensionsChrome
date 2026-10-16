@@ -45,17 +45,8 @@ async function openParallelCountyOfficeTab() {
   lastCountyOfficeOpenTime = now;
 
   try {
-    const existingTabs = await chrome.tabs.query({ url: "*://*.countyoffice.org/*" });
-    if (existingTabs && existingTabs.length > 0) {
-      // Nếu đã có tab CountyOffice, điều hướng lại về trang chủ để tìm kiếm địa chỉ mới
-      const targetTab = existingTabs[0];
-      await chrome.tabs.update(targetTab.id, { url: "https://www.countyoffice.org/", active: false });
-      pipelineSession.countyOfficeTabId = targetTab.id;
-    } else {
-      // Nếu chưa có, tạo tab mới
-      const coTab = await chrome.tabs.create({ url: "https://www.countyoffice.org/", active: false });
-      pipelineSession.countyOfficeTabId = coTab ? coTab.id : null;
-    }
+    const coTab = await chrome.tabs.create({ url: "https://www.countyoffice.org/", active: false });
+    pipelineSession.countyOfficeTabId = coTab ? coTab.id : null;
   } catch (err) {
     console.warn("[ServiceWorker] Mở tab song song CountyOffice lỗi:", err);
   }
@@ -141,17 +132,17 @@ async function evaluateBossDirective() {
 
     if (!isDifferent) {
       verdict = "MATCHED";
-      title = "Data giống nhau";
-      message = "Data giống nhau! Dữ liệu giữa PropZone (***A) và CountyOffice (***B) trùng khớp 100%.";
+      title = "Dữ liệu đồng bộ";
+      message = "Dữ liệu đối soát giữa PropZone và CountyOffice trùng khớp 100%.";
       if (dataB.apn && !finalLot.parcelId) finalLot.parcelId = dataB.apn;
       if (dataB.yearBuilt && !finalLot.yearBuilt) finalLot.yearBuilt = dataB.yearBuilt;
       if (dataB.buildingSize && !finalLot.existingBuildingArea) finalLot.existingBuildingArea = dataB.buildingSize;
       if (dataB.lotSize && !finalLot.lotAreaTaxRecord) finalLot.lotAreaTaxRecord = dataB.lotSize;
     } else {
       verdict = "OVERRIDDEN_BY_COUNTYOFFICE";
-      title = "Data buộc lấy theo (***B) cấm cãi";
-      message = "Data buộc lấy theo (***B) cấm cãi! Sếp chỉ đạo CountyOffice là chuẩn, toàn bộ số liệu đã ghi đè theo (***B).";
-      // BẮT BUỘC GHI ĐÈ THEO B
+      title = "Ưu tiên dữ liệu CountyOffice";
+      message = "Dữ liệu được cập nhật ưu tiên theo nguồn CountyOffice chuẩn.";
+      // Ghi đè ưu tiên theo B
       if (dataB.apn) finalLot.parcelId = dataB.apn;
       if (dataB.lotSize) finalLot.lotAreaTaxRecord = dataB.lotSize;
       if (dataB.buildingSize) finalLot.existingBuildingArea = dataB.buildingSize;
@@ -159,11 +150,11 @@ async function evaluateBossDirective() {
       if (dataB.propertyType) finalLot.existingBuildingUse = dataB.propertyType;
     }
 
-  // TRƯỜNG HỢP 2: 1 TRONG 2 BÊN KHÔNG THỂ TẢI WEB ("THÌ XUI. THẰNG NÀO LOAD ĐƯỢC THÌ LẤY CỦA THẰNG ĐÓ")
+  // TRƯỜNG HỢP 2: 1 TRONG 2 BÊN KHÔNG THỂ TẢI WEB -> ÂM THẦM LẤY BÊN LOAD ĐƯỢC, KHÔNG BÁO LÊN UI
   } else if (aFailed && bSuccess) {
     verdict = "ONLY_B_LOADED";
-    title = "(***A) không thể tải web (XUI)";
-    message = "(***A) PropZone không thể tải web (XUI). Lấy toàn bộ data theo (***B) CountyOffice!";
+    title = "";
+    message = "";
     const dataB = sourceB.data;
     if (dataB.apn) finalLot.parcelId = dataB.apn;
     if (dataB.lotSize) finalLot.lotAreaTaxRecord = dataB.lotSize;
@@ -173,14 +164,14 @@ async function evaluateBossDirective() {
 
   } else if (bFailed && aSuccess) {
     verdict = "ONLY_A_LOADED";
-    title = "(***B) không thể tải web (XUI)";
-    message = "(***B) CountyOffice không thể tải web (XUI / 403 Forbidden). Lấy data theo (***A) PropZone!";
+    title = "";
+    message = "";
     // Giữ nguyên dữ liệu của A
 
   } else if (aFailed && bFailed) {
     verdict = "BOTH_FAILED";
-    title = "Cả 2 bên đều không tải được";
-    message = "Cả (***A) PropZone và (***B) CountyOffice đều không thể tải web (Quá XUI)!";
+    title = "";
+    message = "";
   }
 
   // Cập nhật Storage
@@ -201,18 +192,20 @@ async function evaluateBossDirective() {
 
   await chrome.storage.local.set({ lastPipelineResult: updatedResult });
 
-  // Phát sóng Toast thông báo tới tất cả các tab
-  try {
-    const tabs = await chrome.tabs.query({});
-    tabs.forEach(t => {
-      chrome.tabs.sendMessage(t.id, {
-        action: "BOSS_AUDIT_NOTIFICATION",
-        verdict: verdict,
-        title: title,
-        message: message + (diffDetails.length > 0 ? "\n" + diffDetails.join("\n") : "")
-      }).catch(() => { });
-    });
-  } catch (e) { }
+  // Phát sóng Toast thông báo tới tất cả các tab (CHỈ phát sóng khi cả 2 bên cùng xong và có so sánh)
+  if (verdict === "MATCHED" || verdict === "OVERRIDDEN_BY_COUNTYOFFICE") {
+    try {
+      const tabs = await chrome.tabs.query({});
+      tabs.forEach(t => {
+        chrome.tabs.sendMessage(t.id, {
+          action: "BOSS_AUDIT_NOTIFICATION",
+          verdict: verdict,
+          title: title,
+          message: message + (diffDetails.length > 0 ? "\n" + diffDetails.join("\n") : "")
+        }).catch(() => { });
+      });
+    } catch (e) { }
+  }
 }
 
 // Lắng nghe lệnh từ Popup hoặc Content Scripts
@@ -549,11 +542,11 @@ async function handlePropertyOverviewFound(details, tabId) {
       targetTabId = tabId;
     } catch (e) {
       const pzTab = await chrome.tabs.create({ url: targetPropZoneUrl, active: true });
-      targetTabId = pzTab.id;
+      targetTabId = pzTab ? pzTab.id : null;
     }
   } else {
     const pzTab = await chrome.tabs.create({ url: targetPropZoneUrl, active: true });
-    targetTabId = pzTab.id;
+    targetTabId = pzTab ? pzTab.id : null;
   }
 
   pipelineSession.propZoneTabId = targetTabId;

@@ -77,12 +77,6 @@
     // Đánh dấu đã bắt đầu tìm kiếm
     sessionStorage.setItem("__COUNTYOFFICE_SEARCH_DONE__", "true");
 
-    let addressToSearch = "123 Main St, Huntington, NY";
-    try {
-      const stored = await chrome.storage.local.get(["activePipelineSession", "lastSearchQuery"]);
-      addressToSearch = stored.activePipelineSession?.address || stored.lastSearchQuery || addressToSearch;
-    } catch (e) { }
-
     inputElement.focus();
     inputElement.value = addressToSearch;
     inputElement.dispatchEvent(new Event('input', { bubbles: true }));

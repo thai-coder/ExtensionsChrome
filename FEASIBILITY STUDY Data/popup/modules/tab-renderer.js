@@ -50,7 +50,8 @@
       const card = document.getElementById("boss-audit-card");
       if (!card) return;
 
-      if (!bossAudit || !bossAudit.verdict) {
+      // ẨN HOÀN TOÀN: Khi chỉ 1 bên tải được (XUI) hoặc cả 2 bên lỗi, tuyệt đối không show ra UI
+      if (!bossAudit || !bossAudit.verdict || bossAudit.verdict === "ONLY_B_LOADED" || bossAudit.verdict === "ONLY_A_LOADED" || bossAudit.verdict === "BOTH_FAILED") {
         card.classList.add("hidden");
         return;
       }
@@ -64,16 +65,13 @@
 
       if (bossAudit.verdict === "MATCHED") {
         card.classList.add("matched");
-        if (badge) badge.textContent = "✅ Data giống nhau";
+        if (badge) badge.textContent = "✅ Dữ liệu đồng bộ";
       } else if (bossAudit.verdict === "OVERRIDDEN_BY_COUNTYOFFICE") {
         card.classList.add("overridden");
-        if (badge) badge.textContent = "⚠️ Buộc lấy theo (***B) cấm cãi";
-      } else if (bossAudit.verdict === "ONLY_B_LOADED" || bossAudit.verdict === "ONLY_A_LOADED") {
-        card.classList.add("fallback");
-        if (badge) badge.textContent = "ℹ️ Thằng nào load được lấy thằng đó (XUI)";
+        if (badge) badge.textContent = "⚠️ Ưu tiên CountyOffice";
       } else {
-        card.classList.add("failed");
-        if (badge) badge.textContent = "❌ Cả 2 đều lỗi (Quá XUI)";
+        card.classList.add("hidden");
+        return;
       }
 
       if (msgEl) msgEl.textContent = bossAudit.message || "";
